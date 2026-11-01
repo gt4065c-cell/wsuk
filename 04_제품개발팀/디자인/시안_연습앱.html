@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>시안 · AI Agent 실무역량 연습 (트랙 B v0.3)</title>
+<!-- 글꼴: Pretendard (무료, SIL OFL). 인터넷이 없으면 휴대폰 기본 글꼴로 자동 대체됩니다. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* =========================================================
+   0. 시안 보기 도구 (실제 앱에는 넣지 않음)
+   ========================================================= */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0}
+body{
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  background:#D6D9E1;color:#151A2D;
+}
+.toolbar{
+  position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:8px 12px;background:#1E2233;color:#E6E8F2;font-size:14px;
+}
+.toolbar .tb-title{font-weight:700;margin-right:4px;white-space:nowrap}
+.tb-group{display:flex;border:1px solid #4A5070;border-radius:10px;overflow:hidden}
+.tb-group button{
+  min-height:44px;padding:0 12px;border:0;background:transparent;color:#D3D7E8;
+  font:inherit;font-weight:600;cursor:pointer;white-space:nowrap;
+}
+.tb-group button+button{border-left:1px solid #4A5070}
+.tb-group button[aria-pressed="true"]{background:#FFFFFF;color:#1E2233}
+.toolbar select{
+  min-height:44px;max-width:100%;padding:0 10px;border-radius:10px;border:1px solid #4A5070;
+  background:#2A2F45;color:#FFFFFF;font:inherit;
+}
+.stage{display:flex;justify-content:center;padding:24px 12px 40px}
+.phone{
+  --phone-w:390px;
+  width:calc(var(--phone-w) + 20px);max-width:100%;height:844px;max-height:calc(100vh - 110px);min-height:560px;
+  border:10px solid #121318;border-radius:40px;overflow:hidden;background:var(--bg);
+  box-shadow:0 20px 60px rgba(0,0,0,.25);container-type:inline-size;position:relative;
+}
+.phone[data-w="360"]{--phone-w:360px}
+.scroll{height:100%;overflow-y:auto;overflow-x:hidden;background:var(--bg);display:flex;flex-direction:column}
+#app{flex:1 0 auto;display:flex;flex-direction:column}
+#app>.screen{flex:1 0 auto}
+@media (max-width:520px){
+  .toolbar{position:static}
+  .stage{padding:0}
+  .phone{width:100%;height:auto;max-height:none;min-height:0;border:0;border-radius:0;box-shadow:none}
+  .scroll{height:auto;overflow:visible;min-height:100vh}
+}
+
+/* =========================================================
+   1. 색 (디자인시스템.md 1장과 같은 값)
+   ========================================================= */
+.phone[data-plan="a"][data-mode="light"]{
+  --bg:#F4F6FB;--surface:#FFFFFF;--surface-2:#EEF1F8;--text:#151A2D;--text-2:#4A5170;--border:#D5DAE7;
+  --primary:#3445C4;--on-primary:#FFFFFF;--primary-weak:#E6E9FC;--accent:#3445C4;
+  --correct:#0A7A5A;--correct-bg:#E1F4EC;--wrong:#B4380F;--wrong-bg:#FBE8E0;--note:#7A5300;--note-bg:#FFF3D1;
+  --shadow:0 1px 2px rgba(21,26,45,.06),0 4px 16px rgba(21,26,45,.06);
+}
+.phone[data-plan="a"][data-mode="dark"]{
+  --bg:#0E1222;--surface:#181D33;--surface-2:#212742;--text:#ECEEF7;--text-2:#A9B0CC;--border:#323A5C;
+  --primary:#8E9BFF;--on-primary:#10142A;--primary-weak:#28305C;--accent:#8E9BFF;
+  --correct:#55D6A8;--correct-bg:#123A2E;--wrong:#FF9470;--wrong-bg:#43231A;--note:#F5C66B;--note-bg:#3A2F12;
+  --shadow:none;
+}
+.phone[data-plan="b"][data-mode="light"]{
+  --bg:#F7F5EF;--surface:#FFFFFF;--surface-2:#EFECE3;--text:#1B1A17;--text-2:#55524A;--border:#DAD6CA;
+  --primary:#1B1A17;--on-primary:#FFFFFF;--primary-weak:#F6E7C8;--accent:#A35A00;
+  --correct:#0A7A5A;--correct-bg:#E1F4EC;--wrong:#B4380F;--wrong-bg:#FBE8E0;--note:#7A5300;--note-bg:#FFF3D1;
+  --shadow:none;
+}
+.phone[data-plan="b"][data-mode="dark"]{
+  --bg:#111113;--surface:#1C1C20;--surface-2:#26262B;--text:#F4F3EE;--text-2:#B4B2AA;--border:#38383F;
+  --primary:#F2B33D;--on-primary:#1B1A17;--primary-weak:#3A2F17;--accent:#F2B33D;
+  --correct:#5EDAA9;--correct-bg:#12362B;--wrong:#FF9470;--wrong-bg:#41231A;--note:#F5C66B;--note-bg:#3A2F12;
+  --shadow:none;
+}
+.phone[data-plan="a"]{--r-card:16px;--r-btn:14px;--r-choice:14px;--r-badge:50%}
+.phone[data-plan="b"]{--r-card:8px;--r-btn:6px;--r-choice:6px;--r-badge:5px}
+.phone{--pad:20px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+@container (max-width:374px){ .screen{--pad:16px} }
+
+/* =========================================================
+   2. 앱 공통
+   ========================================================= */
+.screen{
+  min-height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--text);
+  font-size:1.0625rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere;
+}
+.content{flex:1;padding:20px var(--pad) 24px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3,p{margin:0}
+h1{font-size:1.625rem;line-height:1.35;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.375rem;line-height:1.35;font-weight:700}
+h3{font-size:1.0625rem;font-weight:700}
+.sub{color:var(--text-2);font-size:.9375rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:16px;box-shadow:var(--shadow)}
+.mono{font-family:var(--mono);letter-spacing:.04em}
+.tag{
+  display:inline-flex;align-items:center;min-height:28px;padding:0 8px;border:1px solid var(--border);
+  border-radius:6px;font-family:var(--mono);font-size:.875rem;font-weight:600;color:var(--text-2);background:var(--surface-2);
+}
+.h-label{font-size:.9375rem;font-weight:700;color:var(--text-2)}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+svg{flex:none}
+
+/* 버튼 */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:12px 16px;
+  border-radius:var(--r-btn);border:1.5px solid transparent;font:inherit;font-size:1.0625rem;font-weight:700;
+  line-height:1.35;cursor:pointer;text-align:center;transition:transform .1s;
+}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn-col{display:flex;flex-direction:column;gap:10px}
+.linkbtn{
+  align-self:center;min-height:44px;padding:0 12px;border:0;background:none;color:var(--text-2);
+  font:inherit;font-size:.9375rem;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;
+}
+.bottombar{
+  position:sticky;bottom:0;z-index:5;padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom));
+  background:var(--bg);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;
+}
+.hint{font-size:.875rem;color:var(--text-2);text-align:center}
+
+/* 안내 상자 */
+.info{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:calc(var(--r-card) - 4px);background:var(--surface-2);color:var(--text-2);font-size:.9375rem;line-height:1.55}
+.info svg{margin-top:2px;color:var(--text-2)}
+.note{padding:12px 14px;border-radius:calc(var(--r-card) - 4px);background:var(--note-bg);border-left:4px solid var(--note);font-size:1rem}
+.note .note-title{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--note);margin-bottom:4px;font-size:.9375rem}
+.storage-note{display:flex;gap:6px;align-items:center;justify-content:center;font-size:.875rem;color:var(--note);text-align:center}
+
+/* 지정 링크 띠 */
+.band{
+  position:sticky;top:0;z-index:6;display:flex;gap:8px;align-items:center;padding:10px var(--pad);
+  background:var(--accent);color:var(--on-primary);font-size:.9375rem;font-weight:700;line-height:1.4;
+}
+.phone[data-plan="b"][data-mode="light"] .band{color:#FFFFFF}
+
+/* =========================================================
+   3. 화면별
+   ========================================================= */
+/* 첫 화면 */
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-weight:800;font-size:.9375rem;letter-spacing:-.02em}
+.phone[data-plan="b"] .logo{border-radius:4px;font-family:var(--mono)}
+.brand-sub{font-size:.875rem;color:var(--text-2);font-weight:600;line-height:1.35}
+.today{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;list-style:none;margin:0;padding:0}
+.today li{display:flex;flex-direction:column;gap:2px;padding:10px 8px;border-radius:10px;background:var(--surface-2);font-size:.875rem;font-weight:600;color:var(--text-2);line-height:1.35}
+.today b{font-family:var(--mono);color:var(--accent);font-size:.875rem}
+.phone[data-plan="b"] .today li{border-radius:4px}
+.field label{display:block;font-weight:700;margin-bottom:8px}
+.field input{
+  width:100%;min-height:56px;padding:0 16px;border:2px solid var(--border);border-radius:var(--r-btn);
+  background:var(--surface);color:var(--text);font-family:var(--mono);font-size:1.375rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+}
+.field input::placeholder{letter-spacing:.04em;font-weight:500;color:var(--text-2);opacity:.8;font-size:1.0625rem;text-transform:none}
+.field input:focus{outline:none;border-color:var(--primary)}
+.field.err input{border-color:var(--wrong)}
+.field .help{margin-top:8px;font-size:.9375rem;color:var(--text-2)}
+.field .error{margin-top:8px;display:flex;gap:6px;align-items:flex-start;color:var(--wrong);font-weight:700;font-size:.9375rem}
+
+/* 세트 고르기 */
+.setlist{display:flex;flex-direction:column;gap:10px}
+.setcard{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;width:100%;min-height:72px;padding:14px 16px;
+  border:1.5px solid var(--border);border-radius:var(--r-card);background:var(--surface);color:var(--text);
+  font:inherit;text-align:left;cursor:pointer;box-shadow:var(--shadow);position:relative;
+}
+.setcard[aria-checked="true"]{border:2px solid var(--primary);padding:13.5px 15.5px;background:var(--primary-weak)}
+.setcard .partno{font-size:1.625rem;font-weight:800;line-height:1;color:var(--accent);min-width:44px}
+.setcard .partno small{font-size:.875rem;font-weight:700;margin-left:1px}
+.phone[data-plan="b"] .setcard .partno{font-family:var(--mono)}
+.setcard .st-title{font-weight:700;line-height:1.35}
+.setcard .st-range{font-size:.9375rem;color:var(--text-2)}
+.setcard .st-count{font-size:.9375rem;font-weight:700;color:var(--text-2);text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.setcard .st-check{color:var(--primary);display:flex;align-items:center;gap:2px;font-size:.875rem}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{
+  min-height:56px;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--r-btn);background:var(--surface);
+  color:var(--text);font:inherit;font-weight:700;line-height:1.3;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+.seg button small{font-size:.875rem;font-weight:500;color:var(--text-2)}
+.seg button[aria-checked="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.seg button[aria-checked="true"] small{color:var(--on-primary);opacity:.9}
+
+/* 문제 */
+.qhead{display:flex;flex-direction:column;gap:10px}
+.qhead-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.count{font-size:.9375rem;font-weight:700;color:var(--text-2)}
+.count-b{display:none}
+.phone[data-plan="b"] .count-a{display:none}
+.phone[data-plan="b"] .count-b{display:inline;font-family:var(--mono);font-size:1.25rem;font-weight:800;color:var(--accent)}
+.phone[data-plan="b"] .h-label{font-family:var(--mono);letter-spacing:.06em}
+.steps{display:flex;gap:4px}
+.step{flex:1;min-width:0;height:20px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;color:var(--surface)}
+.phone[data-plan="b"] .step{border-radius:3px;height:22px}
+.step.now{border:2px solid var(--primary);background:var(--primary-weak)}
+.step.ok{background:var(--correct);border-color:var(--correct)}
+.step.no{background:var(--wrong);border-color:var(--wrong)}
+.step.many svg{display:none}
+.qcard{display:flex;flex-direction:column;gap:10px}
+.qmeta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qtype{font-size:.875rem;color:var(--text-2);font-weight:600}
+.qtext{font-size:1.1875rem;font-weight:600;line-height:1.55}
+.is-team .tag{font-size:1rem;min-height:32px;color:var(--text);border-color:var(--accent)}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{
+  display:flex;align-items:flex-start;gap:12px;width:100%;min-height:56px;padding:14px;
+  border:1.5px solid var(--border);border-radius:var(--r-choice);background:var(--surface);color:var(--text);
+  font:inherit;font-size:1.0625rem;line-height:1.5;text-align:left;cursor:pointer;transition:transform .1s,background .15s;
+}
+.choice:active:not([aria-disabled="true"]){transform:scale(.99)}
+.choice .num{
+  flex:none;width:30px;height:30px;border-radius:var(--r-badge);border:1.5px solid var(--text-2);
+  display:grid;place-items:center;font-size:.9375rem;font-weight:800;color:var(--text-2);font-family:var(--mono)
+}
+.choice .txt{flex:1;min-width:0;padding-top:2px}
+.choice .mark{flex:none;display:flex;flex-direction:column;align-items:center;gap:0;font-size:.875rem;font-weight:800;line-height:1.25;text-align:center}
+.choice .mark.ok{color:var(--correct)}
+.choice .mark.no{color:var(--wrong)}
+.choice.selected{background:var(--primary-weak);border:2px solid var(--primary);padding:13.5px}
+.choice.selected .num{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.choice.is-correct{background:var(--correct-bg);border:2px solid var(--correct);padding:13.5px}
+.choice.is-correct .num{background:var(--correct);border-color:var(--correct);color:var(--surface)}
+.choice.is-wrong{background:var(--wrong-bg);border:2px dashed var(--wrong);padding:13.5px}
+.choice.is-wrong .num{border-color:var(--wrong);color:var(--wrong)}
+.choice.dim{opacity:.55}
+.choice[aria-disabled="true"]{cursor:default}
+/* OX */
+.choices.ox{display:grid;grid-template-columns:1fr 1fr}
+.ox .choice{flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:112px;gap:4px;padding:12px 8px}
+.ox .choice.selected,.ox .choice.is-correct,.ox .choice.is-wrong{padding:11.5px 7.5px}
+.ox .choice .num{width:auto;height:auto;border:0;background:none !important;font-size:2.25rem;line-height:1;color:var(--text);font-family:inherit}
+.ox .choice.selected .num{color:var(--primary)}
+.ox .choice.is-correct .num{color:var(--correct)}
+.ox .choice.is-wrong .num{color:var(--wrong)}
+.ox .choice .txt{flex:none;font-size:.9375rem;color:var(--text-2);font-weight:600;padding:0}
+.ox .choice .mark{flex-direction:row;gap:4px}
+
+/* 채점·해설 */
+.verdict{display:flex;gap:10px;align-items:flex-start;padding:14px 16px;border-radius:var(--r-card);border:1.5px solid;font-weight:700;line-height:1.5}
+.verdict.ok{background:var(--correct-bg);border-color:var(--correct);color:var(--correct)}
+.verdict.no{background:var(--wrong-bg);border-color:var(--wrong);color:var(--wrong)}
+.verdict .v-icon{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:currentColor;flex:none}
+.verdict .v-icon svg{color:var(--surface)}
+.verdict .v-body b{color:var(--text)}
+.explain{display:flex;flex-direction:column;gap:10px}
+.explain p{line-height:1.65}
+.source{font-size:.9375rem;color:var(--text-2)}
+@media (prefers-reduced-motion:no-preference){
+  .pop{animation:pop .22s ease-out}
+  @keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:none;opacity:1}}
+}
+
+/* 결과 */
+.score{display:flex;align-items:baseline;gap:8px}
+.score b{font-size:3rem;line-height:1;font-weight:800;color:var(--accent)}
+.score span{font-size:1.375rem;font-weight:700;color:var(--text-2)}
+.phone[data-plan="b"] .score b{font-family:var(--mono)}
+.chip{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:99px;background:var(--surface-2);font-size:.875rem;font-weight:600;color:var(--text-2)}
+.phone[data-plan="b"] .chip{border-radius:4px}
+.feet{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;list-style:none;margin:0;padding:0}
+.feet li{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:10px;border:2px solid;font-size:.875rem;font-weight:700;line-height:1.3}
+.phone[data-plan="b"] .feet li{border-radius:4px}
+.feet li.ok{background:var(--correct-bg);border-color:var(--correct);color:var(--correct)}
+.feet li.no{background:var(--wrong-bg);border-color:var(--wrong);border-style:dashed;color:var(--wrong)}
+.feet .f-top{display:flex;align-items:center;gap:4px}
+.feet .f-id{font-family:var(--mono);color:var(--text-2);font-weight:600}
+
+/* 다시 보기 */
+.rv{display:flex;flex-direction:column;gap:12px}
+.rv-row{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:calc(var(--r-card) - 6px);border:2px solid}
+.rv-row.no{background:var(--wrong-bg);border-color:var(--wrong);border-style:dashed}
+.rv-row.ok{background:var(--correct-bg);border-color:var(--correct)}
+.rv-row .rv-k{flex:none;display:flex;align-items:center;gap:4px;font-weight:800;font-size:.9375rem;min-width:64px}
+.rv-row.no .rv-k{color:var(--wrong)}
+.rv-row.ok .rv-k{color:var(--correct)}
+.rv-row .rv-v{flex:1;min-width:0}
+.empty{padding:24px 16px;text-align:center;color:var(--text-2)}
+</style>
+</head>
+<body>
+
+<!-- 시안 보기 도구: 실제 앱에는 넣지 않습니다 -->
+<div class="toolbar" role="region" aria-label="시안 보기 도구">
+  <span class="tb-title">시안 도구</span>
+  <div class="tb-group" role="group" aria-label="분위기">
+    <button type="button" data-tb="plan" data-v="a" aria-pressed="true">A안 연구노트(추천)</button>
+    <button type="button" data-tb="plan" data-v="b" aria-pressed="false">B안 야간작전실</button>
+  </div>
+  <div class="tb-group" role="group" aria-label="밝기">
+    <button type="button" data-tb="mode" data-v="light" aria-pressed="true">밝게</button>
+    <button type="button" data-tb="mode" data-v="dark" aria-pressed="false">어둡게</button>
+  </div>
+  <div class="tb-group" role="group" aria-label="화면 폭">
+    <button type="button" data-tb="w" data-v="390" aria-pressed="true">390px</button>
+    <button type="button" data-tb="w" data-v="360" aria-pressed="false">360px</button>
+  </div>
+  <label class="sr" for="jump">화면 바로가기</label>
+  <select id="jump" aria-label="화면 바로가기">
+    <option value="">화면 바로가기…</option>
+    <option value="start">① 첫 화면 (코드 입력)</option>
+    <option value="start-err">① 첫 화면 — 코드 오류 예시</option>
+    <option value="resume">①-b 풀던 연습 이어 풀기</option>
+    <option value="sets">② 세트 고르기</option>
+    <option value="q-fresh">③ 문제 — 고르기 전</option>
+    <option value="q-picked">③ 문제 — 보기 고른 상태</option>
+    <option value="q-right">④ 해설 — 정답</option>
+    <option value="q-wrong">④ 해설 — 오답 + 헷갈리기 쉬워요</option>
+    <option value="q-ox">④ 해설 — OX 문항</option>
+    <option value="result">⑤ 결과</option>
+    <option value="review">⑥ 틀린 문항 다시 보기</option>
+    <option value="team-start">⑦ 지정 링크 — 첫 화면</option>
+    <option value="team-q">⑦ 지정 링크 — 문제(없는 문항 안내)</option>
+    <option value="team-result">⑦ 지정 링크 — 결과</option>
+    <option value="storage-off">기타 — 이어 풀기 꺼짐 안내</option>
+  </select>
+</div>
+
+<div class="stage">
+  <div class="phone" id="phone" data-plan="a" data-mode="light" data-w="390">
+    <div class="scroll" id="scroll">
+      <main id="app"></main>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   시안 데이터 — 연습 문항(pool: practice)만. 03_교육기획팀/문항은행/questions_part1-3.json 에서 그대로 옮김.
+   진단·평가 문항과 세트는 이 파일에 넣지 않습니다.
+   ========================================================= */
+var QUESTIONS = {
+  "L01-Q4": {type:"mcq",
+    question:"01강의 규칙표는 '수강 신청'이라는 말이 들어오면 학사 문의로 분류합니다. 그런데 '과목을 바꾸고 싶다'는 질문은 놓칠 수 있습니다. 대본이 설명한 이유는 무엇인가요?",
+    choices:["규칙 중심 방식은 틀린 방식이기 때문","사람이 어떤 규칙을 넣었는지가 작동 범위를 결정하기 때문","글이나 코드 같은 결과를 만들지 못하기 때문","학습한 자료의 품질이 낮기 때문"],
+    answer_index:1,
+    explanation:"대본은 사람이 어떤 규칙을 넣었는지가 작동 범위를 결정한다고 설명합니다. 이 방식이 틀렸다는 뜻은 아니며 조건이 분명한 업무에는 여전히 유용합니다. 자료의 품질과 학습 범위가 결과에 영향을 준다는 설명은 그다음에 나오는 패턴 학습 분류기에 대한 것입니다.",
+    common_wrong_index:3, common_wrong_reason:"화면 실습 2의 패턴 학습 분류기가 오분류한 이유(자료 품질·학습 범위)와 섞기 쉽습니다.",
+    source_section:"01강 화면 실습 1 (1:10–1:50), 화면 실습 2 (1:50–2:30)"},
+  "L02-Q4": {type:"ox",
+    question:"아직 측정하지 않았더라도 AI를 쓰면 작성 시간이 절반으로 줄었다고 말해도 된다.",
+    choices:["O","X"], answer_index:1,
+    explanation:"대본은 아직 측정하지 않았다면 시간이 절반으로 줄었다고 말할 수 없다고 합니다. 기준을 정하고 반복해 측정해야 어떤 업무에 AI가 유리한지 알 수 있습니다.",
+    common_wrong_index:0, common_wrong_reason:"AI는 당연히 빠르다는 인상 때문에 측정 없이 효과를 단정하기 쉽습니다.",
+    source_section:"02강 작동 확인"},
+  "L03-Q4": {type:"ox",
+    question:"목표·자료·제약·완료 기준을 모두 갖춘 요청문을 써도, 전문 내용은 근거를 직접 읽고 확인하는 단계가 남아 있다.",
+    choices:["O","X"], answer_index:0,
+    explanation:"맞습니다. 대본은 요청문이 좋아도 내용의 정확성이 보장되지는 않으며, 특히 전문 내용은 근거를 직접 읽고 확인하는 단계가 남아 있다고 말합니다.",
+    common_wrong_index:1, common_wrong_reason:"요청을 잘 쓰면 결과도 맞을 것이라고 기대해 X를 고르기 쉽습니다.",
+    source_section:"03강 작동 확인"},
+  "L06-Q4": {type:"mcq",
+    question:"AI가 만든 코드를 받았을 때 06강에서 먼저 확인하라고 한 것은 무엇인가요?",
+    choices:["어떤 언어이며 어디에서 실행하는지","코드의 줄 수","코드를 만든 AI의 이름","세 언어를 모두 설치했는지"],
+    answer_index:0,
+    explanation:"대본은 AI가 만든 코드를 받았을 때 먼저 어떤 언어이며 어디에서 실행하는지 확인하라고 하고, 모르면 파일 형식과 실행 조건부터 물어보라고 합니다. 파일 종류와 실행 환경이 맞아야 하며, 이번 과정에서 세 언어를 모두 설치할 필요는 없습니다.",
+    common_wrong_index:3, common_wrong_reason:"코드를 실행하려면 모든 언어를 미리 설치해야 한다고 생각하기 쉽습니다.",
+    source_section:"06강 화면 실습 3 (2:30–3:10), 화면 실습 4 (3:10–3:50), 오늘의 미션 (4:30–5:00)"},
+  "L07-Q3": {type:"mcq",
+    question:"링크에 보이는 글자를 새 자료 이름으로 바꿨는데, 클릭하면 여전히 예전 페이지로 이동합니다. 07강에 따른 원인은?",
+    choices:["브라우저가 HTML을 읽지 못해서","파일 인코딩이 UTF-8이어서","보이는 문구와 실제 이동 주소는 따로 있어서, 주소를 적는 속성은 바꾸지 않았기 때문","h1 태그를 지웠기 때문"],
+    answer_index:2,
+    explanation:"대본은 링크의 보이는 문구와 실제 이동 주소가 다를 수 있으며, 클릭할 글자만 고쳤다고 목적지까지 바뀌지는 않는다고 설명합니다. 주소를 적는 속성을 함께 확인해야 합니다. UTF-8은 한글이 깨지지 않도록 맞춰 둔 설정입니다.",
+    common_wrong_index:0, common_wrong_reason:"글자가 바뀌었으니 링크 전체가 바뀌었다고 생각해 다른 원인을 찾기 쉽습니다.",
+    source_section:"07강 화면 실습 3"},
+  "L09-Q4": {type:"mcq",
+    question:"09강에서 연습한 바이브코딩 작업 흐름의 순서로 알맞은 것은?",
+    choices:["요청 → 실행 → 확인 → 수정","실행 → 요청 → 수정 → 확인","요청 → 수정 → 실행 → 확인","확인 → 요청 → 실행 → 수정"],
+    answer_index:0,
+    explanation:"대본은 요청하고, 실행하고, 확인하고, 수정하는 흐름을 연습하며 이 과정을 반복한다고 합니다. AI가 완료했다고 말해도 실제 화면에서 확인할 단계가 남아 있으므로, 실행해 보고 실패한 조건을 되돌려 준 뒤 수정합니다.",
+    common_wrong_index:2, common_wrong_reason:"요청하면 AI가 곧바로 수정까지 끝낸다고 생각해 실행과 확인을 뒤로 미루기 쉽습니다.",
+    source_section:"09강 완성 장면 (0:00–0:20), 핵심 개념 (0:20–1:10), 작동 확인 (3:50–4:30)"},
+  "L11-Q1": {type:"mcq",
+    question:"11강에서 오류 수정 요청에 담으라고 한 네 항목에 해당하지 않는 것은?",
+    choices:["전체를 새로 만들어 달라는 요청","실제 동작","재현 순서","기대 동작"],
+    answer_index:0,
+    explanation:"네 항목은 기대 동작, 실제 동작, 재현 순서, 오류 메시지입니다. 대본은 전체를 다시 만들어 달라고 하면 멀쩡한 부분까지 바뀔 수 있다고 경고하며, 관련 부분만 최소 수정하도록 요청합니다.",
+    common_wrong_index:2, common_wrong_reason:"재현 순서를 덜 중요하게 여겨 빠뜨리기 쉽지만, 같은 순서로 다시 시험해야 수정 여부를 확인할 수 있습니다.",
+    source_section:"11강 완성 장면, 핵심 개념"},
+  "L11-Q4": {type:"mcq",
+    question:"AI가 정답 보기 버튼 오류를 고치면서 문제와 관계없는 문항 내용과 디자인까지 바꿨습니다. 11강에 따른 처리로 알맞은 것은?",
+    choices:["원래 오류가 사라졌으니 그대로 쓴다.","변경 범위를 다시 좁혀, 관련 연결 부분만 수정하도록 요청한다.","전체를 처음부터 다시 만들어 달라고 한다.","AI가 원인을 길게 설명했으니 믿고 넘어간다."],
+    answer_index:1,
+    explanation:"대본은 수정된 줄을 확인하고, 문제와 관계없는 문항 내용이나 디자인까지 바뀌었다면 변경 범위를 다시 좁혀야 한다고 합니다. 전체를 다시 만들어 달라고 하면 멀쩡한 부분까지 바뀔 수 있고, AI가 원인을 길게 설명했다는 사실보다 같은 재현 순서에서 수정 전후를 비교한 결과가 더 직접적인 근거입니다.",
+    common_wrong_index:0, common_wrong_reason:"원래 오류만 고쳐지면 일이 끝났다고 여기기 쉽습니다.",
+    source_section:"11강 완성 장면 (0:00–0:20), 화면 실습 3 (2:30–3:10), 작동 확인 (3:50–4:30)"},
+  "L12-Q1": {type:"mcq",
+    question:"12강에서 설명한 Git과 GitHub의 관계로 알맞은 것은?",
+    choices:["GitHub는 내 컴퓨터에서만 쓰는 도구이고, Git은 인터넷 서비스다.","둘은 같은 것의 다른 이름이다.","Git은 버전 관리 도구이고, GitHub는 저장소를 올려 협업하는 서비스다.","Git은 웹페이지를 배포하는 도구다."],
+    answer_index:2,
+    explanation:"대본은 Git과 GitHub가 같은 것이 아니라고 하며, Git은 파일의 변경 이력을 관리하는 버전 관리 도구, GitHub는 저장소를 올려 협업하는 서비스라고 설명합니다. 배포는 13강의 Firebase Hosting에서 다룹니다.",
+    common_wrong_index:1, common_wrong_reason:"이름이 비슷해서 같은 것으로 생각하기 쉽습니다.",
+    source_section:"12강 핵심 개념"},
+  "L12-Q2": {type:"ox",
+    question:"Git으로 커밋을 했다고 해서 그 파일이 다른 컴퓨터에 백업된 것은 아니다.",
+    choices:["O","X"], answer_index:0,
+    explanation:"맞습니다. 대본은 커밋을 했다고 다른 컴퓨터에 백업된 것은 아니라는 점을 기억하라고 합니다. 12강은 내 컴퓨터에서 기록하고 복원하는 데 집중합니다.",
+    common_wrong_index:1, common_wrong_reason:"'저장했다'는 느낌 때문에 백업까지 된 것으로 오해해 X를 고르기 쉽습니다.",
+    source_section:"12강 핵심 개념"},
+  "L13-Q5": {type:"mcq",
+    question:"13강에서 Hosting 배포 폴더에 들어 있어야 한다고 한 것은 무엇인가요?",
+    choices:["학생에게 제공할 파일만","연구 자료와 비밀 설정 파일까지 모든 파일","Git 커밋 기록 전체","데이터베이스 규칙 파일만"],
+    answer_index:0,
+    explanation:"대본은 배포 폴더에 학생에게 제공할 파일만 들어 있어야 하며, 연구 자료나 비밀 설정 파일이 섞여 있지 않은지 확인하라고 합니다. 잘못된 폴더를 지정하면 기본 안내 페이지만 나오거나 원하지 않는 파일이 게시될 수 있습니다.",
+    common_wrong_index:1, common_wrong_reason:"빠뜨리는 것보다 전부 넣는 편이 안전하다고 생각하기 쉽습니다.",
+    source_section:"13강 화면 실습 1 (1:10–1:50)"},
+  "L14-Q1": {type:"mcq",
+    question:"점수를 자바스크립트 변수에만 두었을 때 페이지를 새로고침하면 어떻게 될 수 있나요?",
+    choices:["데이터베이스에 영구 저장된다.","다른 기기로 자동 공유된다.","초기화되어 0점으로 돌아갈 수 있다.","다른 브라우저에서도 같은 점수가 보인다."],
+    answer_index:2,
+    explanation:"대본은 자바스크립트 변수에만 둔 값은 페이지를 다시 불러오면 초기화될 수 있다고 하며, 실제로 한 문제를 맞힌 뒤 새로고침하니 0점으로 돌아갑니다. 프로그램이 새로 시작하면서 상태를 다시 만들기 때문입니다.",
+    common_wrong_index:0, common_wrong_reason:"화면에 보였던 값은 어딘가에 저장되어 있다고 생각하기 쉽습니다.",
+    source_section:"14강 핵심 개념, 화면 실습 1"}
+};
+/* 세트: 실제 앱은 세트 전체 문항(10·10·11)을 씀. 시안에는 세트마다 예시 문항만 넣음 */
+var SETS = [
+  {id:"PRACTICE-P1", part:1, title:"1부 연습", range:"01~05강", total:10, sample:["L01-Q4","L02-Q4","L03-Q4"]},
+  {id:"PRACTICE-P2", part:2, title:"2부 연습", range:"06~10강", total:10, sample:["L06-Q4","L07-Q3","L09-Q4"]},
+  {id:"PRACTICE-P3", part:3, title:"3부 연습", range:"11~15강", total:11, sample:["L11-Q1","L11-Q4","L12-Q1","L12-Q2","L13-Q5","L14-Q1"]}
+];
+/* 교수님 지정 링크 예시: ?ids=L11-Q1,L12-Q1,L12-Q2,L11-Q4,L13-Q5,L14-Q1 */
+var TEAM_IDS = ["L11-Q1","L12-Q1","L12-Q2","L11-Q4","L13-Q5","L14-Q1"];
+
+/* ========================================================= 상태 */
+var S = {
+  screen:"start", code:"", draft:"", codeError:"",
+  setId:"PRACTICE-P3", amount:"8",
+  team:false, teamIds:TEAM_IDS.slice(), missing:0,
+  items:[], idx:0, answers:[], selected:null, busy:false, storageOff:false
+};
+var CIRCLED = ["①","②","③","④","⑤","⑥"];
+var app = document.getElementById("app");
+var phone = document.getElementById("phone");
+var scroller = document.getElementById("scroll");
+
+/* ========================================================= 도우미 */
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function range(n){var r=[];for(var i=0;i<n;i++)r.push(i);return r;}
+function pad2(n){return (n<10?"0":"")+n;}
+function setById(id){for(var i=0;i<SETS.length;i++)if(SETS[i].id===id)return SETS[i];return SETS[0];}
+function ic(name,size){
+  size=size||20;
+  var p={
+    check:'<path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>',
+    cross:'<path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>',
+    info:'<circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.3v.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+    alert:'<circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v6.2M12 16.6v.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+    link:'<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'
+  }[name];
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>';
+}
+function buildItems(ids, shuffleChoices){
+  return ids.map(function(id){
+    var q=QUESTIONS[id]; var n=q.choices.length;
+    var order=(shuffleChoices && q.type==="mcq") ? shuffle(range(n)) : range(n); /* OX는 순서 고정 */
+    return {id:id,q:q,order:order};
+  });
+}
+function correctPos(it){return it.order.indexOf(it.q.answer_index);}
+function choiceLabel(it,pos){return it.q.type==="ox" ? it.q.choices[it.order[pos]] : CIRCLED[pos];}
+function choiceText(it,pos){return it.q.choices[it.order[pos]];}
+function oxWord(v){return v==="O"?"맞아요":"아니에요";}
+function score(){var c=0;S.answers.forEach(function(a){if(a&&a.correct)c++;});return c;}
+
+/* ========================================================= 판 시작 */
+function startSet(setId, amount){
+  var set=setById(setId);
+  S.team=false; S.setId=setId; S.amount=amount; S.missing=0;
+  var ids=shuffle(set.sample);                 /* 문제 순서 섞기 */
+  if(amount==="8") ids=ids.slice(0,8);         /* 8문항(무작위): 실제 앱은 세트에서 8개 뽑기 */
+  S.items=buildItems(ids,true);                /* 보기 순서 섞기 (OX 제외) */
+  S.idx=0; S.answers=[]; S.selected=null; S.screen="quiz";
+}
+function startTeam(ids){
+  var valid=ids.filter(function(id){return Object.prototype.hasOwnProperty.call(QUESTIONS,id);});
+  S.team=true; S.missing=ids.length-valid.length;
+  S.items=buildItems(valid,false);             /* 지정 링크: 적힌 순서 그대로, 섞지 않음 */
+  S.idx=0; S.answers=[]; S.selected=null; S.screen="quiz";
+}
+function autoAnswer(count, wrongAt){
+  for(var i=0;i<count && i<S.items.length;i++){
+    var it=S.items[i]; var q=it.q; var orig;
+    if(wrongAt.indexOf(i)>=0){ orig=q.common_wrong_index; } else { orig=q.answer_index; }
+    S.answers[i]={pickedOrig:orig,pickedPos:it.order.indexOf(orig),correct:orig===q.answer_index};
+  }
+}
+
+/* ========================================================= 화면 조각 */
+function band(){
+  if(!S.team) return "";
+  return '<div class="band">'+ic("link",18)+'<span>교수님 지정 링크 · 팀 연습 '+(S.items.length||S.teamIds.length)+'문항 · 순서 고정</span></div>';
+}
+function storageNote(){
+  if(!S.storageOff) return "";
+  return '<p class="storage-note">'+ic("alert",16)+'<span>이 브라우저에서는 이어 풀기가 꺼져 있어요. 풀기·채점은 정상이에요.</span></p>';
+}
+
+/* ① 첫 화면 */
+function viewStart(){
+  var err=S.codeError;
+  var teamText = S.team
+    ? '코드를 넣으면 바로 1번 문제가 열려요. 팀원 모두 <b>같은 문제·같은 보기 순서</b>예요.'
+    : '연습 문제를 풀고 바로 해설을 봐요. 점수는 어디에도 기록되지 않아요.';
+  return '<div class="screen">'+band()+
+  '<div class="content">'+
+    '<div class="brand"><div class="logo" aria-hidden="true">Lv</div>'+
+      '<div class="brand-sub">AI Agent 실무자 단기실습과정<br>레벨업 캠퍼스</div></div>'+
+    '<div><h1>AI Agent 실무역량 연습</h1><p class="sub" style="margin-top:6px">'+teamText+'</p></div>'+
+    '<ol class="today" aria-label="오늘 할 일">'+
+      '<li><b>1</b>코드 넣기</li>'+
+      (S.team ? '<li><b>2</b>팀과 상의</li>' : '<li><b>2</b>세트 고르기</li>')+
+      '<li><b>3</b>풀고 바로 해설</li>'+
+    '</ol>'+
+    '<form class="card" data-form="code" novalidate>'+
+      '<div class="field'+(err?' err':'')+'">'+
+        '<label for="code">참가자 코드</label>'+
+        '<input id="code" name="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16" placeholder="카드에 적힌 코드 (예: K7M2PX)" value="'+esc(S.draft)+'" aria-describedby="code-help'+(err?' code-err':'')+'"'+(err?' aria-invalid="true"':'')+'>'+
+        (err ? '<p class="error" id="code-err" role="alert">'+ic("cross",18)+'<span>'+esc(err)+'</span></p>' : '')+
+        '<p class="help" id="code-help">이름·학번은 넣지 마세요.</p>'+
+      '</div>'+
+      '<div class="info" style="margin-top:12px">'+ic("info",18)+'<span>이 코드는 화면에만 표시되고 어디에도 저장·전송되지 않아요.</span></div>'+
+      '<button class="btn btn-primary" type="submit" style="margin-top:16px">시작하기</button>'+
+    '</form>'+
+    '<p class="sub" style="text-align:center">공식 평가는 이 앱에서 하지 않아요. 이 앱은 점수와 무관한 연습용이에요.</p>'+
+  '</div></div>';
+}
+
+/* ①-b 이어 풀기 */
+function viewResume(){
+  return '<div class="screen"><div class="content">'+
+    '<div class="brand"><div class="logo" aria-hidden="true">Lv</div><div class="brand-sub">AI Agent 실무역량 연습</div></div>'+
+    '<div class="card" style="display:flex;flex-direction:column;gap:12px">'+
+      '<h2>풀던 연습이 있어요</h2>'+
+      '<p><b>3부 연습 · 세트 전체</b><br><span class="sub">6문항 중 3문항까지 풀었어요. 문제·보기 순서와 고른 답이 그대로 남아 있어요.</span></p>'+
+      '<div class="btn-col">'+
+        '<button class="btn btn-primary" data-act="resume">이어 풀기 (4번부터)</button>'+
+        '<button class="btn btn-secondary" data-act="new-start">새로 시작</button>'+
+      '</div>'+
+      '<div class="info">'+ic("info",18)+'<span>이 메모는 이 휴대폰 브라우저에만 있어요. 결과 화면까지 가면 지워져요.</span></div>'+
+    '</div>'+
+  '</div></div>';
+}
+
+/* ② 세트 고르기 */
+function viewSets(){
+  var set=setById(S.setId);
+  var cards=SETS.map(function(s){
+    var on=s.id===S.setId;
+    return '<button class="setcard" role="radio" aria-checked="'+on+'" data-act="pick-set" data-id="'+s.id+'">'+
+      '<span class="partno">'+s.part+'<small>부</small></span>'+
+      '<span><span class="st-title">'+esc(s.title)+'</span><br><span class="st-range">'+esc(s.range)+'</span></span>'+
+      '<span class="st-count">'+s.total+'문항'+(on?'<span class="st-check">'+ic("check",16)+'선택됨</span>':'')+'</span>'+
+    '</button>';
+  }).join("");
+  var a8=S.amount==="8";
+  return '<div class="screen"><div class="content">'+
+    '<div><p class="h-label"><span class="mono">'+esc(S.code)+'</span>님</p><h2 style="margin-top:2px">어떤 범위를 연습할까요?</h2></div>'+
+    '<div class="setlist" role="radiogroup" aria-label="연습 세트">'+cards+'</div>'+
+    '<div><h3 style="margin-bottom:8px">분량</h3>'+
+      '<div class="seg" role="radiogroup" aria-label="분량">'+
+        '<button role="radio" aria-checked="'+a8+'" data-act="pick-amount" data-v="8">8문항<small>무작위로 뽑기</small></button>'+
+        '<button role="radio" aria-checked="'+(!a8)+'" data-act="pick-amount" data-v="all">세트 전체<small>'+set.total+'문항 모두</small></button>'+
+      '</div></div>'+
+    '<div class="info">'+ic("info",18)+'<span>풀 때마다 문제와 보기 순서가 바뀌어요. 시간 제한은 없어요. <br>(시안에는 세트마다 예시 문항 3~6개만 들어 있어요.)</span></div>'+
+    '<button class="linkbtn" data-act="home">코드 바꾸기</button>'+
+  '</div>'+
+  '<div class="bottombar"><button class="btn btn-primary" data-act="start-set">'+esc(set.title)+' · '+(a8?'8문항':'세트 전체')+' 시작</button></div>'+
+  '</div>';
+}
+
+/* ③④ 문제 + 해설 */
+function viewQuiz(){
+  var n=S.items.length, i=S.idx, it=S.items[i], q=it.q;
+  var ans=S.answers[i], locked=!!ans, sel=S.selected, ox=q.type==="ox";
+  var title=S.team?"팀 연습":setById(S.setId).title;
+  var many=n>14;
+  var steps=S.items.map(function(_,k){
+    var a=S.answers[k], cls="step"+(many?" many":"");
+    if(a) return '<span class="'+cls+(a.correct?" ok":" no")+'">'+ic(a.correct?"check":"cross",13)+'</span>';
+    if(k===i) return '<span class="'+cls+' now"></span>';
+    return '<span class="'+cls+'"></span>';
+  }).join("");
+  var cp=correctPos(it);
+  var choices=it.order.map(function(_,p){
+    var cls="choice", mark="";
+    if(locked){
+      if(p===cp){cls+=" is-correct";mark='<span class="mark ok">'+ic("check",20)+'<span>정답</span>'+(ans.pickedPos===p?'<span>내 답</span>':'')+'</span>';}
+      else if(p===ans.pickedPos){cls+=" is-wrong";mark='<span class="mark no">'+ic("cross",20)+'<span>내 답</span></span>';}
+      else cls+=" dim";
+    } else if(sel===p) cls+=" selected";
+    var label=choiceLabel(it,p), text=choiceText(it,p);
+    var inner = ox
+      ? '<span class="num" aria-hidden="true">'+esc(label)+'</span><span class="txt">'+oxWord(label)+'</span>'
+      : '<span class="num" aria-hidden="true">'+(p+1)+'</span><span class="txt">'+esc(text)+'</span>';
+    var aria = ox ? label+" "+oxWord(label) : (p+1)+"번 "+text;
+    if(locked){ aria += (p===cp?" — 정답":"") + (p===ans.pickedPos?" — 내 답":""); }
+    return '<button class="'+cls+'" data-act="select" data-pos="'+p+'" aria-label="'+esc(aria)+'"'+
+      (locked?' aria-disabled="true"':' aria-pressed="'+(sel===p)+'"')+'>'+inner+mark+'</button>';
+  }).join("");
+
+  var feedback="";
+  if(locked){
+    var right='<b>'+esc(choiceLabel(it,cp))+' '+esc(ox?oxWord(choiceLabel(it,cp)):choiceText(it,cp))+'</b>';
+    var verdict = ans.correct
+      ? '<div class="verdict ok pop" id="verdict" tabindex="-1" role="status"><span class="v-icon">'+ic("check",18)+'</span><span class="v-body">정답입니다</span></div>'
+      : '<div class="verdict no pop" id="verdict" tabindex="-1" role="status"><span class="v-icon">'+ic("cross",18)+'</span><span class="v-body">아쉬워요, 정답은 '+right+'</span></div>';
+    var confuse = (!ans.correct && ans.pickedOrig===q.common_wrong_index)
+      ? '<div class="note"><p class="note-title">'+ic("alert",18)+'이렇게 헷갈리기 쉬워요</p><p>'+esc(q.common_wrong_reason)+'</p></div>' : '';
+    feedback = verdict +
+      '<section class="card explain" aria-label="해설"><h3>해설</h3><p>'+esc(q.explanation)+'</p>'+confuse+
+      '<p class="source">근거: '+esc(q.source_section)+'</p></section>';
+  }
+  var missing = (S.team && S.missing>0 && i===0 && !locked)
+    ? '<div class="note"><p class="note-title">'+ic("alert",18)+'이 링크에 없는 문항이 '+S.missing+'개 있어요</p><p>있는 문항만 진행해요. 교수님께 알려 주세요.</p></div>' : '';
+  var last=i===n-1;
+  var bar = locked
+    ? '<button class="btn btn-primary" data-act="next">'+(last?'결과 보기':'다음 문제')+'</button>'
+    : '<p class="hint">'+(sel===null?'보기를 먼저 고르세요':'확정하면 바로 채점과 해설이 나와요')+'</p>'+
+      '<button class="btn btn-primary" data-act="confirm"'+(sel===null?' disabled':'')+'>답 확정</button>';
+  var sub=S.team?"순서 고정":(S.amount==="8"?"8문항 · 무작위":"세트 전체");
+  return '<div class="screen'+(S.team?' is-team':'')+'">'+band()+
+  '<div class="content">'+
+    '<div class="qhead">'+
+      '<div class="qhead-row"><span class="h-label">'+esc(title)+' · '+sub+'</span>'+
+      '<span class="count"><span class="count-a">'+(i+1)+' / '+n+'</span><span class="count-b">'+pad2(i+1)+'/'+pad2(n)+'</span></span></div>'+
+      '<div class="steps" aria-hidden="true">'+steps+'</div>'+
+      '<span class="sr">전체 '+n+'문항 중 '+(i+1)+'번째 문항</span>'+
+    '</div>'+ missing +
+    '<div class="card qcard"><div class="qmeta"><span class="tag" title="문항 표지">'+esc(it.id)+'</span><span class="qtype">'+(ox?'O / X':'4지선다')+'</span></div>'+
+      '<p class="qtext">'+esc(q.question)+'</p></div>'+
+    '<div class="choices'+(ox?' ox':'')+'" role="group" aria-label="보기">'+choices+'</div>'+
+    feedback+
+  '</div>'+
+  '<div class="bottombar">'+storageNote()+bar+'</div>'+
+  '</div>';
+}
+
+/* ⑤ 결과 */
+function viewResult(){
+  var n=S.items.length, c=score(), wrong=n-c;
+  var feet=S.items.map(function(it,k){
+    var a=S.answers[k]; var ok=a&&a.correct;
+    return '<li class="'+(ok?'ok':'no')+'"><span class="f-top">'+(k+1)+' '+ic(ok?"check":"cross",16)+(ok?'정답':'오답')+'</span><span class="f-id">'+esc(it.id)+'</span></li>';
+  }).join("");
+  var title=S.team?"팀 연습 · 순서 고정":setById(S.setId).title+" · "+(S.amount==="8"?"8문항 무작위":"세트 전체");
+  var msg = wrong===0 ? n+'문항 모두 정답입니다.' : '틀린 '+wrong+'문항의 해설을 다시 보면 좋아요.';
+  return '<div class="screen">'+band()+
+  '<div class="content">'+
+    '<div><p class="h-label"><span class="mono">'+esc(S.code)+'</span>님 결과</p>'+
+      '<div class="score" style="margin-top:6px"><b>'+c+'</b><span>/ '+n+' 정답</span></div>'+
+      '<p style="margin-top:6px">'+n+'문항 중 '+c+'문항 정답 · '+msg+'</p>'+
+      '<p style="margin-top:8px"><span class="chip">'+esc(title)+'</span></p></div>'+
+    '<div class="card"><h3 style="margin-bottom:10px">문항별 결과</h3><ol class="feet" aria-label="문항별 결과">'+feet+'</ol></div>'+
+    '<div class="info">'+ic("info",18)+'<span>이 결과는 <b>이 휴대폰 화면에만</b> 있어요. 교수님을 포함해 아무에게도 전송되지 않아요.</span></div>'+
+    '<div class="btn-col">'+
+      (wrong>0 ? '<button class="btn btn-secondary" data-act="review">틀린 문항 다시 보기 ('+wrong+')</button>' : '<p class="sub" style="text-align:center">틀린 문항이 없어요.</p>')+
+      '<button class="btn btn-primary" data-act="replay">'+(S.team?'같은 문항 다시 풀기':'다시 풀기 — 새로 섞어요')+'</button>'+
+      '<button class="btn btn-secondary" data-act="other-set">다른 세트</button>'+
+    '</div>'+
+  '</div></div>';
+}
+
+/* ⑥ 틀린 문항 다시 보기 */
+function viewReview(){
+  var list=[];
+  S.items.forEach(function(it,k){
+    var a=S.answers[k]; if(!a||a.correct) return;
+    var q=it.q, ox=q.type==="ox", cp=correctPos(it);
+    function show(pos){var l=choiceLabel(it,pos);return esc(l)+' '+esc(ox?oxWord(l):choiceText(it,pos));}
+    var confuse=(a.pickedOrig===q.common_wrong_index)?'<div class="note"><p class="note-title">'+ic("alert",18)+'이렇게 헷갈리기 쉬워요</p><p>'+esc(q.common_wrong_reason)+'</p></div>':'';
+    list.push('<article class="card rv"><div class="qmeta"><span class="tag">'+esc(it.id)+'</span><span class="qtype">'+(k+1)+'번째 문항</span></div>'+
+      '<p class="qtext">'+esc(q.question)+'</p>'+
+      '<div class="rv-row no"><span class="rv-k">'+ic("cross",18)+'내 답</span><span class="rv-v">'+show(a.pickedPos)+'</span></div>'+
+      '<div class="rv-row ok"><span class="rv-k">'+ic("check",18)+'정답</span><span class="rv-v">'+show(cp)+'</span></div>'+
+      '<p>'+esc(q.explanation)+'</p>'+confuse+
+      '<p class="source">근거: '+esc(q.source_section)+'</p></article>');
+  });
+  return '<div class="screen">'+band()+
+  '<div class="content">'+
+    '<div><p class="h-label">결과 › 다시 보기</p><h2 style="margin-top:2px">틀린 문항 '+list.length+'개</h2></div>'+
+    (list.length?list.join(""):'<div class="card empty">틀린 문항이 없어요.</div>')+
+  '</div>'+
+  '<div class="bottombar"><button class="btn btn-secondary" data-act="back-result">결과로 돌아가기</button></div>'+
+  '</div>';
+}
+
+/* ========================================================= 그리기 */
+var VIEWS={start:viewStart,resume:viewResume,sets:viewSets,quiz:viewQuiz,result:viewResult,review:viewReview};
+function render(opts){
+  opts=opts||{};
+  app.innerHTML=VIEWS[S.screen]();
+  if(opts.top){scroller.scrollTop=0; if(window.innerWidth<=520) window.scrollTo(0,0);}
+  if(opts.focusVerdict){
+    var v=document.getElementById("verdict");
+    if(v){v.focus({preventScroll:true});
+      var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      v.scrollIntoView({block:"center",behavior:reduce?"auto":"smooth"});}
+  }
+  if(opts.focusCode){var c=document.getElementById("code"); if(c) c.focus();}
+}
+function go(screen){S.screen=screen;render({top:true});}
+
+/* ========================================================= 동작 */
+app.addEventListener("input",function(e){ if(e.target.id==="code") S.draft=e.target.value; });
+app.addEventListener("submit",function(e){
+  e.preventDefault();
+  var v=(S.draft||"").trim().toUpperCase();
+  /* 영문·숫자 2~10자, '-' 허용(K7M2PX-N), 한글·특수문자·이모지 거절 */
+  if(!/^(?=.*[A-Z0-9])[A-Z0-9-]{2,10}$/.test(v)){
+    S.codeError="카드에 적힌 영문·숫자 코드를 넣어 주세요 (2~10자).";
+    render({focusCode:true}); return;
+  }
+  S.codeError=""; S.code=v; S.draft=v;
+  if(S.team){ startTeam(S.teamIds); render({top:true}); }
+  else go("sets");
+});
+app.addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]"); if(!b||!app.contains(b)) return;
+  var act=b.getAttribute("data-act");
+  switch(act){
+    case "home": S.team=false; S.codeError=""; go("start"); break;
+    case "new-start": S.codeError=""; go("start"); break;
+    case "resume":
+      if(!S.code){S.code="K7M2PX";S.draft="K7M2PX";}
+      startSet("PRACTICE-P3","all"); autoAnswer(3,[1]); S.idx=3; render({top:true}); break;
+    case "pick-set": S.setId=b.getAttribute("data-id"); render(); break;
+    case "pick-amount": S.amount=b.getAttribute("data-v"); render(); break;
+    case "start-set": startSet(S.setId,S.amount); render({top:true}); break;
+    case "select":
+      if(S.answers[S.idx]) return;                          /* 확정 후에는 바꿀 수 없음 */
+      S.selected=+b.getAttribute("data-pos"); render(); break;
+    case "confirm":
+      if(S.selected===null||S.answers[S.idx]) return;      /* 연타해도 한 번만 채점 */
+      var it=S.items[S.idx], orig=it.order[S.selected];
+      S.answers[S.idx]={pickedOrig:orig,pickedPos:S.selected,correct:orig===it.q.answer_index};
+      render({focusVerdict:true}); break;
+    case "next":
+      if(S.busy||!S.answers[S.idx]) return;                /* 연타해도 한 문항만 */
+      S.busy=true; setTimeout(function(){S.busy=false;},350);
+      S.selected=null;
+      if(S.idx>=S.items.length-1){go("result");} else {S.idx++;render({top:true});}
+      break;
+    case "review": go("review"); break;
+    case "back-result": go("result"); break;
+    case "replay":
+      if(S.team) startTeam(S.teamIds); else startSet(S.setId,S.amount);
+      render({top:true}); break;
+    case "other-set": S.team=false; go("sets"); break;
+  }
+});
+
+/* ========================================================= 시안 도구 */
+function syncToolbar(){
+  document.querySelectorAll("[data-tb]").forEach(function(btn){
+    var k=btn.getAttribute("data-tb"), v=btn.getAttribute("data-v");
+    var cur = k==="plan"?phone.dataset.plan : k==="mode"?phone.dataset.mode : phone.dataset.w;
+    btn.setAttribute("aria-pressed", String(cur===v));
+  });
+}
+document.querySelector(".toolbar").addEventListener("click",function(e){
+  var b=e.target.closest("[data-tb]"); if(!b) return;
+  var k=b.getAttribute("data-tb"), v=b.getAttribute("data-v");
+  if(k==="plan"){ phone.dataset.plan=v; phone.dataset.mode = v==="a"?"light":"dark"; } /* A안 기본 밝게, B안 기본 어둡게 */
+  if(k==="mode") phone.dataset.mode=v;
+  if(k==="w") phone.dataset.w=v;
+  syncToolbar();
+});
+function ensureCode(){ if(!S.code){S.code="K7M2PX";S.draft="K7M2PX";} }
+function firstWithCommonWrongMcq(){
+  for(var k=0;k<S.items.length;k++){ if(S.items[k].q.type==="mcq") return k; } return 0;
+}
+function jump(name){
+  S.storageOff=false; S.codeError=""; S.selected=null;
+  switch(name){
+    case "start": S.team=false; go("start"); break;
+    case "start-err": S.team=false; S.draft="김교수"; S.codeError="카드에 적힌 영문·숫자 코드를 넣어 주세요 (2~10자)."; go("start"); break;
+    case "resume": ensureCode(); S.team=false; go("resume"); break;
+    case "sets": ensureCode(); S.team=false; go("sets"); break;
+    case "q-fresh": ensureCode(); startSet("PRACTICE-P3","8"); render({top:true}); break;
+    case "q-picked": ensureCode(); startSet("PRACTICE-P3","8");
+      S.idx=firstWithCommonWrongMcq(); autoAnswer(S.idx,[]); S.selected=1; render({top:true}); break;
+    case "q-right": ensureCode(); startSet("PRACTICE-P3","8");
+      var k1=firstWithCommonWrongMcq(); autoAnswer(k1,[]); S.idx=k1;
+      var it1=S.items[k1]; S.answers[k1]={pickedOrig:it1.q.answer_index,pickedPos:correctPos(it1),correct:true}; render({top:true}); break;
+    case "q-wrong": ensureCode(); startSet("PRACTICE-P3","8");
+      var k2=firstWithCommonWrongMcq(); autoAnswer(k2,[]); S.idx=k2;
+      var it2=S.items[k2], w=it2.q.common_wrong_index;
+      S.answers[k2]={pickedOrig:w,pickedPos:it2.order.indexOf(w),correct:false}; render({top:true}); break;
+    case "q-ox": ensureCode(); startSet("PRACTICE-P3","all");
+      var k3=0; for(var j=0;j<S.items.length;j++){ if(S.items[j].q.type==="ox"){k3=j;break;} }
+      autoAnswer(k3,[]); S.idx=k3; var it3=S.items[k3], w3=it3.q.common_wrong_index;
+      S.answers[k3]={pickedOrig:w3,pickedPos:it3.order.indexOf(w3),correct:false}; render({top:true}); break;
+    case "result": ensureCode(); startSet("PRACTICE-P3","all"); autoAnswer(S.items.length,[1,4]); go("result"); break;
+    case "review": ensureCode(); startSet("PRACTICE-P3","all"); autoAnswer(S.items.length,[1,4]); go("review"); break;
+    case "team-start": S.team=true; S.teamIds=TEAM_IDS.slice(); S.items=[]; go("start"); break;
+    case "team-q": ensureCode(); S.teamIds=TEAM_IDS.concat(["X99-Q9"]); startTeam(S.teamIds); render({top:true}); break;
+    case "team-result": ensureCode(); S.teamIds=TEAM_IDS.slice(); startTeam(S.teamIds); autoAnswer(S.items.length,[2]); go("result"); break;
+    case "storage-off": ensureCode(); startSet("PRACTICE-P2","all"); S.storageOff=true; render({top:true}); break;
+  }
+}
+document.getElementById("jump").addEventListener("change",function(e){ if(e.target.value){ jump(e.target.value); e.target.value=""; } });
+
+/* ========================================================= 시작 */
+(function init(){
+  var m=/[?&]ids=([^&#]*)/.exec(location.search);
+  if(m){
+    var ids=decodeURIComponent(m[1]).split(",").map(function(s){return s.trim().toUpperCase();}).filter(Boolean).slice(0,30);
+    S.team=true; S.teamIds=ids;
+  }
+  syncToolbar(); render();
+})();
+</script>
+</body>
+</html>
