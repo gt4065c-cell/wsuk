@@ -1,5 +1,5 @@
 /* =========================================================
-   레벨업 캠퍼스 · AI Agent 실무역량 연습 앱 v0.3.1 — 동작(자바스크립트)
+   레벨업 캠퍼스 · AI Agent 실무역량 연습 앱 v0.3.2 — 동작(자바스크립트)
 
    읽는 순서 (위에서 아래로):
      1. 문항 데이터 준비       — data/practice.js 를 읽어 정리
@@ -175,7 +175,7 @@ function saveRun() {
     v: 1,
     code: S.code,
     team: S.team,
-    teamKey: S.teamKey,
+    teamKey: S.team ? S.teamKey : "",
     setId: S.setId,
     amount: S.amount,
     items: S.items.map(function (it) { return { id: it.id, order: it.order }; }),
@@ -183,42 +183,72 @@ function saveRun() {
   };
   store.set(KEY_RUN, JSON.stringify(memo));
 }
-/* 메모 읽기 — 조금이라도 이상하면 버리고 null */
+/* 메모 읽기 — 조금이라도 이상하면 버리고 null (v0.3.2: 모든 칸을 쓰기 전에 검사)
+   메모는 브라우저에 있어서 누구나 개발자 도구로 고칠 수 있으므로 하나도 믿지 않습니다. */
+function isInt(v) { return typeof v === "number" && isFinite(v) && Math.floor(v) === v; }
+function isPlainObject(v) { return !!v && typeof v === "object" && !Array.isArray(v); }
 function loadRun() {
   var raw = store.get(KEY_RUN);
   if (!raw) return null;
   try {
+    if (typeof raw !== "string" || raw.length > 20000) throw "크기";
     var m = JSON.parse(raw);
-    if (!m || m.v !== 1 || !Array.isArray(m.items) || !Array.isArray(m.picks)) throw "모양";
-    if (m.items.length < 1 || m.items.length > 40 || m.picks.length > m.items.length) throw "개수";
+    if (!isPlainObject(m) || m.v !== 1) throw "모양";
+    if (typeof m.team !== "boolean") throw "모드";
     if (typeof m.code !== "string" || !validCode(m.code)) throw "코드";
-    if (m.team) { if (typeof m.teamKey !== "string") throw "링크"; }
-    else if (!setById(m.setId) || (m.amount !== "8" && m.amount !== "all")) throw "세트";
+    if (!Array.isArray(m.items) || m.items.length < 1 || m.items.length > TEAM_MAX) throw "문항 개수";
+    if (!Array.isArray(m.picks) || m.picks.length > m.items.length) throw "답 개수";
+    if (m.amount !== "8" && m.amount !== "all") throw "분량";
+    if (typeof m.setId !== "string") throw "세트";
+
+    /* 문항: 앱에 있는 연습 문항 번호만, 겹침 없이, 보기 순서는 올바른 섞임 */
     var seen = {};
     var items = m.items.map(function (x) {
-      if (!x || typeof x.id !== "string" || !has(QUESTIONS, x.id) || seen[x.id]) throw "문항";
+      if (!isPlainObject(x) || typeof x.id !== "string" || !has(QUESTIONS, x.id) || seen[x.id]) throw "문항";
       seen[x.id] = true;
       var q = QUESTIONS[x.id], n = q.choices.length;
       if (!Array.isArray(x.order) || x.order.length !== n) throw "보기 순서";
-      var sorted = x.order.slice().sort();
-      for (var i = 0; i < n; i++) if (sorted[i] !== i) throw "보기 순서";
+      var used = {};
+      for (var i = 0; i < n; i++) {
+        var o = x.order[i];
+        if (!isInt(o) || o < 0 || o >= n || used[o]) throw "보기 순서";
+        used[o] = true;
+      }
       if (q.type === "ox" && (x.order[0] !== 0 || x.order[1] !== 1)) throw "OX 순서";
+      if (m.team) { for (var j = 0; j < n; j++) if (x.order[j] !== j) throw "지정 링크는 보기를 섞지 않음"; }
       return { id: x.id, q: q, order: x.order.slice() };
     });
+    var ids = items.map(function (it) { return it.id; });
+
+    if (m.team) {
+      /* 지정 링크 판: 링크 번호(teamKey)가 실제 문항 목록과 글자 하나까지 같아야 함 */
+      if (typeof m.teamKey !== "string" || m.teamKey !== ids.join(",")) throw "링크 번호";
+      if (m.setId !== "" && !setById(m.setId)) throw "세트";
+    } else {
+      /* 일반 판: 그 세트 안의 문항만, 분량과 개수가 맞아야 함 */
+      var set = setById(m.setId);
+      if (!set) throw "세트";
+      if (ids.some(function (id) { return set.ids.indexOf(id) < 0; })) throw "세트 밖 문항";
+      var want = m.amount === "8" ? Math.min(PICK_COUNT, set.total) : set.total;
+      if (ids.length !== want) throw "분량과 개수";
+      if (m.teamKey !== undefined && m.teamKey !== "") throw "링크 번호";
+    }
+
     var answers = m.picks.map(function (orig, k) {
       var it = items[k];
-      if (typeof orig !== "number" || orig % 1 !== 0 || orig < 0 || orig >= it.q.choices.length) throw "답";
+      if (!isInt(orig) || orig < 0 || orig >= it.q.choices.length) throw "답";
       return { pickedOrig: orig, pickedPos: it.order.indexOf(orig), correct: orig === it.q.answer_index }; // 채점은 다시 계산
     });
-    return { code: m.code, team: !!m.team, teamKey: m.teamKey || "", setId: m.setId, amount: m.amount, items: items, answers: answers };
+    return { code: m.code, team: m.team, teamIds: m.team ? ids : [], teamKey: m.team ? ids.join(",") : "",
+             setId: setById(m.setId) ? m.setId : (SETS.length ? SETS[0].id : ""), amount: m.amount, items: items, answers: answers };
   } catch (e) {
-    store.remove(KEY_RUN);   // 망가진 메모는 버림
+    store.remove(KEY_RUN);   // 망가진 메모는 버리고 첫 화면으로
     return null;
   }
 }
 function resumeRun(run) {
   if (S.conflict) {                               // 다른 주소의 기록을 이어 풀 때: 그 판의 모드로 바꿈
-    if (run.team) { S.teamIds = run.teamKey ? run.teamKey.split(",") : []; S.teamKey = run.teamKey; S.missing = 0; S.missingDetail = ""; }
+    if (run.team) { S.teamIds = run.teamIds.slice(); S.teamKey = run.teamKey; S.missing = 0; S.missingDetail = ""; }  // 검사를 통과한 문항 목록만 씀
     else leaveTeam();
     S.conflict = false;
   }

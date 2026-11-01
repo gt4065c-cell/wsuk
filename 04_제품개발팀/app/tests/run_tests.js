@@ -1,4 +1,4 @@
-// 연습 앱 v0.3.1 자동 테스트 (PRD 8장 테스트 번호 그대로 + v0.3.1 수정 확인 V-01~V-06)
+// 연습 앱 v0.3.2 자동 테스트 (PRD 8장 테스트 번호 그대로 + 수정 확인 V-01~V-08)
 // 실행: node "04_제품개발팀/app/tests/run_tests.js"
 // - 컴퓨터 안에서만 열리는 임시 서버(127.0.0.1)를 띄워 시험하고, 끝나면 끕니다. 외부 공개 없음.
 // - 결과: 화면에 통과/실패, tests/results.json 에 기록
@@ -760,6 +760,99 @@ function startServer() {
       if (/Pretendard|인터넷에서 받아/.test(readme)) hits.push('README.md');
       ok(hits.length === 0, '남은 곳: ' + hits.join(','));
       return 'index.html·style.css·app.js·README 모두 0건 (E-05에서 바깥 요청 0건도 확인)';
+    });
+    console.log('V. v0.3.2 수정 확인 (QA 재검사 N-1)');
+    const KEY = 'levelup_practice_run';
+    await test('V-07', 'N-1 재현: 조작한 지정 링크 메모 → 버리고 첫 화면, 멈춤 없음', async () => {
+      const { ctx, page } = await newPage(); await open(page);
+      const forged = [
+        { v: 1, code: 'HACK1', team: true, teamKey: 'L01-Q2,NOPE', setId: '', amount: '8', items: [{ id: 'L11-Q1', order: [0, 1, 2, 3] }], picks: [] },   // QA 재현 그대로
+        { v: 1, code: 'HACK1', team: true, teamKey: 'L11-Q1,L12-Q1', setId: '', amount: '8', items: [{ id: 'L11-Q1', order: [0, 1, 2, 3] }], picks: [] }, // 앱에 있는 번호지만 items와 다름
+      ];
+      for (const f of forged) {
+        await page.evaluate(([k, v]) => localStorage.setItem(k, v), [KEY, JSON.stringify(f)]);
+        await page.reload(); await page.waitForSelector('#app .screen');
+        ok(await page.$('#code') && !(await page.$('[data-act=resume]')), '첫 화면이 아님(이어 풀기가 뜸): ' + f.teamKey);
+        ok((await page.evaluate(k => localStorage.getItem(k), KEY)) === null, '메모를 버리지 않음');
+      }
+      // 정상 지정 링크 메모는 다른 주소에서 이어 풀어도 띠 숫자 = 실제 문항 수, [같은 문항 다시 풀기] 정상
+      await open(page, '?ids=L11-Q1,L12-Q1'); await enterCode(page); await page.waitForSelector('#qid'); await answer(page, 0);
+      await open(page); await page.click('[data-act=resume]'); await page.waitForSelector('#qid');
+      ok((await page.textContent('.band')).includes('팀 연습 2문항'), '띠 숫자');
+      ok((await count(page)) === '2 / 2', '이어 풀기 위치');
+      await answer(page, 0); await next(page); await page.waitForSelector('#score');
+      await page.click('[data-act=replay]'); await page.waitForSelector('#qid');
+      ok((await count(page)) === '1 / 2', '같은 문항 다시 풀기');
+      ok(page._errors.length === 0, '오류: ' + page._errors.join(';'));
+      await ctx.close();
+      return 'QA 재현 메모·불일치 메모 모두 버리고 첫 화면, 정상 메모는 띠 2문항·다시 풀기 정상';
+    });
+    await test('V-08', '저장 메모의 칸을 하나씩 망가뜨리기 → 모두 버리고 첫 화면', async () => {
+      const { ctx, page } = await newPage();
+      // 진짜 메모 2개 만들기: 지정 링크 판, 일반 판
+      await open(page, '?ids=' + TEAM_IDS.join(',')); await enterCode(page); await page.waitForSelector('#qid');
+      await answer(page, 0); await next(page); await answer(page, 1);
+      const teamMemo = JSON.parse(await page.evaluate(k => localStorage.getItem(k), KEY));
+      await page.evaluate(() => localStorage.clear());
+      await open(page); await enterCode(page); await pickSet(page, 'PRACTICE-P3', '8');
+      await answer(page, 0); await next(page); await answer(page, 1);
+      const setMemo = JSON.parse(await page.evaluate(k => localStorage.getItem(k), KEY));
+      const ox = SRC_Q.find(q => q.pool === 'practice' && q.type === 'ox').id;
+      const otherSet = PRACTICE_SETS.find(x => x.set_id === 'PRACTICE-P1').question_ids[0];
+      const C = o => JSON.parse(JSON.stringify(o));
+      const both = {
+        'v=2': m => { m.v = 2; }, 'v="1"': m => { m.v = '1'; }, 'v 없음': m => { delete m.v; },
+        'team="true"': m => { m.team = 'true'; }, 'team=1': m => { m.team = 1; }, 'team 없음': m => { delete m.team; }, 'team 뒤집기': m => { m.team = !m.team; },
+        'code 빈칸': m => { m.code = ''; }, 'code=ßß': m => { m.code = 'ßß'; }, 'code 숫자': m => { m.code = 123; }, 'code 태그': m => { m.code = '<b>X</b>'; },
+        'teamKey 평가번호': m => { m.teamKey = 'L01-Q2,NOPE'; }, 'teamKey 숫자': m => { m.teamKey = 5; },
+        'setId=EVAL-A': m => { m.setId = 'EVAL-A'; }, 'setId 숫자': m => { m.setId = 7; }, 'setId 없음': m => { delete m.setId; },
+        'amount="9"': m => { m.amount = '9'; }, 'amount=8(숫자)': m => { m.amount = 8; }, 'amount 없음': m => { delete m.amount; },
+        'items 빈 배열': m => { m.items = []; }, 'items 글자': m => { m.items = 'x'; }, 'items null': m => { m.items = null; },
+        'items 41개': m => { m.items = Array.from({ length: 41 }, () => C(m.items[0])); },
+        'items 겹침': m => { m.items[1] = C(m.items[0]); },
+        'items 평가 번호': m => { m.items[0].id = 'L01-Q2'; }, 'items 없는 번호': m => { m.items[0].id = 'NOPE'; },
+        'items 칸 null': m => { m.items[0] = null; }, 'items 칸 배열': m => { m.items[0] = ['L11-Q1']; }, 'id 숫자': m => { m.items[0].id = 11; },
+        'order 없음': m => { delete m.items[0].order; }, 'order 길이': m => { m.items[0].order = m.items[0].order.slice(1); },
+        'order 소수': m => { m.items[0].order[0] = 0.5; }, 'order 글자': m => { m.items[0].order = m.items[0].order.map(String); },
+        'order 겹침': m => { m.items[0].order[1] = m.items[0].order[0]; }, 'order 범위 밖': m => { m.items[0].order[0] = 9; },
+        'picks 글자': m => { m.picks = 'x'; }, 'picks 9': m => { m.picks[0] = 9; }, 'picks -1': m => { m.picks[0] = -1; },
+        'picks 소수': m => { m.picks[0] = 0.5; }, 'picks "0"': m => { m.picks[0] = '0'; }, 'picks null': m => { m.picks = null; },
+        'picks 너무 많음': m => { m.picks = m.items.map(() => 0).concat([0]); },
+        '전체 배열': m => [m], '전체 숫자': () => 7,
+      };
+      const teamOnly = {
+        'teamKey 빈칸': m => { m.teamKey = ''; }, 'teamKey 순서 바꿈': m => { m.teamKey = m.teamKey.split(',').reverse().join(','); },
+        'teamKey 번호 추가': m => { m.teamKey += ',L15-Q3'; }, 'teamKey 없음': m => { delete m.teamKey; },
+        '지정 링크인데 보기 섞임': m => { const it = m.items.find(i => SRC[i.id].type === 'mcq'); it.order = [1, 0, 2, 3]; },
+        'OX 순서 바꿈': m => { m.items[1] = { id: ox, order: [1, 0] }; },
+      };
+      const setOnly = {
+        'teamKey 들어 있음': m => { m.teamKey = m.items.map(i => i.id).join(','); },
+        '다른 세트 문항': m => { m.items[0] = { id: otherSet, order: SRC[otherSet].choices.map((_, i) => i) }; },
+        '분량과 개수 다름': m => { m.items.pop(); },
+        '분량 all인데 8개': m => { m.amount = 'all'; },
+        'OX 순서 바꿈': m => { m.items[0] = { id: 'L12-Q2', order: [1, 0] }; },
+      };
+      let n = 0; const bad = [];
+      for (const [baseName, base, url, extra] of [['지정 링크', teamMemo, '?ids=' + TEAM_IDS.join(','), teamOnly], ['일반', setMemo, '', setOnly]]) {
+        // 대조군: 손대지 않은 메모는 이어 풀기가 떠야 함
+        await page.evaluate(([k, v]) => localStorage.setItem(k, v), [KEY, JSON.stringify(base)]);
+        await open(page, url); ok(await page.$('[data-act=resume]'), baseName + ' 정상 메모인데 이어 풀기가 안 뜸');
+        for (const [name, fn] of Object.entries({ ...both, ...extra })) {
+          const m = C(base); const r = fn(m); const val = JSON.stringify(r === undefined ? m : r);
+          for (const u of [url, url ? '' : '?ids=' + TEAM_IDS.join(',')]) {   // 같은 주소·다른 주소 둘 다
+            await page.evaluate(([k, v]) => localStorage.setItem(k, v), [KEY, val]);
+            await open(page, u); n++;
+            const okScreen = (await page.$('#code')) && !(await page.$('[data-act=resume]'));
+            const gone = (await page.evaluate(k => localStorage.getItem(k), KEY)) === null;
+            if (!okScreen || !gone) bad.push(`${baseName}/${name}/${u ? '링크주소' : '일반주소'}`);
+          }
+        }
+      }
+      ok(bad.length === 0, '통과해 버린 메모: ' + bad.join(', '));
+      ok(page._errors.length === 0, '오류: ' + page._errors.join(';'));
+      await ctx.close();
+      return `망가뜨린 메모 ${n}가지(칸별 ${Object.keys(both).length}+지정 링크 ${Object.keys(teamOnly).length}+일반 ${Object.keys(setOnly).length}, 같은/다른 주소) 모두 버리고 첫 화면, 정상 메모 대조군은 이어 풀기`;
     });
   } finally {
     await browser.close();
