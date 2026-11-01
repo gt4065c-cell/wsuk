@@ -29,8 +29,8 @@
   {
     "id": "L02-Q1", "part": 1, "lecture": 2, "difficulty": 1, "type": "mcq",
     "question": "02강에서 제시한 AI 활용 네 단계의 올바른 순서는 무엇인가요?",
-    "choices": ["처리 → 입력 → 활용 → 검토", "입력 → 처리 → 검토 → 활용", "입력 → 검토 → 처리 → 활용", "활용 → 입력 → 처리 → 검토"],
-    "answer_index": 1,
+    "choices": ["입력 → 처리 → 검토 → 활용", "처리 → 입력 → 활용 → 검토", "입력 → 검토 → 처리 → 활용", "활용 → 입력 → 처리 → 검토"],
+    "answer_index": 0,
     "explanation": "무엇을 넣을지 정하고(입력), 어떤 처리를 맡길지 설명하고(처리), 결과를 검토한 뒤(검토), 실제 업무에 사용합니다(활용). 검토는 결과가 나온 뒤에 하므로 처리보다 앞에 올 수 없습니다.",
     "common_wrong_index": 2, "common_wrong_reason": "'검토'를 자료를 넣기 전 점검으로 생각해 처리 앞에 두기 쉽습니다.",
     "source_lectures": [2], "source_section": "02강 핵심 개념", "status": "draft"
@@ -82,7 +82,7 @@
   },
   {
     "id": "L03-Q3", "part": 1, "lecture": 3, "difficulty": 3, "type": "mcq",
-    "question": "AI 결과를 보니 세 번째 문항에만 근거 문장이 빠져 있습니다. 03강에서 권한 후속 요청은 무엇인가요?",
+    "question": "AI 결과를 보니 세 번째 문항에만 근거 문장이 빠져 있습니다. 03강에서 권장한 후속 요청은 무엇인가요?",
     "choices": ["세 문항을 처음부터 전부 다시 만들어 달라고 한다.", "세 번째 문항의 근거를 표시하고, 자료에 근거가 없으면 그 문항을 교체해 달라고 한다.", "더 길고 자세하게 써 달라고 한다.", "AI에게 이번 결과에 자신이 있는지 물어본다."],
     "answer_index": 1,
     "explanation": "대본은 전체를 다시 만들기보다 빠진 부분만 짚어 수정하라고 합니다. 범위를 좁혀 고치면 괜찮았던 부분까지 흔들리는 일을 줄일 수 있습니다. 확인과 수정을 짧게 반복하는 것이 핵심입니다.",
@@ -91,11 +91,11 @@
   },
   {
     "id": "L03-Q4", "part": 1, "lecture": 3, "difficulty": 2, "type": "ox",
-    "question": "목표·자료·제약·완료 기준을 모두 갖춘 좋은 요청문을 쓰면 결과 내용의 정확성도 보장된다.",
+    "question": "목표·자료·제약·완료 기준을 모두 갖춘 요청문을 써도, 전문 내용은 근거를 직접 읽고 확인하는 단계가 남아 있다.",
     "choices": ["O", "X"],
-    "answer_index": 1,
-    "explanation": "대본은 요청문이 좋아도 내용의 정확성이 보장되지는 않으며, 특히 전문 내용은 근거를 직접 읽고 확인하는 단계가 남아 있다고 말합니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "요청을 잘 쓰면 결과도 맞을 것이라고 기대하기 쉽습니다.",
+    "answer_index": 0,
+    "explanation": "맞습니다. 대본은 요청문이 좋아도 내용의 정확성이 보장되지는 않으며, 특히 전문 내용은 근거를 직접 읽고 확인하는 단계가 남아 있다고 말합니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "요청을 잘 쓰면 결과도 맞을 것이라고 기대해 X를 고르기 쉽습니다.",
     "source_lectures": [3], "source_section": "03강 작동 확인", "status": "draft"
   },
   {
@@ -119,8 +119,8 @@
   {
     "id": "L04-Q3", "part": 1, "lecture": 4, "difficulty": 3, "type": "mcq",
     "question": "검토 결과 문항 A는 근거와 표현이 확인되었고, 문항 B는 선택지 하나가 정답과 비슷한 뜻이며, 문항 C는 근거를 찾지 못했습니다. 04강의 세 상태로 올바르게 나눈 것은?",
-    "choices": ["A 통과, B 보류, C 수정", "A 통과, B 수정, C 보류", "A 수정, B 통과, C 보류", "A 통과, B 통과, C 수정"],
-    "answer_index": 1,
+    "choices": ["A 통과, B 보류, C 수정", "A 수정, B 통과, C 보류", "A 통과, B 통과, C 수정", "A 통과, B 수정, C 보류"],
+    "answer_index": 3,
     "explanation": "근거와 표현이 확인되면 통과, 선택지가 겹치면 수정, 근거를 확보하지 못한 내용은 보류입니다. 대본은 보류할 수 있어야 검증이 실제로 작동한다고 강조합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "근거가 없는 문항을 '조금 고치면 되는' 수정으로 처리하기 쉽지만, 근거가 없으면 먼저 보류합니다.",
     "source_lectures": [4], "source_section": "04강 화면 실습 4, 작동 확인", "status": "draft"
@@ -128,8 +128,8 @@
   {
     "id": "L05-Q1", "part": 1, "lecture": 5, "difficulty": 1, "type": "mcq",
     "question": "05강의 세 영역 중 '답을 비교하거나 점수를 계산하는 일'은 어디에 해당하나요?",
-    "choices": ["화면", "처리", "저장", "배포"],
-    "answer_index": 1,
+    "choices": ["화면", "저장", "배포", "처리"],
+    "answer_index": 3,
     "explanation": "화면은 사용자가 보고 누르는 부분, 처리는 답을 비교하거나 점수를 계산하는 일, 저장은 다음에도 쓸 데이터를 남기는 일입니다. 배포는 05강의 세 영역에 포함되지 않습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "점수가 화면에 보이기 때문에 화면 영역으로 고르기 쉽습니다.",
     "source_lectures": [5], "source_section": "05강 핵심 개념", "status": "draft"
@@ -137,10 +137,10 @@
   {
     "id": "L05-Q2", "part": 1, "lecture": 5, "difficulty": 2, "type": "mcq",
     "question": "'정답을 골랐는데 점수가 오르지 않는다'는 문제가 생겼을 때 05강에서 먼저 살펴보라고 한 영역은?",
-    "choices": ["버튼 색과 크기(화면)", "선택한 답과 정답을 비교하는 흐름(처리)", "다음 접속 때의 기록(저장)", "휴대폰 화면 크기(화면)"],
-    "answer_index": 1,
+    "choices": ["버튼 색과 크기(화면)", "다음 접속 때의 기록(저장)", "휴대폰 화면 크기(화면)", "선택한 답과 정답을 비교하는 흐름(처리)"],
+    "answer_index": 3,
     "explanation": "대본은 이 경우 버튼 색을 바꾸는 것으로 해결되지 않으며, 선택한 답과 정답을 비교하는 처리 흐름을 봐야 한다고 합니다. 버튼이 작으면 화면, 다음 접속에서 기록을 못 찾으면 저장을 먼저 봅니다.",
-    "common_wrong_index": 2, "common_wrong_reason": "점수가 '남지 않는' 문제와 점수가 '오르지 않는' 문제를 섞어서 저장을 고르기 쉽습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "점수가 '남지 않는' 문제와 점수가 '오르지 않는' 문제를 섞어서 저장을 고르기 쉽습니다.",
     "source_lectures": [5], "source_section": "05강 화면 실습 2, 작동 확인", "status": "draft"
   },
   {
@@ -200,10 +200,10 @@
   {
     "id": "L07-Q2", "part": 2, "lecture": 7, "difficulty": 2, "type": "mcq",
     "question": "index.html의 제목을 고쳤는데 브라우저 화면이 그대로입니다. 07강에서 가장 먼저 확인하라고 한 것은?",
-    "choices": ["인터넷 연결 속도", "파일을 저장했는지, 같은 파일을 열었는지", "자바를 설치했는지", "다른 사람이 접속할 수 있는지"],
-    "answer_index": 1,
+    "choices": ["파일을 저장했는지, 같은 파일을 열었는지", "인터넷 연결 속도", "자바를 설치했는지", "다른 사람이 접속할 수 있는지"],
+    "answer_index": 0,
     "explanation": "대본은 파일을 수정했는데 화면이 그대로라면 저장했는지, 같은 파일을 열었는지부터 확인하라고 하며, 생각보다 많은 문제가 이 두 지점에서 생긴다고 합니다. 이 실습은 내 컴퓨터의 파일을 여는 것이므로 인터넷 연결과는 관계가 없습니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "브라우저로 열었으니 인터넷 문제라고 생각하기 쉽지만, 지금은 내 컴퓨터의 파일을 보고 있습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "브라우저로 열었으니 인터넷 문제라고 생각하기 쉽지만, 지금은 내 컴퓨터의 파일을 보고 있습니다.",
     "source_lectures": [7], "source_section": "07강 화면 실습 1·2", "status": "draft"
   },
   {
@@ -227,10 +227,10 @@
   {
     "id": "L08-Q1", "part": 2, "lecture": 8, "difficulty": 1, "type": "mcq",
     "question": "버튼의 색, 크기, 여백 같은 '표현'을 정하는 것은?",
-    "choices": ["HTML", "CSS", "자바스크립트", "Git"],
-    "answer_index": 1,
+    "choices": ["CSS", "HTML", "자바스크립트", "Git"],
+    "answer_index": 0,
     "explanation": "HTML은 버튼과 설명 영역이 있다는 구조, CSS는 색과 크기와 여백 같은 표현, 자바스크립트는 클릭이 일어났을 때 무엇을 할지를 정합니다. Git은 12강의 버전 관리 도구입니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "버튼 자체를 HTML로 만들기 때문에 모양도 HTML이 정한다고 생각하기 쉽습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "버튼 자체를 HTML로 만들기 때문에 모양도 HTML이 정한다고 생각하기 쉽습니다.",
     "source_lectures": [8], "source_section": "08강 핵심 개념", "status": "draft"
   },
   {
@@ -254,8 +254,8 @@
   {
     "id": "L09-Q1", "part": 2, "lecture": 9, "difficulty": 1, "type": "mcq",
     "question": "09강에서 설명한 '바이브코딩'의 뜻으로 알맞은 것은?",
-    "choices": ["코드를 한 줄도 확인하지 않고 느낌대로 완성하는 방식", "자연어로 원하는 동작을 설명하며 AI와 함께 프로그램을 만드는 방식", "음악을 들으며 코딩하는 방식", "자바로만 프로그램을 만드는 방식"],
-    "answer_index": 1,
+    "choices": ["코드를 한 줄도 확인하지 않고 느낌대로 완성하는 방식", "음악을 들으며 코딩하는 방식", "자바로만 프로그램을 만드는 방식", "자연어로 원하는 동작을 설명하며 AI와 함께 프로그램을 만드는 방식"],
+    "answer_index": 3,
     "explanation": "대본은 바이브코딩을 자연어로 원하는 동작을 설명하며 AI와 함께 프로그램을 만드는 방식이라고 소개합니다. 중요한 것은 느낌만 전달하고 끝내지 않는 것이며, AI가 완료했다고 해도 실제 화면에서 확인할 단계가 남아 있습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "'바이브'라는 말 때문에 느낌만 전하면 된다고 오해하기 쉽습니다.",
     "source_lectures": [9], "source_section": "09강 핵심 개념", "status": "draft"
@@ -281,10 +281,10 @@
   {
     "id": "L10-Q1", "part": 2, "lecture": 10, "difficulty": 1, "type": "mcq",
     "question": "10강의 퀴즈는 3문항이고 정답마다 1점입니다. 가능한 점수 범위는?",
-    "choices": ["1점~3점", "0점~3점", "0점~10점", "3점 고정"],
-    "answer_index": 1,
+    "choices": ["0점~3점", "1점~3점", "0점~10점", "3점 고정"],
+    "answer_index": 0,
     "explanation": "문항이 세 개이고 정답마다 한 점이므로 가능한 점수는 영 점에서 삼 점까지입니다. 모두 맞히면 3점, 모두 틀리면 0점이 나와야 하며, 이 두 경계값이 성공 기준입니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "모두 틀리는 경우(0점)를 빠뜨리기 쉽습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "모두 틀리는 경우(0점)를 빠뜨리기 쉽습니다.",
     "source_lectures": [10], "source_section": "10강 핵심 개념, 작동 확인", "status": "draft"
   },
   {
@@ -326,10 +326,10 @@
   {
     "id": "L11-Q2", "part": 3, "lecture": 11, "difficulty": 2, "type": "mcq",
     "question": "오류 메시지를 AI에게 붙여 보내기 전에 11강에서 확인하라고 한 것은?",
-    "choices": ["메시지가 영어인지", "비밀 키와 개인정보가 들어 있지 않은지", "메시지가 세 줄 이하인지", "메시지를 전부 해석했는지"],
-    "answer_index": 1,
+    "choices": ["메시지가 영어인지", "메시지가 세 줄 이하인지", "메시지를 전부 해석했는지", "비밀 키와 개인정보가 들어 있지 않은지"],
+    "answer_index": 3,
     "explanation": "대본은 오류 메시지가 원인을 좁힐 단서지만, 보내기 전에 비밀 키와 개인정보가 들어 있지 않은지 확인하라고 합니다. 또 메시지를 전부 해석하지 못해도 파일과 위치 정보는 전달할 수 있다고 합니다.",
-    "common_wrong_index": 3, "common_wrong_reason": "메시지를 이해해야만 보낼 수 있다고 생각하기 쉽지만, 해석하지 못해도 전달할 수 있습니다.",
+    "common_wrong_index": 2, "common_wrong_reason": "메시지를 이해해야만 보낼 수 있다고 생각하기 쉽지만, 해석하지 못해도 전달할 수 있습니다.",
     "source_lectures": [11], "source_section": "11강 핵심 개념, 화면 실습 2", "status": "draft"
   },
   {
@@ -344,26 +344,26 @@
   {
     "id": "L12-Q1", "part": 3, "lecture": 12, "difficulty": 1, "type": "mcq",
     "question": "12강에서 설명한 Git과 GitHub의 관계로 알맞은 것은?",
-    "choices": ["둘은 같은 것의 다른 이름이다.", "Git은 버전 관리 도구이고, GitHub는 저장소를 올려 협업하는 서비스다.", "GitHub는 내 컴퓨터에서만 쓰는 도구이고, Git은 인터넷 서비스다.", "Git은 웹페이지를 배포하는 도구다."],
-    "answer_index": 1,
+    "choices": ["Git은 버전 관리 도구이고, GitHub는 저장소를 올려 협업하는 서비스다.", "둘은 같은 것의 다른 이름이다.", "GitHub는 내 컴퓨터에서만 쓰는 도구이고, Git은 인터넷 서비스다.", "Git은 웹페이지를 배포하는 도구다."],
+    "answer_index": 0,
     "explanation": "대본은 Git과 GitHub가 같은 것이 아니라고 하며, Git은 파일의 변경 이력을 관리하는 버전 관리 도구, GitHub는 저장소를 올려 협업하는 서비스라고 설명합니다. 배포는 13강의 Firebase Hosting에서 다룹니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "이름이 비슷해서 같은 것으로 생각하기 쉽습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "이름이 비슷해서 같은 것으로 생각하기 쉽습니다.",
     "source_lectures": [12], "source_section": "12강 핵심 개념", "status": "draft"
   },
   {
     "id": "L12-Q2", "part": 3, "lecture": 12, "difficulty": 2, "type": "ox",
-    "question": "Git으로 커밋을 했다면 그 파일은 다른 컴퓨터에도 백업된 것이다.",
+    "question": "Git으로 커밋을 했다고 해서 그 파일이 다른 컴퓨터에 백업된 것은 아니다.",
     "choices": ["O", "X"],
-    "answer_index": 1,
-    "explanation": "대본은 커밋을 했다고 다른 컴퓨터에 백업된 것은 아니라는 점을 기억하라고 합니다. 12강은 내 컴퓨터에서 기록하고 복원하는 데 집중합니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "'저장했다'는 느낌 때문에 백업까지 된 것으로 오해하기 쉽습니다.",
+    "answer_index": 0,
+    "explanation": "맞습니다. 대본은 커밋을 했다고 다른 컴퓨터에 백업된 것은 아니라는 점을 기억하라고 합니다. 12강은 내 컴퓨터에서 기록하고 복원하는 데 집중합니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "'저장했다'는 느낌 때문에 백업까지 된 것으로 오해해 X를 고르기 쉽습니다.",
     "source_lectures": [12], "source_section": "12강 핵심 개념", "status": "draft"
   },
   {
     "id": "L12-Q3", "part": 3, "lecture": 12, "difficulty": 3, "type": "mcq",
     "question": "12강의 복원 실습과 일치하는 설명은?",
-    "choices": ["Git으로 복원하면 데이터베이스 기록도 자동으로 되돌아간다.", "복원은 아직 기록하지 않은 해당 파일의 수정을 버릴 수 있으므로, 먼저 남길 필요가 있는지 판단한다.", "가장 안전한 방법은 전체 폴더를 강제로 초기화하는 것이다.", "모든 파일을 습관적으로 선택해 커밋하는 것이 좋다."],
-    "answer_index": 1,
+    "choices": ["Git으로 복원하면 데이터베이스 기록도 자동으로 되돌아간다.", "모든 파일을 습관적으로 선택해 커밋하는 것이 좋다.", "가장 안전한 방법은 전체 폴더를 강제로 초기화하는 것이다.", "복원은 아직 기록하지 않은 해당 파일의 수정을 버릴 수 있으므로, 먼저 남길 필요가 있는지 판단한다."],
+    "answer_index": 3,
     "explanation": "대본은 복원이 아직 기록하지 않은 수정을 버릴 수 있으므로 먼저 판단하고, 전체 폴더를 강제로 초기화하지 않고 지정 파일만 되돌린다고 합니다. Git은 데이터베이스 기록을 자동으로 되돌리지 않으며, 커밋할 때는 이번 작업에 해당하는 파일만 고르고 비밀 키가 든 파일은 넣지 않습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "코드 버전과 운영 데이터를 같은 것으로 보고, Git이 모든 것을 되돌린다고 생각하기 쉽습니다.",
     "source_lectures": [12], "source_section": "12강 화면 실습 1·3·4, 작동 확인", "status": "draft"
@@ -380,17 +380,17 @@
   {
     "id": "L13-Q1", "part": 3, "lecture": 13, "difficulty": 1, "type": "mcq",
     "question": "'준비된 웹 파일을 방문자에게 제공하는 환경에 올려 적용하는 작업'을 13강에서는 무엇이라고 부르나요?",
-    "choices": ["호스팅", "배포", "커밋", "인증"],
-    "answer_index": 1,
+    "choices": ["배포", "호스팅", "커밋", "인증"],
+    "answer_index": 0,
     "explanation": "호스팅은 웹페이지 파일을 방문자에게 제공하는 환경이고, 배포는 준비된 파일을 그 환경에 올려 적용하는 작업입니다. 커밋은 12강의 버전 기록, 인증은 사용자 확인입니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "호스팅(환경)과 배포(작업)를 같은 말로 쓰기 쉽습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "호스팅(환경)과 배포(작업)를 같은 말로 쓰기 쉽습니다.",
     "source_lectures": [13], "source_section": "13강 핵심 개념", "status": "draft"
   },
   {
     "id": "L13-Q2", "part": 3, "lecture": 13, "difficulty": 2, "type": "mcq",
     "question": "13강에서 실행한 'firebase deploy --only hosting' 명령에 대한 설명으로 알맞은 것은?",
-    "choices": ["데이터베이스 규칙과 서버 함수까지 함께 배포한다.", "현재 연결한 프로젝트에 웹 파일만 적용한다.", "Git 커밋을 만든다.", "로그인 기능을 켠다."],
-    "answer_index": 1,
+    "choices": ["데이터베이스 규칙과 서버 함수까지 함께 배포한다.", "Git 커밋을 만든다.", "로그인 기능을 켠다.", "현재 연결한 프로젝트에 웹 파일만 적용한다."],
+    "answer_index": 3,
     "explanation": "대본은 이 명령이 현재 연결한 프로젝트에 웹 파일을 적용하며, 데이터베이스 규칙이나 서버 함수까지 함께 배포하는 명령은 아니라고 설명합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "'deploy(배포)'라는 말 때문에 프로젝트 전체가 올라간다고 생각하기 쉽습니다.",
     "source_lectures": [13], "source_section": "13강 화면 실습 2", "status": "draft"
@@ -416,8 +416,8 @@
   {
     "id": "L14-Q1", "part": 3, "lecture": 14, "difficulty": 1, "type": "mcq",
     "question": "점수를 자바스크립트 변수에만 두었을 때 페이지를 새로고침하면 어떻게 될 수 있나요?",
-    "choices": ["다른 기기로 자동 공유된다.", "초기화되어 0점으로 돌아갈 수 있다.", "데이터베이스에 영구 저장된다.", "다른 브라우저에서도 같은 점수가 보인다."],
-    "answer_index": 1,
+    "choices": ["초기화되어 0점으로 돌아갈 수 있다.", "다른 기기로 자동 공유된다.", "데이터베이스에 영구 저장된다.", "다른 브라우저에서도 같은 점수가 보인다."],
+    "answer_index": 0,
     "explanation": "대본은 자바스크립트 변수에만 둔 값은 페이지를 다시 불러오면 초기화될 수 있다고 하며, 실제로 한 문제를 맞힌 뒤 새로고침하니 0점으로 돌아갑니다. 프로그램이 새로 시작하면서 상태를 다시 만들기 때문입니다.",
     "common_wrong_index": 2, "common_wrong_reason": "화면에 보였던 값은 어딘가에 저장되어 있다고 생각하기 쉽습니다.",
     "source_lectures": [14], "source_section": "14강 핵심 개념, 화면 실습 1", "status": "draft"
@@ -442,11 +442,11 @@
   },
   {
     "id": "L14-Q4", "part": 3, "lecture": 14, "difficulty": 2, "type": "ox",
-    "question": "데이터가 서버의 공유 데이터베이스에 있으면 모든 사람에게 공개된다.",
+    "question": "데이터가 서버의 공유 데이터베이스에 있더라도, 다른 사용자가 무엇을 볼 수 있는지는 권한으로 정한다.",
     "choices": ["O", "X"],
-    "answer_index": 1,
-    "explanation": "대본은 데이터가 서버에 있다는 이유만으로 모든 사람에게 공개되는 것은 아니며, 다른 사용자가 무엇을 볼지는 권한으로 정한다고 합니다. 앞으로 개인 연습 기록과 순위용 공개 정보를 나눠 저장할 예정입니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "'공유'라는 말을 '전체 공개'로 오해하기 쉽습니다.",
+    "answer_index": 0,
+    "explanation": "맞습니다. 대본은 데이터가 서버에 있다는 이유만으로 모든 사람에게 공개되는 것은 아니며, 다른 사용자가 무엇을 볼지는 권한으로 정한다고 합니다. 앞으로 개인 연습 기록과 순위용 공개 정보를 나눠 저장할 예정입니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "'공유'라는 말을 '전체 공개'로 오해해 X를 고르기 쉽습니다.",
     "source_lectures": [14], "source_section": "14강 화면 실습 4", "status": "draft"
   },
   {
@@ -461,10 +461,10 @@
   {
     "id": "L15-Q2", "part": 3, "lecture": 15, "difficulty": 2, "type": "mcq",
     "question": "15강에서 비교한 두 데이터베이스의 데이터 구조로 알맞게 짝지은 것은?",
-    "choices": ["Firestore: JSON 트리 / Realtime Database: 문서와 컬렉션", "Firestore: 문서와 컬렉션 / Realtime Database: JSON 트리", "둘 다 표(행과 열)", "둘 다 실시간 동기화를 지원하지 않는다."],
-    "answer_index": 1,
+    "choices": ["Firestore: 문서와 컬렉션 / Realtime Database: JSON 트리", "Firestore: JSON 트리 / Realtime Database: 문서와 컬렉션", "둘 다 표(행과 열)", "둘 다 실시간 동기화를 지원하지 않는다."],
+    "answer_index": 0,
     "explanation": "대본은 Cloud Firestore와 Realtime Database가 둘 다 실시간 동기화를 지원하며, Firestore는 문서와 컬렉션으로, Realtime Database는 JSON 트리로 데이터를 다룬다고 설명합니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "두 이름이 낯설어 구조를 반대로 기억하기 쉽습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "두 이름이 낯설어 구조를 반대로 기억하기 쉽습니다.",
     "source_lectures": [15], "source_section": "15강 핵심 개념", "status": "draft"
   },
   {
