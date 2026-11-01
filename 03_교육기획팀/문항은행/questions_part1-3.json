@@ -6,7 +6,9 @@
     "answer_index": 1,
     "explanation": "대본은 1956년 다트머스 연구 모임을 AI 역사의 중요한 출발점으로 소개합니다. 1991년과 1995년은 06강에서 다룬 프로그래밍 언어 공개 연도이고, 생성형 AI는 출발점이 아니라 이후의 변화 중 하나입니다.",
     "common_wrong_index": 3, "common_wrong_reason": "요즘 가장 많이 듣는 생성형 AI를 AI의 시작으로 착각하기 쉽습니다.",
-    "source_lectures": [1], "source_section": "01강 핵심 개념", "status": "draft"
+    "source_lectures": [1], "source_section": "01강 핵심 개념", "status": "reviewed",
+    "review_note": "2026-11-01 교수 검토 OK (비서실장 전달, 결재함 기록 갱신 필요)",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L01-Q2", "part": 1, "lecture": 1, "difficulty": 2, "type": "mcq",
@@ -15,7 +17,8 @@
     "answer_index": 2,
     "explanation": "대본의 작동 확인에서 문의 종류를 고르는 것은 분류, 해설 초안을 쓰는 것은 생성, 학습 기록을 조회하는 것은 도구를 통한 실행이라고 정리합니다. 1번은 분류, 2번과 4번은 생성입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "AI가 무언가를 '처리'하면 모두 실행이라고 생각해 분류와 실행을 섞기 쉽습니다.",
-    "source_lectures": [1], "source_section": "01강 작동 확인", "status": "draft"
+    "source_lectures": [1], "source_section": "01강 작동 확인", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S2"
   },
   {
     "id": "L01-Q3", "part": 1, "lecture": 1, "difficulty": 3, "type": "mcq",
@@ -24,7 +27,19 @@
     "answer_index": 3,
     "explanation": "대본은 앞선 기술이 사라지고 다음 기술로 바뀐 것이 아니라 목적에 따라 함께 사용된다고 말합니다. 규칙 방식은 조건이 분명한 업무에 여전히 유용하고, 모델은 데이터베이스가 아니라 허용된 도구로 정보를 받으므로 도구와 권한을 설계해야 하며, 분류기는 수강 변경 문의를 잘못 분류한 예처럼 언제나 맞지는 않습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "기술 발전을 '옛것이 새것으로 교체되는 것'으로 오해하기 쉽습니다.",
-    "source_lectures": [1], "source_section": "01강 핵심 개념, 화면 실습 1·2·4", "status": "draft"
+    "source_lectures": [1], "source_section": "01강 핵심 개념, 화면 실습 1·2·4", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
+  },
+  {
+    "id": "L01-Q4", "part": 1, "lecture": 1, "difficulty": 2, "type": "mcq",
+    "question": "01강의 규칙표는 '수강 신청'이라는 말이 들어오면 학사 문의로 분류합니다. 그런데 '과목을 바꾸고 싶다'는 질문은 놓칠 수 있습니다. 대본이 설명한 이유는 무엇인가요?",
+    "choices": ["규칙 중심 방식은 틀린 방식이기 때문", "사람이 어떤 규칙을 넣었는지가 작동 범위를 결정하기 때문", "글이나 코드 같은 결과를 만들지 못하기 때문", "학습한 자료의 품질이 낮기 때문"],
+    "answer_index": 1,
+    "explanation": "대본은 사람이 어떤 규칙을 넣었는지가 작동 범위를 결정한다고 설명합니다. 이 방식이 틀렸다는 뜻은 아니며 조건이 분명한 업무에는 여전히 유용합니다. 자료의 품질과 학습 범위가 결과에 영향을 준다는 설명은 그다음에 나오는 패턴 학습 분류기에 대한 것입니다.",
+    "common_wrong_index": 3, "common_wrong_reason": "화면 실습 2의 패턴 학습 분류기가 오분류한 이유(자료 품질·학습 범위)와 섞기 쉽습니다.",
+    "source_lectures": [1], "source_section": "01강 화면 실습 1 (1:10–1:50), 화면 실습 2 (1:50–2:30)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L02-Q1", "part": 1, "lecture": 2, "difficulty": 1, "type": "mcq",
@@ -33,7 +48,8 @@
     "answer_index": 0,
     "explanation": "무엇을 넣을지 정하고(입력), 어떤 처리를 맡길지 설명하고(처리), 결과를 검토한 뒤(검토), 실제 업무에 사용합니다(활용). 검토는 결과가 나온 뒤에 하므로 처리보다 앞에 올 수 없습니다.",
     "common_wrong_index": 2, "common_wrong_reason": "'검토'를 자료를 넣기 전 점검으로 생각해 처리 앞에 두기 쉽습니다.",
-    "source_lectures": [2], "source_section": "02강 핵심 개념", "status": "draft"
+    "source_lectures": [2], "source_section": "02강 핵심 개념", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S1"
   },
   {
     "id": "L02-Q2", "part": 1, "lecture": 2, "difficulty": 2, "type": "mcq",
@@ -41,8 +57,10 @@
     "choices": ["초안과 검토를 합친 시간", "수정한 문항 수", "AI 답변의 글자 수", "실제 수업에서 썼는지 여부"],
     "answer_index": 2,
     "explanation": "대본은 초안과 검토를 합친 시간, 수정한 문항 수, 실제 수업에서 썼는지 세 가지를 기록하라고 합니다. 또 AI의 가치를 답변의 길이보다 업무의 변화에서 찾자고 했으므로 글자 수는 성과 지표가 아닙니다.",
-    "common_wrong_index": 0, "common_wrong_reason": "시간은 초안 작성 시간만 재면 된다고 생각해, 검토 시간을 합친다는 점을 놓치기 쉽습니다.",
-    "source_lectures": [2], "source_section": "02강 완성 장면, 작동 확인", "status": "draft"
+    "common_wrong_index": 3, "common_wrong_reason": "성과를 시간이나 개수 같은 숫자로만 생각해 '실제 수업에서 썼는지'는 기록 항목이 아니라고 여기기 쉽습니다. 대본은 일이 끝나는 지점을 초안 완성이 아니라 실제 사용으로 보라고 합니다.",
+    "source_lectures": [2], "source_section": "02강 완성 장면, 작동 확인, 오늘의 미션", "status": "draft",
+    "revision_note": "2026-11-01 품질검수 반영: 자주 하는 오답을 1번에서 4번으로 변경. 1번은 대본이 기록하라고 한 항목을 문구('합친 시간') 그대로 담은 보기라, 기존 오답 이유(검토 시간 합산을 놓침)로는 이 보기를 고를 까닭이 설명되지 않았음.",
+    "pool": "diagnostic", "set": null, "slot": null
   },
   {
     "id": "L02-Q3", "part": 1, "lecture": 2, "difficulty": 3, "type": "mcq",
@@ -51,7 +69,8 @@
     "answer_index": 2,
     "explanation": "대본은 문항 수를 채웠다는 이유만으로 통과시키지 않고, 두 번째 문항의 범위를 원문으로 좁혀 고친다고 시연합니다. 사람의 역할은 무엇을 평가할지 결정하고 잘못된 근거를 걸러내는 것입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "요청한 개수가 나오면 일이 끝났다고 여기는 경우가 많습니다.",
-    "source_lectures": [2], "source_section": "02강 화면 실습 2·3", "status": "draft"
+    "source_lectures": [2], "source_section": "02강 화면 실습 2·3", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S3"
   },
   {
     "id": "L02-Q4", "part": 1, "lecture": 2, "difficulty": 2, "type": "ox",
@@ -60,7 +79,19 @@
     "answer_index": 1,
     "explanation": "대본은 아직 측정하지 않았다면 시간이 절반으로 줄었다고 말할 수 없다고 합니다. 기준을 정하고 반복해 측정해야 어떤 업무에 AI가 유리한지 알 수 있습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "AI는 당연히 빠르다는 인상 때문에 측정 없이 효과를 단정하기 쉽습니다.",
-    "source_lectures": [2], "source_section": "02강 작동 확인", "status": "draft"
+    "source_lectures": [2], "source_section": "02강 작동 확인", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
+  },
+  {
+    "id": "L02-Q5", "part": 1, "lecture": 2, "difficulty": 1, "type": "mcq",
+    "question": "02강 미션에서 자주 반복하는 업무의 흐름을 적을 때, 끝나는 지점을 어디로 정하라고 했나요?",
+    "choices": ["AI가 답변을 내놓은 순간", "초안이 완성된 순간", "실제 사용", "문항 열 개가 만들어진 순간"],
+    "answer_index": 2,
+    "explanation": "대본은 끝나는 지점을 초안 완성이 아니라 실제 사용으로 정해 보라고 합니다. 완성 장면에서도 AI가 문항 열 개를 만든 것만으로 일이 끝나지 않으며, 학생에게 제시하고 답을 확인할 수 있어야 수업에 도움이 된다고 합니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "초안이 나오면 일이 끝났다고 여기기 쉽습니다.",
+    "source_lectures": [2], "source_section": "02강 완성 장면 (0:00–0:20), 오늘의 미션 (4:30–5:00)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L03-Q1", "part": 1, "lecture": 3, "difficulty": 1, "type": "mcq",
@@ -69,7 +100,8 @@
     "answer_index": 2,
     "explanation": "요청문의 네 항목은 목표, 자료, 제약, 완료 기준입니다. 대본은 특별한 주문을 외우는 대신 일이 제대로 전달되는 요청문을 만들자고 하며, 모델 이름은 네 항목에 없습니다.",
     "common_wrong_index": 3, "common_wrong_reason": "완료 기준을 낯설게 느껴 빠뜨리기 쉬운데, 결과를 받은 뒤 끝났는지 판단하는 핵심 항목입니다.",
-    "source_lectures": [3], "source_section": "03강 핵심 개념", "status": "draft"
+    "source_lectures": [3], "source_section": "03강 핵심 개념", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S1"
   },
   {
     "id": "L03-Q2", "part": 1, "lecture": 3, "difficulty": 2, "type": "mcq",
@@ -78,7 +110,8 @@
     "answer_index": 0,
     "explanation": "제약은 지켜야 할 범위나 하지 말아야 할 작업입니다. 대본의 예시에서도 '임상적 추론을 추가하지 않고'가 제약에 해당합니다. 목표는 무엇을 하려는지, 자료는 무엇을 바탕으로 할지, 완료 기준은 어떤 결과를 받으면 끝났다고 볼지입니다.",
     "common_wrong_index": 2, "common_wrong_reason": "'원문'이라는 말 때문에 자료 항목으로 고르기 쉽습니다.",
-    "source_lectures": [3], "source_section": "03강 핵심 개념, 화면 실습 3", "status": "draft"
+    "source_lectures": [3], "source_section": "03강 핵심 개념, 화면 실습 3", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S2"
   },
   {
     "id": "L03-Q3", "part": 1, "lecture": 3, "difficulty": 3, "type": "mcq",
@@ -87,7 +120,8 @@
     "answer_index": 1,
     "explanation": "대본은 전체를 다시 만들기보다 빠진 부분만 짚어 수정하라고 합니다. 범위를 좁혀 고치면 괜찮았던 부분까지 흔들리는 일을 줄일 수 있습니다. 확인과 수정을 짧게 반복하는 것이 핵심입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "하나가 틀리면 전부 다시 시키는 것이 안전하다고 생각하기 쉽지만, 오히려 멀쩡한 문항이 바뀔 수 있습니다.",
-    "source_lectures": [3], "source_section": "03강 화면 실습 4", "status": "draft"
+    "source_lectures": [3], "source_section": "03강 화면 실습 4", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S3"
   },
   {
     "id": "L03-Q4", "part": 1, "lecture": 3, "difficulty": 2, "type": "ox",
@@ -96,7 +130,19 @@
     "answer_index": 0,
     "explanation": "맞습니다. 대본은 요청문이 좋아도 내용의 정확성이 보장되지는 않으며, 특히 전문 내용은 근거를 직접 읽고 확인하는 단계가 남아 있다고 말합니다.",
     "common_wrong_index": 1, "common_wrong_reason": "요청을 잘 쓰면 결과도 맞을 것이라고 기대해 X를 고르기 쉽습니다.",
-    "source_lectures": [3], "source_section": "03강 작동 확인", "status": "draft"
+    "source_lectures": [3], "source_section": "03강 작동 확인", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
+  },
+  {
+    "id": "L03-Q5", "part": 1, "lecture": 3, "difficulty": 1, "type": "mcq",
+    "question": "03강에서 요청문을 쓸 때의 목적으로 강조한 것은 무엇인가요?",
+    "choices": ["요청문을 최대한 길게 쓰는 것", "특별한 주문 문구를 외워 쓰는 것", "중요한 빈칸을 줄이는 것", "같은 요청을 여러 번 반복해 보내는 것"],
+    "answer_index": 2,
+    "explanation": "대본은 길게 쓰는 것이 목적이 아니라 중요한 빈칸을 줄이는 것이 목적이라고 합니다. 완성 장면에서도 특별한 주문을 외우는 대신 일이 제대로 전달되는 요청문을 만들자고 합니다. 조건을 많이 나열하더라도 서로 충돌하면 안 됩니다.",
+    "common_wrong_index": 0, "common_wrong_reason": "조건을 많이 쓸수록 좋다고 생각해 '길게'를 고르기 쉽습니다.",
+    "source_lectures": [3], "source_section": "03강 완성 장면 (0:00–0:20), 핵심 개념 (0:20–1:10), 화면 실습 3 (2:30–3:10)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L04-Q1", "part": 1, "lecture": 4, "difficulty": 1, "type": "mcq",
@@ -105,7 +151,8 @@
     "answer_index": 2,
     "explanation": "04강은 결과를 사실, 해석, 제안으로 구분합니다. 사실은 근거와 대조하고, 해석은 자료에서 그 결론이 나오는지 보고, 제안은 목적과 조건에 맞는지 판단합니다. 다른 보기는 각각 02강, 01강, 03강의 개념입니다.",
     "common_wrong_index": 1, "common_wrong_reason": "01강의 분류·생성·실행과 헷갈리기 쉽습니다.",
-    "source_lectures": [4], "source_section": "04강 핵심 개념", "status": "draft"
+    "source_lectures": [4], "source_section": "04강 핵심 개념", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S1"
   },
   {
     "id": "L04-Q2", "part": 1, "lecture": 4, "difficulty": 2, "type": "ox",
@@ -114,7 +161,8 @@
     "answer_index": 1,
     "explanation": "대본은 다시 묻는 것만으로 검증이 끝나지 않으며, AI가 같은 오류를 더 확신 있게 말할 수도 있다고 합니다. 원문과 출처를 직접 확인하고, 확인할 수 없는 부분은 보류해야 합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "확신 있는 말투를 정확성의 증거로 착각하기 쉽습니다.",
-    "source_lectures": [4], "source_section": "04강 핵심 개념", "status": "draft"
+    "source_lectures": [4], "source_section": "04강 핵심 개념", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
   },
   {
     "id": "L04-Q3", "part": 1, "lecture": 4, "difficulty": 3, "type": "mcq",
@@ -123,7 +171,19 @@
     "answer_index": 3,
     "explanation": "근거와 표현이 확인되면 통과, 선택지가 겹치면 수정, 근거를 확보하지 못한 내용은 보류입니다. 대본은 보류할 수 있어야 검증이 실제로 작동한다고 강조합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "근거가 없는 문항을 '조금 고치면 되는' 수정으로 처리하기 쉽지만, 근거가 없으면 먼저 보류합니다.",
-    "source_lectures": [4], "source_section": "04강 화면 실습 4, 작동 확인", "status": "draft"
+    "source_lectures": [4], "source_section": "04강 화면 실습 4, 작동 확인", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
+  },
+  {
+    "id": "L04-Q4", "part": 1, "lecture": 4, "difficulty": 2, "type": "mcq",
+    "question": "AI 해설의 세 번째 주장에 대한 근거를 제공한 강의 메모에서 찾을 수 없었습니다. 04강의 판단과 처리로 알맞은 것은?",
+    "choices": ["AI가 지어낸 것이므로 거짓이라고 단정하고 AI 사용을 중단한다.", "제공 자료로 뒷받침되지 않는다는 점을 확인하고, 그 문장을 삭제하거나 근거가 있는 내용으로 바꾼다.", "문장이 자연스러우므로 그대로 둔다.", "AI에게 최종 판단을 맡겨 맞다고 하면 그대로 쓴다."],
+    "answer_index": 1,
+    "explanation": "대본은 바로 거짓이라고 단정할 필요는 없고, 지금 확인할 수 있는 것은 제공 자료로 뒷받침되지 않는다는 사실이라고 합니다. 자료 범위 안에서 문항을 만드는 것이 목표이므로 해당 문장을 삭제하거나 근거가 있는 내용으로 바꿉니다. AI에게 검토를 시키는 것은 후보 문제를 찾는 데 도움이 되지만 최종 판단을 대신 맡기는 것과는 다릅니다.",
+    "common_wrong_index": 0, "common_wrong_reason": "근거를 못 찾으면 곧 거짓이라고 단정하기 쉽습니다.",
+    "source_lectures": [4], "source_section": "04강 화면 실습 2 (1:50–2:30), 화면 실습 3 (2:30–3:10)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L05-Q1", "part": 1, "lecture": 5, "difficulty": 1, "type": "mcq",
@@ -132,7 +192,8 @@
     "answer_index": 3,
     "explanation": "화면은 사용자가 보고 누르는 부분, 처리는 답을 비교하거나 점수를 계산하는 일, 저장은 다음에도 쓸 데이터를 남기는 일입니다. 배포는 05강의 세 영역에 포함되지 않습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "점수가 화면에 보이기 때문에 화면 영역으로 고르기 쉽습니다.",
-    "source_lectures": [5], "source_section": "05강 핵심 개념", "status": "draft"
+    "source_lectures": [5], "source_section": "05강 핵심 개념", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
   },
   {
     "id": "L05-Q2", "part": 1, "lecture": 5, "difficulty": 2, "type": "mcq",
@@ -141,7 +202,8 @@
     "answer_index": 3,
     "explanation": "대본은 이 경우 버튼 색을 바꾸는 것으로 해결되지 않으며, 선택한 답과 정답을 비교하는 처리 흐름을 봐야 한다고 합니다. 버튼이 작으면 화면, 다음 접속에서 기록을 못 찾으면 저장을 먼저 봅니다.",
     "common_wrong_index": 1, "common_wrong_reason": "점수가 '남지 않는' 문제와 점수가 '오르지 않는' 문제를 섞어서 저장을 고르기 쉽습니다.",
-    "source_lectures": [5], "source_section": "05강 화면 실습 2, 작동 확인", "status": "draft"
+    "source_lectures": [5], "source_section": "05강 화면 실습 2, 작동 확인", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S2"
   },
   {
     "id": "L05-Q3", "part": 1, "lecture": 5, "difficulty": 3, "type": "mcq",
@@ -150,7 +212,8 @@
     "answer_index": 1,
     "explanation": "대본은 모든 처리가 반드시 서버에서만 일어나는 것은 아니라고 분명히 말합니다. 브라우저도 일부 처리를 맡습니다. 나머지 보기는 대본의 설명과 일치합니다.",
     "common_wrong_index": 3, "common_wrong_reason": "프런트엔드·백엔드라는 낯선 용어 때문에 틀린 설명으로 오해하기 쉽습니다.",
-    "source_lectures": [5], "source_section": "05강 핵심 개념", "status": "draft"
+    "source_lectures": [5], "source_section": "05강 핵심 개념", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L05-Q4", "part": 1, "lecture": 5, "difficulty": 3, "type": "mcq",
@@ -159,7 +222,19 @@
     "answer_index": 1,
     "explanation": "대본의 완성본에서는 학생이 답을 제출하면 서버가 채점하고 데이터베이스에 결과를 남깁니다. 화면에서 점수 숫자를 바꾼다고 공식 기록까지 바뀌어서는 안 되므로, 공정한 순위에는 믿을 수 있는 위치에서 채점해야 합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "화면에 보이는 점수가 곧 공식 점수라고 생각하기 쉽습니다.",
-    "source_lectures": [5], "source_section": "05강 화면 실습 4", "status": "draft"
+    "source_lectures": [5], "source_section": "05강 화면 실습 4", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S3"
+  },
+  {
+    "id": "L05-Q5", "part": 1, "lecture": 5, "difficulty": 1, "type": "mcq",
+    "question": "휴대폰에서 선택지 버튼이 너무 작습니다. 05강에서 먼저 고치라고 한 영역은?",
+    "choices": ["화면", "처리", "저장", "서버"],
+    "answer_index": 0,
+    "explanation": "버튼이 작으면 화면을 고칩니다. 대본은 이때 점수 계산이나 저장 방식까지 바꿀 이유가 없으며, 버튼의 높이와 글자 크기만 조정하고 정답 처리가 그대로인지 확인하면 수정 범위를 잘 지킨 것이라고 합니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "버튼을 누르면 채점이 되니 처리를 고쳐야 한다고 생각하기 쉽습니다.",
+    "source_lectures": [5], "source_section": "05강 화면 실습 1 (1:10–1:50), 작동 확인 (3:50–4:30)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L06-Q1", "part": 2, "lecture": 6, "difficulty": 1, "type": "mcq",
@@ -168,7 +243,8 @@
     "answer_index": 2,
     "explanation": "대본은 브라우저에서 동작하는 게임을 만들기 위해 자바스크립트를 사용한다고 합니다. 파이썬은 연구 데이터 작업으로 확장할 때, 자바는 기존 시스템이 요구할 때 검토하면 되며, 세 언어를 모두 설치할 필요는 없습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "이름이 비슷해 자바와 자바스크립트를 같은 언어로 생각하기 쉽습니다.",
-    "source_lectures": [6], "source_section": "06강 핵심 개념", "status": "draft"
+    "source_lectures": [6], "source_section": "06강 핵심 개념", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S4"
   },
   {
     "id": "L06-Q2", "part": 2, "lecture": 6, "difficulty": 2, "type": "ox",
@@ -177,7 +253,9 @@
     "answer_index": 1,
     "explanation": "둘 다 1995년에 등장했지만, 대본은 자바스크립트가 웹페이지의 동작을 만드는 별개의 언어라고 설명합니다. 자바는 여러 환경에서 실행할 수 있는 이식성을 목표로 했고, 자바 가상 머신을 통해 실행하는 구조가 널리 쓰입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "등장 연도와 이름이 비슷해서 같은 언어라고 착각하기 쉽습니다.",
-    "source_lectures": [6], "source_section": "06강 완성 장면, 핵심 개념", "status": "draft"
+    "source_lectures": [6], "source_section": "06강 완성 장면, 핵심 개념", "status": "reviewed",
+    "review_note": "2026-11-01 교수 검토 OK (비서실장 전달, 결재함 기록 갱신 필요)",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L06-Q3", "part": 2, "lecture": 6, "difficulty": 3, "type": "mcq",
@@ -186,7 +264,19 @@
     "answer_index": 3,
     "explanation": "대본의 작동 확인에서 웹 버튼은 자바스크립트, 설문 파일 정리는 파이썬, 이미 자바로 만든 서버 수정은 자바를 고릅니다. 한 언어가 무조건 최고라서가 아니라 해결할 문제와 실행 환경이 다르기 때문입니다.",
     "common_wrong_index": 1, "common_wrong_reason": "'버튼'과 '자바'를 연결해 자바스크립트 자리에 자바를 넣기 쉽습니다.",
-    "source_lectures": [6], "source_section": "06강 작동 확인", "status": "draft"
+    "source_lectures": [6], "source_section": "06강 작동 확인", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
+  },
+  {
+    "id": "L06-Q4", "part": 2, "lecture": 6, "difficulty": 1, "type": "mcq",
+    "question": "AI가 만든 코드를 받았을 때 06강에서 먼저 확인하라고 한 것은 무엇인가요?",
+    "choices": ["코드의 줄 수", "어떤 언어이며 어디에서 실행하는지", "코드를 만든 AI의 이름", "세 언어를 모두 설치했는지"],
+    "answer_index": 1,
+    "explanation": "대본은 AI가 만든 코드를 받았을 때 먼저 어떤 언어이며 어디에서 실행하는지 확인하라고 하고, 모르면 파일 형식과 실행 조건부터 물어보라고 합니다. 파일 종류와 실행 환경이 맞아야 하며, 이번 과정에서 세 언어를 모두 설치할 필요는 없습니다.",
+    "common_wrong_index": 3, "common_wrong_reason": "코드를 실행하려면 모든 언어를 미리 설치해야 한다고 생각하기 쉽습니다.",
+    "source_lectures": [6], "source_section": "06강 화면 실습 3 (2:30–3:10), 화면 실습 4 (3:10–3:50), 오늘의 미션 (4:30–5:00)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L07-Q1", "part": 2, "lecture": 7, "difficulty": 1, "type": "mcq",
@@ -195,7 +285,8 @@
     "answer_index": 2,
     "explanation": "제목에는 h1, 문단에는 p, 연결(링크)에는 a를 사용합니다. CSS는 HTML 요소가 아니라 08강에서 다루는 표현(색, 크기 등) 담당입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "화면에서 가장 눈에 띄는 글이 h1이라 문단과 제목을 헷갈리기 쉽습니다.",
-    "source_lectures": [7], "source_section": "07강 핵심 개념", "status": "draft"
+    "source_lectures": [7], "source_section": "07강 핵심 개념", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S4"
   },
   {
     "id": "L07-Q2", "part": 2, "lecture": 7, "difficulty": 2, "type": "mcq",
@@ -204,7 +295,8 @@
     "answer_index": 0,
     "explanation": "대본은 파일을 수정했는데 화면이 그대로라면 저장했는지, 같은 파일을 열었는지부터 확인하라고 하며, 생각보다 많은 문제가 이 두 지점에서 생긴다고 합니다. 이 실습은 내 컴퓨터의 파일을 여는 것이므로 인터넷 연결과는 관계가 없습니다.",
     "common_wrong_index": 1, "common_wrong_reason": "브라우저로 열었으니 인터넷 문제라고 생각하기 쉽지만, 지금은 내 컴퓨터의 파일을 보고 있습니다.",
-    "source_lectures": [7], "source_section": "07강 화면 실습 1·2", "status": "draft"
+    "source_lectures": [7], "source_section": "07강 화면 실습 1·2", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S5"
   },
   {
     "id": "L07-Q3", "part": 2, "lecture": 7, "difficulty": 3, "type": "mcq",
@@ -213,7 +305,8 @@
     "answer_index": 1,
     "explanation": "대본은 링크의 보이는 문구와 실제 이동 주소가 다를 수 있으며, 클릭할 글자만 고쳤다고 목적지까지 바뀌지는 않는다고 설명합니다. 주소를 적는 속성을 함께 확인해야 합니다. UTF-8은 한글이 깨지지 않도록 맞춰 둔 설정입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "글자가 바뀌었으니 링크 전체가 바뀌었다고 생각해 다른 원인을 찾기 쉽습니다.",
-    "source_lectures": [7], "source_section": "07강 화면 실습 3", "status": "draft"
+    "source_lectures": [7], "source_section": "07강 화면 실습 3", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L07-Q4", "part": 2, "lecture": 7, "difficulty": 2, "type": "mcq",
@@ -222,7 +315,19 @@
     "answer_index": 1,
     "explanation": "대본은 파일이 index.html.txt처럼 저장되면 웹페이지로 열리지 않을 수 있으니 확장자도 확인하라고 합니다. 나머지는 정상적인 HTML 파일입니다.",
     "common_wrong_index": 2, "common_wrong_reason": "인코딩 설정을 문제의 원인으로 오해하기 쉽지만, UTF-8은 한글이 깨지지 않게 하는 올바른 설정입니다.",
-    "source_lectures": [7], "source_section": "07강 화면 실습 4, 작동 확인", "status": "draft"
+    "source_lectures": [7], "source_section": "07강 화면 실습 4, 작동 확인", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
+  },
+  {
+    "id": "L07-Q5", "part": 2, "lecture": 7, "difficulty": 1, "type": "mcq",
+    "question": "07강에서 index.html을 브라우저로 열었을 때의 상태로 알맞은 것은?",
+    "choices": ["인터넷에 배포되어 누구나 접속할 수 있다.", "내 컴퓨터의 파일을 보고 있는 것이고, 다른 사람이 곧바로 접속할 수 있는 것은 아니다.", "서버가 파일을 받아 채점하고 있다.", "GitHub에 자동으로 올라간다."],
+    "answer_index": 1,
+    "explanation": "대본은 지금은 인터넷 사이트에 접속한 것이 아니라 내 컴퓨터의 파일을 보고 있으며, 주소 표시줄에서도 그 차이를 확인할 수 있다고 합니다. 화면이 열린다고 곧바로 다른 사람이 접속할 수 있는 것은 아니고, 인터넷에 올리는 배포는 뒤에서 다룹니다.",
+    "common_wrong_index": 0, "common_wrong_reason": "브라우저에 화면이 뜨면 인터넷에 올라갔다고 생각하기 쉽습니다.",
+    "source_lectures": [7], "source_section": "07강 화면 실습 1 (1:10–1:50)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L08-Q1", "part": 2, "lecture": 8, "difficulty": 1, "type": "mcq",
@@ -231,7 +336,8 @@
     "answer_index": 0,
     "explanation": "HTML은 버튼과 설명 영역이 있다는 구조, CSS는 색과 크기와 여백 같은 표현, 자바스크립트는 클릭이 일어났을 때 무엇을 할지를 정합니다. Git은 12강의 버전 관리 도구입니다.",
     "common_wrong_index": 1, "common_wrong_reason": "버튼 자체를 HTML로 만들기 때문에 모양도 HTML이 정한다고 생각하기 쉽습니다.",
-    "source_lectures": [8], "source_section": "08강 핵심 개념", "status": "draft"
+    "source_lectures": [8], "source_section": "08강 핵심 개념", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S4"
   },
   {
     "id": "L08-Q2", "part": 2, "lecture": 8, "difficulty": 2, "type": "mcq",
@@ -240,7 +346,8 @@
     "answer_index": 1,
     "explanation": "대본은 클릭을 감지하는 부분과 표시할 대상은 같은 이름으로 정확히 연결해야 하며, 버튼 이름만 바꾸고 코드의 대상을 그대로 두면 작동하지 않을 수 있다고 합니다. 이 상황은 11강의 오류본에서도 다시 나옵니다.",
     "common_wrong_index": 3, "common_wrong_reason": "이름은 겉모습일 뿐이라고 생각해 동작과의 연결을 놓치기 쉽습니다.",
-    "source_lectures": [8], "source_section": "08강 화면 실습 3", "status": "draft"
+    "source_lectures": [8], "source_section": "08강 화면 실습 3", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S5"
   },
   {
     "id": "L08-Q3", "part": 2, "lecture": 8, "difficulty": 3, "type": "mcq",
@@ -249,7 +356,30 @@
     "answer_index": 2,
     "explanation": "대본은 한 번 열리는 것만 확인하면 닫기 동작의 오류를 놓칠 수 있다고 하며, 완료 기준을 두 번 눌렀을 때 설명이 열리고 닫히는 것으로 정합니다. 성공 기준에는 좁은 화면에서도 버튼이 읽히는 것도 포함됩니다.",
     "common_wrong_index": 0, "common_wrong_reason": "처음 기능만 확인하고 되돌아가는 동작은 시험하지 않는 경우가 많습니다.",
-    "source_lectures": [8], "source_section": "08강 화면 실습 4, 오늘의 미션, 성공 기준", "status": "draft"
+    "source_lectures": [8], "source_section": "08강 화면 실습 4, 오늘의 미션, 성공 기준", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S6"
+  },
+  {
+    "id": "L08-Q4", "part": 2, "lecture": 8, "difficulty": 1, "type": "ox",
+    "question": "HTML·CSS·자바스크립트가 한 파일 안에 함께 들어 있으면 세 부분의 역할도 같다.",
+    "choices": ["O", "X"],
+    "answer_index": 1,
+    "explanation": "대본은 세 부분이 한 파일에 함께 들어갈 수도 있고 각각 다른 파일로 나눌 수도 있지만, 파일이 하나라고 세 역할이 같은 것은 아니라고 합니다. 구조는 HTML, 표현은 CSS, 클릭 동작은 자바스크립트가 맡으며, 수정할 목적에 따라 해당 부분을 찾아야 합니다.",
+    "common_wrong_index": 0, "common_wrong_reason": "한 파일에 있으니 한 덩어리라고 생각해 O를 고르기 쉽습니다.",
+    "source_lectures": [8], "source_section": "08강 핵심 개념 (0:20–1:10)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
+  },
+  {
+    "id": "L08-Q5", "part": 2, "lecture": 8, "difficulty": 2, "type": "mcq",
+    "question": "버튼의 배경색만 바꾸려고 합니다. 08강에서 화면의 다른 글자 색까지 바뀌지 않도록 먼저 확인한 것은?",
+    "choices": ["이 스타일이 어떤 버튼에 적용되는지 정하는 선택자", "클릭을 감지하는 자바스크립트 코드", "파일의 저장 인코딩", "Git 커밋 메시지"],
+    "answer_index": 0,
+    "explanation": "대본은 스타일이 어떤 버튼에 적용되는지 선택자를 확인하고, 화면의 모든 글자 색까지 바뀌지 않도록 대상 범위를 좁힌다고 합니다. 또 글자와 배경의 대비가 낮으면 읽기 어려우니 보기 좋은 색이라는 이유만으로 고르지 않습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "버튼과 관련된 일이면 클릭 코드부터 보기 쉽지만, 색은 CSS가 맡는 표현입니다.",
+    "source_lectures": [8], "source_section": "08강 화면 실습 1 (1:10–1:50)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L09-Q1", "part": 2, "lecture": 9, "difficulty": 1, "type": "mcq",
@@ -258,7 +388,8 @@
     "answer_index": 3,
     "explanation": "대본은 바이브코딩을 자연어로 원하는 동작을 설명하며 AI와 함께 프로그램을 만드는 방식이라고 소개합니다. 중요한 것은 느낌만 전달하고 끝내지 않는 것이며, AI가 완료했다고 해도 실제 화면에서 확인할 단계가 남아 있습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "'바이브'라는 말 때문에 느낌만 전하면 된다고 오해하기 쉽습니다.",
-    "source_lectures": [9], "source_section": "09강 핵심 개념", "status": "draft"
+    "source_lectures": [9], "source_section": "09강 핵심 개념", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
   },
   {
     "id": "L09-Q2", "part": 2, "lecture": 9, "difficulty": 2, "type": "mcq",
@@ -267,7 +398,8 @@
     "answer_index": 1,
     "explanation": "대본은 다시 예쁘게 해 달라고 하지 않고, 실패한 조건(긴 선택지 줄바꿈 안 됨, 오른쪽 잘림)을 화면 폭과 문장과 함께 구체적으로 전달합니다. 실패 조건을 구체적으로 알려야 다음 수정의 기준이 명확해집니다. 채점 로직은 유지하는 것이 이번 변경 범위입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "막연한 표현으로 다시 요청하기 쉬운데, 그러면 AI가 무엇이 실패했는지 알 수 없습니다.",
-    "source_lectures": [9], "source_section": "09강 화면 실습 3", "status": "draft"
+    "source_lectures": [9], "source_section": "09강 화면 실습 3", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S5"
   },
   {
     "id": "L09-Q3", "part": 2, "lecture": 9, "difficulty": 3, "type": "mcq",
@@ -276,7 +408,30 @@
     "answer_index": 3,
     "explanation": "09강의 완료 기준은 모바일에서 글자가 잘리지 않고, 버튼이 눌리며, 채점 결과가 이전과 같은 것입니다. 대본은 AI가 완료했다고 말해도 실제 화면에서 확인할 단계가 남아 있고, 설명만 받고 실제 파일에는 반영되지 않은 경우도 있다고 합니다.",
     "common_wrong_index": 2, "common_wrong_reason": "화면만 고쳤으니 채점은 확인하지 않아도 된다고 생각하기 쉽지만, 기존 기능 유지도 완료 기준입니다.",
-    "source_lectures": [9], "source_section": "09강 핵심 개념, 화면 실습 2, 작동 확인", "status": "draft"
+    "source_lectures": [9], "source_section": "09강 핵심 개념, 화면 실습 2, 작동 확인", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S6"
+  },
+  {
+    "id": "L09-Q4", "part": 2, "lecture": 9, "difficulty": 1, "type": "mcq",
+    "question": "09강에서 연습한 바이브코딩 작업 흐름의 순서로 알맞은 것은?",
+    "choices": ["요청 → 실행 → 확인 → 수정", "실행 → 요청 → 수정 → 확인", "요청 → 수정 → 실행 → 확인", "확인 → 요청 → 실행 → 수정"],
+    "answer_index": 0,
+    "explanation": "대본은 요청하고, 실행하고, 확인하고, 수정하는 흐름을 연습하며 이 과정을 반복한다고 합니다. AI가 완료했다고 말해도 실제 화면에서 확인할 단계가 남아 있으므로, 실행해 보고 실패한 조건을 되돌려 준 뒤 수정합니다.",
+    "common_wrong_index": 2, "common_wrong_reason": "요청하면 AI가 곧바로 수정까지 끝낸다고 생각해 실행과 확인을 뒤로 미루기 쉽습니다.",
+    "source_lectures": [9], "source_section": "09강 완성 장면 (0:00–0:20), 핵심 개념 (0:20–1:10), 작동 확인 (3:50–4:30)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
+  },
+  {
+    "id": "L09-Q5", "part": 2, "lecture": 9, "difficulty": 2, "type": "mcq",
+    "question": "AI에게 선택지 버튼 수정을 요청했더니 '수정했습니다'라는 설명이 돌아왔습니다. 09강에서 그다음에 한 일은?",
+    "choices": ["설명을 믿고 다음 기능으로 넘어간다.", "어느 파일이 바뀌었는지 확인하고, 수정된 파일을 직접 열어 실제로 반영됐는지 본다.", "같은 요청을 한 번 더 보낸다.", "처음부터 새 페이지를 만들어 달라고 한다."],
+    "answer_index": 1,
+    "explanation": "대본은 AI가 수정한 뒤 어느 파일이 바뀌었는지 확인하며, 설명만 받고 실제 파일에는 반영되지 않은 경우도 있다고 합니다. 사용 중인 도구가 파일을 직접 편집하는지, 코드를 복사해야 하는지도 구분해야 하며, 이 실습에서는 수정된 파일을 직접 열어 확인합니다.",
+    "common_wrong_index": 0, "common_wrong_reason": "AI가 '수정했다'고 하면 파일도 바뀌었을 것이라고 믿기 쉽습니다.",
+    "source_lectures": [9], "source_section": "09강 화면 실습 2 (1:50–2:30)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L10-Q1", "part": 2, "lecture": 10, "difficulty": 1, "type": "mcq",
@@ -285,7 +440,8 @@
     "answer_index": 0,
     "explanation": "문항이 세 개이고 정답마다 한 점이므로 가능한 점수는 영 점에서 삼 점까지입니다. 모두 맞히면 3점, 모두 틀리면 0점이 나와야 하며, 이 두 경계값이 성공 기준입니다.",
     "common_wrong_index": 1, "common_wrong_reason": "모두 틀리는 경우(0점)를 빠뜨리기 쉽습니다.",
-    "source_lectures": [10], "source_section": "10강 핵심 개념, 작동 확인", "status": "draft"
+    "source_lectures": [10], "source_section": "10강 핵심 개념, 작동 확인", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
   },
   {
     "id": "L10-Q2", "part": 2, "lecture": 10, "difficulty": 2, "type": "mcq",
@@ -294,7 +450,8 @@
     "answer_index": 1,
     "explanation": "대본은 문항마다 식별자가 있어야 나중에 어떤 문제를 틀렸는지 기록할 수 있으며, 제목이 바뀌어도 식별자는 유지할 수 있다고 합니다. 정답 위치를 바꿨다면 정답 표시는 따로 맞춰야 합니다.",
     "common_wrong_index": 2, "common_wrong_reason": "식별자와 정답 위치 섞기를 같은 기능으로 착각하기 쉽습니다.",
-    "source_lectures": [10], "source_section": "10강 화면 실습 1", "status": "draft"
+    "source_lectures": [10], "source_section": "10강 화면 실습 1", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L10-Q3", "part": 2, "lecture": 10, "difficulty": 3, "type": "mcq",
@@ -303,7 +460,8 @@
     "answer_index": 3,
     "explanation": "대본은 오늘 게임이 브라우저에서 채점하는 연습용이며, 공식 순위에 쓸 신뢰할 수 있는 채점은 뒤에서 서버에 연결한다고 합니다. 나머지 세 가지(미선택 제출 방지, 한 문항 한 번 채점, 다시 시작 초기화)는 모두 성공 기준입니다.",
     "common_wrong_index": 1, "common_wrong_reason": "연속 클릭 시 점수가 계속 올라가는 것을 정상으로 착각하기 쉽지만, 한 문항은 한 번만 채점해야 합니다.",
-    "source_lectures": [10], "source_section": "10강 화면 실습 2·4, 작동 확인", "status": "draft"
+    "source_lectures": [10], "source_section": "10강 화면 실습 2·4, 작동 확인", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S6"
   },
   {
     "id": "L10-Q4", "part": 2, "lecture": 10, "difficulty": 3, "type": "mcq",
@@ -312,7 +470,8 @@
     "answer_index": 1,
     "explanation": "대본은 결과 화면만 초기화하고 내부 점수를 그대로 두면 다음 시도에 점수가 섞일 수 있다고 합니다. 게임의 상태(현재 문항, 고른 답, 점수)가 화면과 함께 제대로 초기화되어야 합니다. 같은 이유로 다음 문항으로 넘어가면 이전 선택도 초기화되어야 합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "화면이 처음처럼 보이면 내부 상태도 처음으로 돌아갔다고 생각하기 쉽습니다.",
-    "source_lectures": [10], "source_section": "10강 핵심 개념, 화면 실습 3·4", "status": "draft"
+    "source_lectures": [10], "source_section": "10강 핵심 개념, 화면 실습 3·4", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L11-Q1", "part": 3, "lecture": 11, "difficulty": 1, "type": "mcq",
@@ -321,7 +480,8 @@
     "answer_index": 3,
     "explanation": "네 항목은 기대 동작, 실제 동작, 재현 순서, 오류 메시지입니다. 대본은 전체를 다시 만들어 달라고 하면 멀쩡한 부분까지 바뀔 수 있다고 경고하며, 관련 부분만 최소 수정하도록 요청합니다.",
     "common_wrong_index": 2, "common_wrong_reason": "재현 순서를 덜 중요하게 여겨 빠뜨리기 쉽지만, 같은 순서로 다시 시험해야 수정 여부를 확인할 수 있습니다.",
-    "source_lectures": [11], "source_section": "11강 완성 장면, 핵심 개념", "status": "draft"
+    "source_lectures": [11], "source_section": "11강 완성 장면, 핵심 개념", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L11-Q2", "part": 3, "lecture": 11, "difficulty": 2, "type": "mcq",
@@ -330,7 +490,8 @@
     "answer_index": 3,
     "explanation": "대본은 오류 메시지가 원인을 좁힐 단서지만, 보내기 전에 비밀 키와 개인정보가 들어 있지 않은지 확인하라고 합니다. 또 메시지를 전부 해석하지 못해도 파일과 위치 정보는 전달할 수 있다고 합니다.",
     "common_wrong_index": 2, "common_wrong_reason": "메시지를 이해해야만 보낼 수 있다고 생각하기 쉽지만, 해석하지 못해도 전달할 수 있습니다.",
-    "source_lectures": [11], "source_section": "11강 핵심 개념, 화면 실습 2", "status": "draft"
+    "source_lectures": [11], "source_section": "11강 핵심 개념, 화면 실습 2", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S8"
   },
   {
     "id": "L11-Q3", "part": 3, "lecture": 11, "difficulty": 3, "type": "mcq",
@@ -339,7 +500,19 @@
     "answer_index": 1,
     "explanation": "대본은 수정한 부분 주변의 기능이 계속 작동하는지 보는 확인을 회귀 점검이라고 부를 수 있다고 합니다. 용어보다 중요한 것은 고친 문제를 다시 시험하고 이전 기능도 살펴보는 습관입니다. 성공 기준도 같은 재현 순서에서 성공하고 인접 기능이 유지되는 것입니다.",
     "common_wrong_index": 2, "common_wrong_reason": "'다시 확인'과 '기록'을 섞어 12강의 커밋과 헷갈리기 쉽습니다.",
-    "source_lectures": [11], "source_section": "11강 화면 실습 4, 성공 기준", "status": "draft"
+    "source_lectures": [11], "source_section": "11강 화면 실습 4, 성공 기준", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
+  },
+  {
+    "id": "L11-Q4", "part": 3, "lecture": 11, "difficulty": 2, "type": "mcq",
+    "question": "AI가 정답 보기 버튼 오류를 고치면서 문제와 관계없는 문항 내용과 디자인까지 바꿨습니다. 11강에 따른 처리로 알맞은 것은?",
+    "choices": ["원래 오류가 사라졌으니 그대로 쓴다.", "변경 범위를 다시 좁혀, 관련 연결 부분만 수정하도록 요청한다.", "전체를 처음부터 다시 만들어 달라고 한다.", "AI가 원인을 길게 설명했으니 믿고 넘어간다."],
+    "answer_index": 1,
+    "explanation": "대본은 수정된 줄을 확인하고, 문제와 관계없는 문항 내용이나 디자인까지 바뀌었다면 변경 범위를 다시 좁혀야 한다고 합니다. 전체를 다시 만들어 달라고 하면 멀쩡한 부분까지 바뀔 수 있고, AI가 원인을 길게 설명했다는 사실보다 같은 재현 순서에서 수정 전후를 비교한 결과가 더 직접적인 근거입니다.",
+    "common_wrong_index": 0, "common_wrong_reason": "원래 오류만 고쳐지면 일이 끝났다고 여기기 쉽습니다.",
+    "source_lectures": [11], "source_section": "11강 완성 장면 (0:00–0:20), 화면 실습 3 (2:30–3:10), 작동 확인 (3:50–4:30)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L12-Q1", "part": 3, "lecture": 12, "difficulty": 1, "type": "mcq",
@@ -348,7 +521,8 @@
     "answer_index": 0,
     "explanation": "대본은 Git과 GitHub가 같은 것이 아니라고 하며, Git은 파일의 변경 이력을 관리하는 버전 관리 도구, GitHub는 저장소를 올려 협업하는 서비스라고 설명합니다. 배포는 13강의 Firebase Hosting에서 다룹니다.",
     "common_wrong_index": 1, "common_wrong_reason": "이름이 비슷해서 같은 것으로 생각하기 쉽습니다.",
-    "source_lectures": [12], "source_section": "12강 핵심 개념", "status": "draft"
+    "source_lectures": [12], "source_section": "12강 핵심 개념", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L12-Q2", "part": 3, "lecture": 12, "difficulty": 2, "type": "ox",
@@ -357,7 +531,8 @@
     "answer_index": 0,
     "explanation": "맞습니다. 대본은 커밋을 했다고 다른 컴퓨터에 백업된 것은 아니라는 점을 기억하라고 합니다. 12강은 내 컴퓨터에서 기록하고 복원하는 데 집중합니다.",
     "common_wrong_index": 1, "common_wrong_reason": "'저장했다'는 느낌 때문에 백업까지 된 것으로 오해해 X를 고르기 쉽습니다.",
-    "source_lectures": [12], "source_section": "12강 핵심 개념", "status": "draft"
+    "source_lectures": [12], "source_section": "12강 핵심 개념", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L12-Q3", "part": 3, "lecture": 12, "difficulty": 3, "type": "mcq",
@@ -366,7 +541,8 @@
     "answer_index": 3,
     "explanation": "대본은 복원이 아직 기록하지 않은 수정을 버릴 수 있으므로 먼저 판단하고, 전체 폴더를 강제로 초기화하지 않고 지정 파일만 되돌린다고 합니다. Git은 데이터베이스 기록을 자동으로 되돌리지 않으며, 커밋할 때는 이번 작업에 해당하는 파일만 고르고 비밀 키가 든 파일은 넣지 않습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "코드 버전과 운영 데이터를 같은 것으로 보고, Git이 모든 것을 되돌린다고 생각하기 쉽습니다.",
-    "source_lectures": [12], "source_section": "12강 화면 실습 1·3·4, 작동 확인", "status": "draft"
+    "source_lectures": [12], "source_section": "12강 화면 실습 1·3·4, 작동 확인", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L12-Q4", "part": 3, "lecture": 12, "difficulty": 2, "type": "mcq",
@@ -375,7 +551,8 @@
     "answer_index": 2,
     "explanation": "대본은 '새 버전'이라는 메시지보다 무엇이 되는 상태인지 적으면 나중에 찾기 쉽다며 '세 문항 퀴즈 정상 동작'으로 기록합니다. 이 기록이 복원의 기준점이 됩니다.",
     "common_wrong_index": 0, "common_wrong_reason": "짧고 일반적인 메시지가 편해 보이지만, 나중에 어떤 상태인지 알 수 없습니다.",
-    "source_lectures": [12], "source_section": "12강 화면 실습 2", "status": "draft"
+    "source_lectures": [12], "source_section": "12강 화면 실습 2", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S8"
   },
   {
     "id": "L13-Q1", "part": 3, "lecture": 13, "difficulty": 1, "type": "mcq",
@@ -384,7 +561,8 @@
     "answer_index": 0,
     "explanation": "호스팅은 웹페이지 파일을 방문자에게 제공하는 환경이고, 배포는 준비된 파일을 그 환경에 올려 적용하는 작업입니다. 커밋은 12강의 버전 기록, 인증은 사용자 확인입니다.",
     "common_wrong_index": 1, "common_wrong_reason": "호스팅(환경)과 배포(작업)를 같은 말로 쓰기 쉽습니다.",
-    "source_lectures": [13], "source_section": "13강 핵심 개념", "status": "draft"
+    "source_lectures": [13], "source_section": "13강 핵심 개념", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
   },
   {
     "id": "L13-Q2", "part": 3, "lecture": 13, "difficulty": 2, "type": "mcq",
@@ -393,7 +571,8 @@
     "answer_index": 3,
     "explanation": "대본은 이 명령이 현재 연결한 프로젝트에 웹 파일을 적용하며, 데이터베이스 규칙이나 서버 함수까지 함께 배포하는 명령은 아니라고 설명합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "'deploy(배포)'라는 말 때문에 프로젝트 전체가 올라간다고 생각하기 쉽습니다.",
-    "source_lectures": [13], "source_section": "13강 화면 실습 2", "status": "draft"
+    "source_lectures": [13], "source_section": "13강 화면 실습 2", "status": "draft",
+    "pool": "assessment", "set": "A", "slot": "S7"
   },
   {
     "id": "L13-Q3", "part": 3, "lecture": 13, "difficulty": 3, "type": "mcq",
@@ -402,7 +581,8 @@
     "answer_index": 2,
     "explanation": "대본은 배포 완료 메시지와 방문자가 새 화면을 보는 것을 각각 확인하라고 합니다. 주소를 안다고 로그인 권한이 생기지 않고, 주소가 복잡하다고 접근이 보호되지도 않습니다. 서버에서 비밀 키를 쓰는 기능은 Hosting만으로 생기지 않습니다.",
     "common_wrong_index": 0, "common_wrong_reason": "긴 주소는 남이 모르니 안전하다고 생각하기 쉽지만, 접근 보호는 인증과 권한으로 따로 해야 합니다.",
-    "source_lectures": [13], "source_section": "13강 핵심 개념, 화면 실습 4, 작동 확인", "status": "draft"
+    "source_lectures": [13], "source_section": "13강 핵심 개념, 화면 실습 4, 작동 확인", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L13-Q4", "part": 3, "lecture": 13, "difficulty": 2, "type": "mcq",
@@ -411,7 +591,19 @@
     "answer_index": 0,
     "explanation": "대본은 새 문구가 보이지 않으면 배포 프로젝트와 파일 위치, 캐시 상태를 차례로 살펴보라고 합니다. 컴퓨터에서 보던 창만 확인하면 저장된 예전 화면을 볼 수도 있으므로 다른 기기에서 직접 열어 보는 것이 좋습니다.",
     "common_wrong_index": 2, "common_wrong_reason": "보이지 않으면 권한 문제라고 생각하기 쉽지만, 이 게임은 로그인 없는 연습용입니다.",
-    "source_lectures": [13], "source_section": "13강 화면 실습 3·4", "status": "draft"
+    "source_lectures": [13], "source_section": "13강 화면 실습 3·4", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S8"
+  },
+  {
+    "id": "L13-Q5", "part": 3, "lecture": 13, "difficulty": 1, "type": "mcq",
+    "question": "13강에서 Hosting 배포 폴더에 들어 있어야 한다고 한 것은 무엇인가요?",
+    "choices": ["학생에게 제공할 파일만", "연구 자료와 비밀 설정 파일까지 모든 파일", "Git 커밋 기록 전체", "데이터베이스 규칙 파일만"],
+    "answer_index": 0,
+    "explanation": "대본은 배포 폴더에 학생에게 제공할 파일만 들어 있어야 하며, 연구 자료나 비밀 설정 파일이 섞여 있지 않은지 확인하라고 합니다. 잘못된 폴더를 지정하면 기본 안내 페이지만 나오거나 원하지 않는 파일이 게시될 수 있습니다.",
+    "common_wrong_index": 1, "common_wrong_reason": "빠뜨리는 것보다 전부 넣는 편이 안전하다고 생각하기 쉽습니다.",
+    "source_lectures": [13], "source_section": "13강 화면 실습 1 (1:10–1:50)", "status": "draft",
+    "added": "2026-11-01",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L14-Q1", "part": 3, "lecture": 14, "difficulty": 1, "type": "mcq",
@@ -420,7 +612,8 @@
     "answer_index": 0,
     "explanation": "대본은 자바스크립트 변수에만 둔 값은 페이지를 다시 불러오면 초기화될 수 있다고 하며, 실제로 한 문제를 맞힌 뒤 새로고침하니 0점으로 돌아갑니다. 프로그램이 새로 시작하면서 상태를 다시 만들기 때문입니다.",
     "common_wrong_index": 2, "common_wrong_reason": "화면에 보였던 값은 어딘가에 저장되어 있다고 생각하기 쉽습니다.",
-    "source_lectures": [14], "source_section": "14강 핵심 개념, 화면 실습 1", "status": "draft"
+    "source_lectures": [14], "source_section": "14강 핵심 개념, 화면 실습 1", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L14-Q2", "part": 3, "lecture": 14, "difficulty": 2, "type": "mcq",
@@ -429,7 +622,8 @@
     "answer_index": 2,
     "explanation": "localStorage는 같은 출처의 데이터를 해당 브라우저에 저장해 다음에도 읽을 수 있게 하지만, 다른 기기로 자동 공유되지 않습니다. 사용자가 사이트 데이터를 지우면 없어질 수 있고, 공용 컴퓨터에서는 다른 사람이 남은 기록을 볼 수도 있어 공식 저장소로 그대로 쓰기에는 조건을 더 살펴야 합니다.",
     "common_wrong_index": 0, "common_wrong_reason": "새로고침해도 남으니 어디서나 보일 것이라고 생각하기 쉽습니다.",
-    "source_lectures": [14], "source_section": "14강 핵심 개념, 화면 실습 2·3", "status": "draft"
+    "source_lectures": [14], "source_section": "14강 핵심 개념, 화면 실습 2·3", "status": "draft",
+    "pool": "assessment", "set": "B", "slot": "S7"
   },
   {
     "id": "L14-Q3", "part": 3, "lecture": 14, "difficulty": 3, "type": "mcq",
@@ -438,7 +632,8 @@
     "answer_index": 1,
     "explanation": "대본은 이 브라우저의 글자 크기 설정에는 로컬 저장이 적합할 수 있고, 여러 기기에서 보는 개인 이력과 학생 간 순위에는 공유 저장이 필요하다고 합니다. 무엇을 남기는지뿐 아니라 누가 읽고 바꿀지도 함께 정해야 합니다.",
     "common_wrong_index": 3, "common_wrong_reason": "개인 이력은 '나만 보는 것'이라 로컬 저장을 고르기 쉽지만, 여러 기기에서 봐야 하면 공유 DB가 필요합니다.",
-    "source_lectures": [14], "source_section": "14강 작동 확인", "status": "draft"
+    "source_lectures": [14], "source_section": "14강 작동 확인", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
   },
   {
     "id": "L14-Q4", "part": 3, "lecture": 14, "difficulty": 2, "type": "ox",
@@ -447,7 +642,8 @@
     "answer_index": 0,
     "explanation": "맞습니다. 대본은 데이터가 서버에 있다는 이유만으로 모든 사람에게 공개되는 것은 아니며, 다른 사용자가 무엇을 볼지는 권한으로 정한다고 합니다. 앞으로 개인 연습 기록과 순위용 공개 정보를 나눠 저장할 예정입니다.",
     "common_wrong_index": 1, "common_wrong_reason": "'공유'라는 말을 '전체 공개'로 오해해 X를 고르기 쉽습니다.",
-    "source_lectures": [14], "source_section": "14강 화면 실습 4", "status": "draft"
+    "source_lectures": [14], "source_section": "14강 화면 실습 4", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L15-Q1", "part": 3, "lecture": 15, "difficulty": 1, "type": "mcq",
@@ -456,7 +652,8 @@
     "answer_index": 1,
     "explanation": "대본의 정리: 학생이 누구인지 확인하는 것은 Authentication, 게임 주소를 제공하는 것은 Hosting, 응시 기록을 남기는 것은 데이터베이스(이번 실습에서는 Realtime Database)입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "게임 주소로 접속하니 Hosting이 사용자도 확인한다고 생각하기 쉽습니다.",
-    "source_lectures": [15], "source_section": "15강 핵심 개념, 작동 확인", "status": "draft"
+    "source_lectures": [15], "source_section": "15강 핵심 개념, 작동 확인", "status": "draft",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L15-Q2", "part": 3, "lecture": 15, "difficulty": 2, "type": "mcq",
@@ -465,7 +662,8 @@
     "answer_index": 0,
     "explanation": "대본은 Cloud Firestore와 Realtime Database가 둘 다 실시간 동기화를 지원하며, Firestore는 문서와 컬렉션으로, Realtime Database는 JSON 트리로 데이터를 다룬다고 설명합니다.",
     "common_wrong_index": 1, "common_wrong_reason": "두 이름이 낯설어 구조를 반대로 기억하기 쉽습니다.",
-    "source_lectures": [15], "source_section": "15강 핵심 개념", "status": "draft"
+    "source_lectures": [15], "source_section": "15강 핵심 개념", "status": "draft",
+    "pool": "assessment", "set": "C", "slot": "S7"
   },
   {
     "id": "L15-Q3", "part": 3, "lecture": 15, "difficulty": 3, "type": "mcq",
@@ -474,7 +672,9 @@
     "answer_index": 2,
     "explanation": "대본은 이번 선택이 작은 실시간 게임이라는 교육 목적에 따른 것이고 다른 프로젝트까지 같은 선택을 할 필요는 없다고 합니다. 데이터가 안 읽힌다고 공개 규칙으로 바꾸지 않으며, 웹 파일을 올렸다고 데이터베이스가 자동 연결되지 않습니다. Google은 신규 고객에게 Firestore부터 검토하도록 안내합니다.",
     "common_wrong_index": 3, "common_wrong_reason": "이번 실습이 Realtime Database를 쓰니 Google도 그것을 권한다고 착각하기 쉽습니다.",
-    "source_lectures": [15], "source_section": "15강 핵심 개념, 화면 실습 1·4, 작동 확인", "status": "draft"
+    "source_lectures": [15], "source_section": "15강 핵심 개념, 화면 실습 1·4, 작동 확인", "status": "reviewed",
+    "review_note": "2026-11-01 교수 검토 OK (비서실장 전달, 결재함 기록 갱신 필요). Google 안내(Firestore 우선 검토)는 정책이 바뀔 수 있어 평가가 아닌 연습용으로 둠",
+    "pool": "practice", "set": null, "slot": null
   },
   {
     "id": "L15-Q4", "part": 3, "lecture": 15, "difficulty": 2, "type": "ox",
@@ -483,6 +683,7 @@
     "answer_index": 1,
     "explanation": "대본은 학생의 이름을 입력받는 화면과 실제 인증은 다르다고 합니다. 이름은 다른 사람이 똑같이 적을 수 있지만, 인증은 계정의 주체를 확인하는 과정입니다.",
     "common_wrong_index": 0, "common_wrong_reason": "이름을 쓰면 누구인지 알 수 있다고 생각하기 쉽지만, 다른 사람이 같은 이름을 적을 수 있습니다.",
-    "source_lectures": [15], "source_section": "15강 화면 실습 2", "status": "draft"
+    "source_lectures": [15], "source_section": "15강 화면 실습 2", "status": "draft",
+    "pool": "diagnostic", "set": null, "slot": null
   }
 ]
