@@ -14,7 +14,9 @@ TEAMS = ["1팀", "2팀", "3팀", "4팀"]
 # 붙여넣기 영역: (참가자 코드 원문, 맞힌 수, 문항 수, 정답률%) — None은 빈칸
 PASTE = {
     "진단": [
-        ("K7M2QX", 6, 12, None), ("R4XT9H", 10, 12, None), ("H9WC3P", 5, 12, None),
+        ("K7M2QX", None, None, 80),   # 정답률만, 진단−평가A 정확히 +30%p → 교수 확인
+        ("R4XT9H", 4, 12, None),       # 진단이 평가A보다 54.2%p 낮음 → 표시 안 함(한 방향만)
+        ("H9WC3P", 5, 12, None),
         ("B3NV7K", 4, 12, None), ("Z8DQ4T", 9, 12, None), ("M2PF6Y", 8, 12, None),
         ("T6YH8R", 12, 12, None), ("C5JR2W", 7, 12, None),
         ("F8UA7G", 3, 12, None), ("N4GS9B", 11, 12, None), ("D7VB3M", 2, 12, None),
@@ -51,7 +53,7 @@ PASTE = {
 DEFAULTS = {
     "HIGH_CUT": 80, "STEP1": -20, "STEP2": 20,
     "PTS_LOW": 0, "PTS_MID": 10, "PTS_HIGH": 20,
-    "GOAL": 15, "DIAG_GAP": 25, "DIAG_ITEMS": 12, "EVAL_ITEMS": 8,
+    "GOAL": 15, "DIAG_GAP": 30, "DIAG_ITEMS": 12, "EVAL_ITEMS": 8,
 }
 
 SCENARIOS = {

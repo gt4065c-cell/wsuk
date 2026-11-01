@@ -50,7 +50,7 @@ def expected(v):
         else: base, src, bc = None, "기준 없음", None
         dp, ap = d["진단"]["p"], d["평가A"]["p"]
         gap = rnd(dp - ap) if (dp is not None and ap is not None) else None
-        flag = "교수 확인" if (gap is not None and abs(gap) >= v["DIAG_GAP"]) else ""
+        flag = "교수 확인" if (gap is not None and gap >= v["DIAG_GAP"]) else ""
         if ap is None and dp is None: ref = None
         else:
             num = (ap * v["EVAL_ITEMS"] if ap is not None else 0) + (dp * v["DIAG_ITEMS"] if dp is not None else 0)
