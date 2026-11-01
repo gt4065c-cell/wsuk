@@ -579,6 +579,10 @@ function viewSets(){
 
 /* ③④ 문제 + 해설 */
 function viewQuiz(){
+  if(!S.items.length){
+    return '<div class="screen">'+band()+'<div class="content"><div class="note"><p class="note-title">'+ic("alert",18)+'이 링크에 풀 수 있는 문항이 없어요</p><p>교수님께 알려 주세요.</p></div>'+
+      '<button class="btn btn-secondary" data-act="other-set">연습 세트 고르기</button></div></div>';
+  }
   var n=S.items.length, i=S.idx, it=S.items[i], q=it.q;
   var ans=S.answers[i], locked=!!ans, sel=S.selected, ox=q.type==="ox";
   var title=S.team?"팀 연습":setById(S.setId).title;
