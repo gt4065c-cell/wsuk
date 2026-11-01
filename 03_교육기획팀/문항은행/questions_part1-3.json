@@ -24,7 +24,8 @@
     "review_note": "2026-11-01 교수 검토 OK (비서실장 전달, 결재함 기록 갱신 필요)",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L01-Q2",
@@ -76,7 +77,8 @@
     "status": "draft",
     "pool": "diagnostic",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L01-Q4",
@@ -153,7 +155,7 @@
     ],
     "source_section": "02강 완성 장면, 작동 확인, 오늘의 미션",
     "status": "draft",
-    "revision_note": "2026-11-01 품질검수 반영: 자주 하는 오답을 1번에서 4번으로 변경. 1번은 대본이 기록하라고 한 항목을 문구('합친 시간') 그대로 담은 보기라, 기존 오답 이유(검토 시간 합산을 놓침)로는 이 보기를 고를 까닭이 설명되지 않았음.",
+    "revision_note": "2026-11-01 품질검수 반영: 자주 하는 오답을 1번에서 4번으로 변경. 1번은 대본이 기록하라고 한 항목을 문구('합친 시간') 그대로 담은 보기라, 기존 오답 이유(검토 시간 합산을 놓침)로는 이 보기를 고를 까닭이 설명되지 않았음. / 2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)",
     "pool": "diagnostic",
     "set": null,
     "slot": null
@@ -259,7 +261,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "B",
-    "slot": "S1"
+    "slot": "S1",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L03-Q2",
@@ -285,7 +288,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "C",
-    "slot": "S2"
+    "slot": "S2",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L03-Q3",
@@ -311,7 +315,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "A",
-    "slot": "S3"
+    "slot": "S3",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L03-Q4",
@@ -362,7 +367,8 @@
     "added": "2026-11-01",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L04-Q1",
@@ -388,7 +394,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "C",
-    "slot": "S1"
+    "slot": "S1",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L04-Q2",
@@ -438,7 +445,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L04-Q4",
@@ -465,7 +473,8 @@
     "added": "2026-11-01",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L05-Q1",
@@ -491,7 +500,8 @@
     "status": "draft",
     "pool": "diagnostic",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L05-Q2",
@@ -517,7 +527,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "A",
-    "slot": "S2"
+    "slot": "S2",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L05-Q3",
@@ -543,7 +554,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L05-Q4",
@@ -596,7 +608,8 @@
     "added": "2026-11-01",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L06-Q1",
@@ -622,7 +635,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "C",
-    "slot": "S4"
+    "slot": "S4",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L06-Q2",
@@ -700,7 +714,8 @@
     "added": "2026-11-01",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L07-Q1",
@@ -726,7 +741,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "B",
-    "slot": "S4"
+    "slot": "S4",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L07-Q2",
@@ -778,7 +794,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L07-Q4",
@@ -804,7 +821,8 @@
     "status": "draft",
     "pool": "diagnostic",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L07-Q5",
@@ -857,7 +875,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "A",
-    "slot": "S4"
+    "slot": "S4",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L08-Q2",
@@ -883,7 +902,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "C",
-    "slot": "S5"
+    "slot": "S5",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L08-Q3",
@@ -909,7 +929,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "B",
-    "slot": "S6"
+    "slot": "S6",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L08-Q4",
@@ -961,7 +982,8 @@
     "added": "2026-11-01",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L09-Q1",
@@ -987,7 +1009,8 @@
     "status": "draft",
     "pool": "diagnostic",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L09-Q2",
@@ -1013,7 +1036,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "B",
-    "slot": "S5"
+    "slot": "S5",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L09-Q3",
@@ -1039,7 +1063,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "C",
-    "slot": "S6"
+    "slot": "S6",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L09-Q4",
@@ -1119,7 +1144,8 @@
     "status": "draft",
     "pool": "diagnostic",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L10-Q2",
@@ -1145,7 +1171,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L10-Q3",
@@ -1171,7 +1198,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "A",
-    "slot": "S6"
+    "slot": "S6",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L10-Q4",
@@ -1197,7 +1225,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L11-Q1",
@@ -1223,7 +1252,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L11-Q2",
@@ -1275,7 +1305,8 @@
     "status": "draft",
     "pool": "diagnostic",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L11-Q4",
@@ -1328,7 +1359,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L12-Q2",
@@ -1456,7 +1488,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "A",
-    "slot": "S7"
+    "slot": "S7",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L13-Q3",
@@ -1482,7 +1515,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L13-Q4",
@@ -1508,7 +1542,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "C",
-    "slot": "S8"
+    "slot": "S8",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L13-Q5",
@@ -1561,7 +1596,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L14-Q2",
@@ -1587,7 +1623,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "B",
-    "slot": "S7"
+    "slot": "S7",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L14-Q3",
@@ -1663,7 +1700,8 @@
     "status": "draft",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L15-Q2",
@@ -1689,7 +1727,8 @@
     "status": "draft",
     "pool": "assessment",
     "set": "C",
-    "slot": "S7"
+    "slot": "S7",
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L15-Q3",
@@ -1716,7 +1755,8 @@
     "review_note": "2026-11-01 교수 검토 OK (비서실장 전달, 결재함 기록 갱신 필요). Google 안내(Firestore 우선 검토)는 정책이 바뀔 수 있어 평가가 아닌 연습용으로 둠",
     "pool": "practice",
     "set": null,
-    "slot": null
+    "slot": null,
+    "revision_note": "2026-11-01 비서실장: 세트 내 정답 위치 균등화를 위해 보기 순서만 재배치(내용 불변, 정답·자주 하는 오답 번호 함께 이동 확인)"
   },
   {
     "id": "L15-Q4",
