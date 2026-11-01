@@ -1,4 +1,4 @@
-// 연습 앱 v0.3 자동 테스트 (PRD 8장 테스트 번호 그대로)
+// 연습 앱 v0.3.1 자동 테스트 (PRD 8장 테스트 번호 그대로 + v0.3.1 수정 확인 V-01~V-06)
 // 실행: node "04_제품개발팀/app/tests/run_tests.js"
 // - 컴퓨터 안에서만 열리는 임시 서버(127.0.0.1)를 띄워 시험하고, 끝나면 끕니다. 외부 공개 없음.
 // - 결과: 화면에 통과/실패, tests/results.json 에 기록
@@ -55,12 +55,14 @@ async function newPage(opts = {}) {
       Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('막힘', 'SecurityError'); } });
     });
   }
-  // 글꼴 CDN은 시험 중 막음(인터넷 없는 상황 = 기본 글꼴로 대체되는지도 함께 확인)
-  await ctx.route(/cdn\.jsdelivr\.net/, r => r.abort());
   const page = await ctx.newPage();
   page._errors = [];
   page.on('pageerror', e => page._errors.push(e.message));
-  page.on('dialog', d => { page._errors.push('dialog:' + d.message()); d.dismiss(); });
+  page._dialogs = [];
+  page.on('dialog', d => {
+    if (page._dialog) { page._dialogs.push(d.message()); page._dialog === 'accept' ? d.accept() : d.dismiss(); }
+    else { page._errors.push('dialog:' + d.message()); d.dismiss(); }
+  });
   return { ctx, page };
 }
 async function open(page, query = '') { await page.goto(BASE + 'index.html' + query); await page.waitForSelector('#app .screen'); }
@@ -400,13 +402,13 @@ function startServer() {
     });
     await test('B-02', '한글 이름·특수문자·이모지 → 안내', async () => {
       const { ctx, page } = await newPage(); await open(page);
-      for (const v of ['김교수', 'K7M2PX!', 'AB CD', '😀😀', 'K7_M2', '---', 'ＡＢＣ']) {
+      for (const v of ['김교수', 'K7M2PX!', 'AB CD', '😀😀', 'K7_M2', '---', 'ＡＢＣ', 'ßß', 'ﬃA', '-A', 'ǆA']) {
         await enterCode(page, v);
         const t = await page.textContent('#code-err').catch(() => '');
         ok(t.includes('카드에 적힌 영문·숫자 코드'), `"${v}": 안내 없음`);
         ok(!(await page.$('.setcard')), `"${v}": 넘어감`);
       }
-      await ctx.close(); return '7가지 모두 거절';
+      await ctx.close(); return '11가지 모두 거절(ßß·ﬃA·-A 포함)';
     });
     await test('B-03', '코드에 <b>X</b> (글자 검사 우회) → 글자 그대로', async () => {
       const { ctx, page } = await newPage(); await open(page); await enterCode(page); await pickSet(page, 'PRACTICE-P1', '8');
@@ -456,25 +458,25 @@ function startServer() {
       for (let i = 0; i < 5; i++) await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
       ok((await count(page)) === '2 / 8', '건너뜀: ' + await count(page));
       ok(!(await page.$('#verdict')), '2번 문항이 저절로 채점됨');
-      // 뒤로 가기 → 앞으로 가기: 앱이 다시 열리고 이어 풀기 가능
-      await page.goBack(); await page.goForward(); await page.waitForSelector('#app .screen');
-      ok(await page.$('[data-act=resume]'), '이어 풀기 안내 없음');
-      await page.click('[data-act=resume]');
-      ok((await count(page)) === '2 / 8', '이어 풀기 위치');
+      // 뒤로 가기 → "그만 풀까요?" → 취소하면 그대로 (자세한 뒤로 가기 시험은 V-01)
+      page._dialog = 'dismiss';
+      await page.goBack(); await page.waitForTimeout(200);
+      ok(page._dialogs.length === 1 && (await count(page)) === '2 / 8', '뒤로 가기 확인창/위치');
       ok(page._errors.length === 0, '오류: ' + page._errors.join(';'));
-      await ctx.close(); return '연타 5번 → 2/8, 뒤로 가기 후 돌아오면 이어 풀기로 2번부터';
+      await ctx.close(); return '연타 5번 → 2/8, 뒤로 가기 → "그만 풀까요?" 취소 → 2/8 그대로';
     });
     await test('B-08', '(F6) 링크에 없는 번호·평가 번호·이상한 글자', async () => {
       const { ctx, page } = await newPage();
       const bad = 'L11-Q1,ZZZ-Q9,L01-Q2,%3Cscript%3Ealert(1)%3C%2Fscript%3E,L12-Q1';
       await open(page, '?ids=' + bad);
       await enterCode(page); await page.waitForSelector('#qid');
-      ok((await page.textContent('#missing')).includes('이 링크에 없는 문항이 3개'), '안내 문구');
+      const t = await page.textContent('#missing');
+      ok(t.includes('3개는 제외했어요') && t.includes('앱에 없는 번호 3개'), '안내 문구: ' + t);
       ok((await count(page)) === '1 / 2', '있는 문항만 진행: ' + await count(page));
       const html = await page.content();
       ok(!html.includes(SRC['L01-Q2'].question) && !html.includes('L01-Q2'), '평가 문항 내용이 보임');
       ok(page._errors.length === 0, '오류: ' + page._errors.join(';'));
-      await ctx.close(); return '안내 "없는 문항 3개", 2문항만 진행';
+      await ctx.close(); return '안내 "3개는 제외했어요 · 앱에 없는 번호 3개", 2문항만 진행';
     });
 
     console.log('C. 새로고침·끊김');
@@ -495,13 +497,11 @@ function startServer() {
     await test('C-02', '브라우저 완전히 닫았다 열기 → [새로 시작] → 메모 지워짐', async () => {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lu-prof-'));
       let ctx = await chromium.launchPersistentContext(dir, { viewport: { width: 390, height: 844 } });
-      await ctx.route(/cdn\.jsdelivr\.net/, r => r.abort());
       let page = ctx.pages()[0] || await ctx.newPage();
       await open(page); await enterCode(page); await pickSet(page, 'PRACTICE-P1', '8');
       await answer(page, 0); await next(page); await answer(page, 1);
       await ctx.close();
       ctx = await chromium.launchPersistentContext(dir, { viewport: { width: 390, height: 844 } });
-      await ctx.route(/cdn\.jsdelivr\.net/, r => r.abort());
       page = ctx.pages()[0] || await ctx.newPage();
       await open(page);
       ok(await page.$('[data-act=resume]'), '다시 열었을 때 이어 풀기 안내 없음');
@@ -639,9 +639,127 @@ function startServer() {
       const loadExternal = reqs.filter(r => r.phase === 'load' && !r.url.startsWith(BASE));
       ok(play.length === 0, '풀이 중 요청: ' + play.map(r => r.url).join(', '));
       ok(!reqs.some(r => r.method !== 'GET' || r.url.includes('NETCHK7') || r.post.includes('NETCHK7')), '코드·답 전송');
-      ok(loadExternal.every(r => r.url.startsWith('https://cdn.jsdelivr.net/gh/orioncactus/pretendard')), '처음 열 때 글꼴 외 바깥 요청: ' + loadExternal.map(r => r.url));
+      ok(loadExternal.length === 0, '처음 열 때 바깥 요청: ' + loadExternal.map(r => r.url));
+      const loadLocal = reqs.filter(r => r.phase === 'load').length;
       await ctx.close();
-      return `처음 열 때 바깥 요청은 글꼴(CDN) ${loadExternal.length}건뿐, 풀이 중 요청 0건, 전송(POST) 0건 — 단, 시험에서는 글꼴 CDN을 막아 둠(아래 '알려진 문제' 참고)`;
+      return `처음 열 때 요청 ${loadLocal}건 모두 이 컴퓨터(127.0.0.1), 바깥 요청 0건, 풀이 중 요청 0건, 전송(POST) 0건`;
+    });
+    console.log('V. v0.3.1 수정 확인 (QA 보고서 O-1, Y-2~Y-6)');
+    await test('V-01', '① 뒤로 가기: 앱 안 이전 화면으로, 결과 안 사라짐, 풀이 중 확인', async () => {
+      const { ctx, page } = await newPage(); await open(page);
+      await enterCode(page); await page.waitForSelector('.setcard');
+      await page.goBack(); await page.waitForSelector('#code');            // 세트 → 첫 화면 (앱 안)
+      ok(page.url().startsWith(BASE), '앱 밖으로 나감');
+      await page.goForward(); await page.waitForSelector('.setcard');       // 앞으로 → 세트
+      await pickSet(page, 'PRACTICE-P1', '8');
+      await answer(page, 0); await next(page); await answer(page, 1);
+      // 풀이 중 뒤로 가기: 취소 → 그대로 / 확인 → 세트 고르기, 기록은 남음
+      page._dialog = 'dismiss'; await page.goBack(); await page.waitForTimeout(200);
+      ok(page._dialogs[0] && page._dialogs[0].includes('그만 풀까요'), '확인창 문구');
+      ok((await count(page)) === '2 / 8' && (await page.$('#verdict')), '취소했는데 화면이 바뀜');
+      page._dialog = 'accept'; await page.goBack(); await page.waitForSelector('.setcard');
+      ok((await page.evaluate(() => localStorage.getItem('levelup_practice_run'))) !== null, '그만 풀기 후 이어 풀기 기록이 사라짐');
+      await page.goForward(); await page.waitForSelector('#qid');
+      ok((await count(page)) === '2 / 8', '앞으로 가기로 풀던 문제 복귀');
+      // 끝까지 → 결과 → 다시 보기 → 뒤로 = 결과 (점수 그대로)
+      await next(page);
+      for (;;) {
+        const id = await qid(page); await answer(page, await posOfOrig(page, id, SRC[id].common_wrong_index));
+        const last = (await page.textContent('[data-act=next]')).includes('결과'); await next(page); if (last) break;
+      }
+      await page.waitForSelector('#score');
+      const sc = await page.textContent('#score');
+      await page.click('[data-act=review]'); await page.waitForSelector('article.rv');
+      await page.goBack(); await page.waitForSelector('#score');
+      ok((await page.textContent('#score')) === sc, '결과 점수가 바뀜');
+      await page.goForward(); await page.waitForSelector('article.rv');   // 앞으로 = 다시 보기
+      await page.goBack(); await page.waitForSelector('#score');
+      await page.goBack(); await page.waitForSelector('.setcard');          // 결과 → 세트 고르기 (확인창 없음)
+      await page.goForward(); await page.waitForSelector('#score');         // 다시 앞으로 → 결과가 남아 있음
+      ok((await page.textContent('#score')) === sc, '결과가 사라짐');
+      ok(page._dialogs.length === 2, '결과 화면 이동에 확인창이 뜸: ' + page._dialogs.length);
+      // 화면 버튼과 뒤로 가기 섞기: [다른 세트] → 뒤로 → 첫 화면
+      await page.click('[data-act=other-set]'); await page.waitForSelector('.setcard');
+      await page.goBack(); await page.waitForSelector('#code');
+      ok(page._errors.length === 0, '오류: ' + page._errors.join(';'));
+      await ctx.close();
+      return '세트↔첫 화면, 풀이 중 "그만 풀까요?"(취소/확인), 다시 보기→결과(점수 유지)→세트→앞으로 결과 복귀';
+    });
+    await test('V-02', '④ 풀던 기록이 있는데 다른 주소(지정 링크/일반)를 열면 먼저 묻기', async () => {
+      const { ctx, page } = await newPage(); await open(page); await enterCode(page); await pickSet(page, 'PRACTICE-P1', 'all');
+      for (let k = 0; k < 5; k++) { await answer(page, 0); if (k < 4) await next(page); }
+      await open(page, '?ids=' + TEAM_IDS.join(','));
+      ok(await page.$('#conflict'), '묻는 안내 없음');
+      ok((await page.textContent('.screen')).includes('5문항까지 풀었어요'), '풀던 기록 요약');
+      await page.click('[data-act=resume]'); await page.waitForSelector('#qid');
+      ok((await count(page)) === '6 / 10' && !(await page.$('.band')) && !page.url().includes('ids='), '일반 연습으로 이어 풀기 실패');
+      await open(page, '?ids=' + TEAM_IDS.join(','));
+      ok((await page.textContent('[data-act=new-start]')).includes('기록 지우고'), '버튼 문구');
+      await page.click('[data-act=new-start]'); await page.waitForSelector('#code');
+      ok((await page.evaluate(() => localStorage.getItem('levelup_practice_run'))) === null, '기록이 안 지워짐');
+      ok((await page.textContent('.band')).includes('팀 연습 6문항'), '지정 링크 모드가 아님');
+      // 반대: 지정 링크로 풀던 중 일반 주소 열기
+      await enterCode(page); await page.waitForSelector('#qid'); await answer(page, 0); await next(page); await answer(page, 0);
+      await open(page);
+      ok(await page.$('#conflict'), '반대 경우 안내 없음');
+      await page.click('[data-act=resume]'); await page.waitForSelector('#qid');
+      ok((await count(page)) === '3 / 6' && (await page.textContent('.band')).includes('팀 연습 6문항'), '지정 링크 판으로 이어 풀기 실패');
+      ok(page._errors.length === 0, '오류: ' + page._errors.join(';'));
+      await ctx.close(); return '일반→링크, 링크→일반 두 방향 모두 묻고, 이어 풀기/지우고 시작 둘 다 정상';
+    });
+    await test('V-03', '⑤ 링크의 겹친 번호·없는 번호·많은 번호 → "n개는 제외했어요", 0문항 링크 문구', async () => {
+      const { ctx, page } = await newPage();
+      await open(page, '?ids=L11-Q1,L11-Q1,L12-Q1'); await enterCode(page); await page.waitForSelector('#qid');
+      const t1 = await page.textContent('#missing');
+      ok(t1.includes('1개는 제외했어요') && t1.includes('겹친 번호 1개') && (await count(page)) === '1 / 2', '중복: ' + t1);
+      const all31 = SRC_Q.filter(q => q.pool === 'practice').map(q => q.id);
+      await open(page, '?ids=' + all31.join(',')); if (await page.$('[data-act=new-start]')) await page.click('[data-act=new-start]');
+      await page.waitForSelector('#code'); await enterCode(page); await page.waitForSelector('#qid');
+      ok((await count(page)) === '1 / 31' && !(await page.$('#missing')), '31개 링크: ' + await count(page));
+      await page.evaluate(() => localStorage.clear());
+      await open(page, '?ids=L01-Q2,L01-Q2');
+      ok((await page.textContent('.band')).includes('풀 수 있는 문항 없음') && (await page.textContent('.screen')).includes('풀 수 있는 문항이 없어요'), '0문항 첫 화면 문구');
+      await enterCode(page); await page.waitForSelector('.setcard');
+      ok(!page.url().includes('ids='), '세트 고르기로 안 감');
+      ok(page._errors.length === 0, '오류: ' + page._errors.join(';'));
+      await ctx.close(); return '겹친 번호 안내, 31문항 링크 전부 진행, 0문항 링크는 안내 후 세트 고르기로';
+    });
+    await test('V-04', '⑥ 가로(740×360)+글자 200%+지정 링크 → 위아래 띠 고정 풀림', async () => {
+      const { ctx, page } = await newPage({ viewport: { width: 740, height: 360 } });
+      await ctx.addInitScript(() => { document.addEventListener('DOMContentLoaded', () => { document.documentElement.style.fontSize = '200%'; }); });
+      await open(page, '?ids=' + TEAM_IDS.join(',')); await enterCode(page); await page.waitForSelector('#qid');
+      const r = await page.evaluate(() => ({ loose: document.body.classList.contains('bars-loose'), band: getComputedStyle(document.querySelector('.band')).position, bar: getComputedStyle(document.querySelector('.bottombar')).position }));
+      ok(r.loose && r.band === 'static' && r.bar === 'static', JSON.stringify(r));
+      const qTop = await page.evaluate(() => document.querySelector('.qtext').getBoundingClientRect().top);
+      ok(qTop < 360, '첫 화면에 문제 글이 안 보임: ' + qTop);
+      await noHScroll(page, '가로+200%');
+      await ctx.close();
+      const p2 = await newPage(); await open(p2.page); await enterCode(p2.page); await pickSet(p2.page, 'PRACTICE-P1', '8');
+      const normal = await p2.page.evaluate(() => getComputedStyle(document.querySelector('.bottombar')).position);
+      ok(normal === 'sticky', '보통 세로 화면에서도 고정이 풀림');
+      await p2.ctx.close();
+      return '가로+큰 글자: 고정 해제, 문제 글이 첫 화면에 보임 / 보통 세로 화면: 아래 버튼 고정 유지';
+    });
+    await test('V-05', '⑦ 코드: 대문자 바꾸기 전후 모두 영문·숫자만', async () => {
+      const { ctx, page } = await newPage(); await open(page);
+      for (const v of ['ßß', 'ﬃA', '-A', 'ǆA', 'ıX', 'K7M2PX\u200b']) {
+        await enterCode(page, v.replace('\\u200b', '\u200b'));
+        ok(await page.$('#code-err'), `"${v}" 통과됨`);
+      }
+      await enterCode(page, 'a-1'); await page.waitForSelector('.setcard');
+      ok((await page.textContent('.h-label .mono')) === 'A-1', '정상 코드');
+      await ctx.close(); return 'ßß·ﬃA·-A·ǆA·ıX·보이지 않는 글자 거절, a-1 → A-1 통과';
+    });
+    await test('V-06', '⑧ 바깥 글꼴 없음: 올릴 파일·README에 글꼴 주소 0건', async () => {
+      const hits = [];
+      for (const f of ['index.html', 'style.css', 'app.js']) {
+        const t = fs.readFileSync(path.join(PUBLIC, f), 'utf8');
+        if (/cdn\.|https?:\/\/|Pretendard/i.test(t)) hits.push(f);
+      }
+      const readme = fs.readFileSync(path.join(APP, 'README.md'), 'utf8');
+      if (/Pretendard|인터넷에서 받아/.test(readme)) hits.push('README.md');
+      ok(hits.length === 0, '남은 곳: ' + hits.join(','));
+      return 'index.html·style.css·app.js·README 모두 0건 (E-05에서 바깥 요청 0건도 확인)';
     });
   } finally {
     await browser.close();

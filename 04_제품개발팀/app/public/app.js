@@ -1,5 +1,5 @@
 /* =========================================================
-   레벨업 캠퍼스 · AI Agent 실무역량 연습 앱 v0.3 — 동작(자바스크립트)
+   레벨업 캠퍼스 · AI Agent 실무역량 연습 앱 v0.3.1 — 동작(자바스크립트)
 
    읽는 순서 (위에서 아래로):
      1. 문항 데이터 준비       — data/practice.js 를 읽어 정리
@@ -34,6 +34,7 @@ if (DATA) {
     };
   });
 }
+var TEAM_MAX = 40;    // 지정 링크에 넣을 수 있는 최대 문항 수 (연습 31문항 전부 가능)
 var PICK_COUNT = 8;   // [8문항(무작위)]에서 뽑는 문항 수
 
 /* ---------- 2. 브라우저 저장소 도우미 ---------- */
@@ -79,7 +80,10 @@ var S = {
   team: false,         // 교수님 지정 링크(?ids=)로 들어왔나
   teamIds: [],         // 링크에 적힌 문항 중 앱에 있는 것 (적힌 순서 그대로)
   teamKey: "",         // 링크를 구별하는 글자 (이어 풀기 확인용)
-  missing: 0,          // 링크에 적혔지만 앱에 없는 문항 수
+  missing: 0,          // 링크에 적혔지만 제외한 번호 수 (없는 번호·겹친 번호·너무 많은 번호)
+  missingDetail: "",   // 제외한 이유 한 줄
+  conflict: false,     // 풀던 연습이 지금 연 주소(일반/지정 링크)와 다른가
+  depth: 0,            // 뒤로 가기용: 지금 화면이 몇 단계째인가
   items: [],           // 이번 판 문항들 [{id, q, order}]  order = 화면 위치 → 원래 보기 번호
   idx: 0,              // 지금 몇 번째 문항(0부터)
   answers: [],         // 확정한 답 [{pickedOrig, pickedPos, correct}]
@@ -213,6 +217,11 @@ function loadRun() {
   }
 }
 function resumeRun(run) {
+  if (S.conflict) {                               // 다른 주소의 기록을 이어 풀 때: 그 판의 모드로 바꿈
+    if (run.team) { S.teamIds = run.teamKey ? run.teamKey.split(",") : []; S.teamKey = run.teamKey; S.missing = 0; S.missingDetail = ""; }
+    else leaveTeam();
+    S.conflict = false;
+  }
   S.code = run.code; S.draft = run.code;
   S.team = run.team; S.setId = run.setId || S.setId; S.amount = run.amount || S.amount;
   S.items = run.items; S.answers = run.answers; S.selected = null;
@@ -226,8 +235,16 @@ function finishRun() {
   S.screen = "result";
 }
 
-/* 참가자 코드 검사: 영문·숫자 2~10자, '-' 허용(K7M2PX-N). 한글·특수문자·이모지는 거절 */
-function validCode(v) { return /^(?=.*[A-Z0-9])[A-Z0-9-]{2,10}$/.test(v); }
+/* 참가자 코드 검사: 영문·숫자 2~10자, '-' 허용(K7M2PX-N), 첫 글자는 영문·숫자.
+   한글·특수문자·이모지는 거절. 대문자로 바꾸기 '전'에도 검사해서
+   ß → SS 처럼 바뀌며 통과하는 외국 글자도 막습니다 (v0.3.1). */
+function validCode(v) { return /^[A-Z0-9][A-Z0-9-]{1,9}$/.test(v); }
+function cleanCode(raw) {
+  var t = String(raw || "").trim();
+  if (!/^[A-Za-z0-9-]+$/.test(t)) return null;   // 바꾸기 전: 영문 A-Z·숫자·'-'만
+  var v = t.toUpperCase();
+  return validCode(v) ? v : null;                // 바꾼 뒤: 다시 검사
+}
 
 /* 교수님 지정 링크 읽기: ?ids=L11-Q1,L12-Q2,... */
 function readTeamLink() {
@@ -236,21 +253,29 @@ function readTeamLink() {
   var raw = "";
   try { raw = decodeURIComponent(m[1].replace(/\+/g, " ")); } catch (e) { raw = m[1]; }
   var tokens = raw.split(",").map(function (s) { return s.trim().toUpperCase(); })
-    .filter(function (s) { return s.length > 0; }).slice(0, 30);
-  var ok = [], missing = 0, seen = {};
+    .filter(function (s) { return s.length > 0; });
+  var ok = [], seen = {}, notFound = 0, dup = 0, over = 0;
   tokens.forEach(function (id) {
-    if (seen[id]) return;
+    if (seen[id]) { dup++; return; }               // 같은 번호가 두 번 적힘
     seen[id] = true;
-    if (has(QUESTIONS, id)) ok.push(id); else missing++;   // 앱에 없는 번호(진단·평가 포함)는 셀 뿐 보여 주지 않음
+    if (!has(QUESTIONS, id)) { notFound++; return; } // 앱에 없는 번호(진단·평가 포함)는 셀 뿐 보여 주지 않음
+    if (ok.length >= TEAM_MAX) { over++; return; }   // 너무 많이 적힘
+    ok.push(id);
   });
-  S.team = true; S.teamIds = ok; S.missing = missing; S.teamKey = ok.join(",");
+  var parts = [];
+  if (notFound) parts.push("앱에 없는 번호 " + notFound + "개");
+  if (dup) parts.push("겹친 번호 " + dup + "개");
+  if (over) parts.push(TEAM_MAX + "개를 넘은 번호 " + over + "개");
+  S.team = true; S.teamIds = ok; S.teamKey = ok.join(",");
+  S.missing = notFound + dup + over; S.missingDetail = parts.join(" · ");
 }
 
 /* ---------- 6. 화면 그리기 ---------- */
 function band() {
   if (!S.team) return "";
   var n = S.teamIds.length;
-  return '<div class="band">' + ic("link", 18) + '<span>교수님 지정 링크 · 팀 연습 ' + n + '문항 · 순서 고정</span></div>';
+  var text = n ? '교수님 지정 링크 · 팀 연습 ' + n + '문항 · 순서 고정' : '교수님 지정 링크 · 풀 수 있는 문항 없음';
+  return '<div class="band">' + ic("link", 18) + '<span>' + text + '</span></div>';
 }
 function storageNote() {
   if (!S.storageOff) return "";
@@ -261,7 +286,9 @@ function storageNote() {
 function viewStart() {
   var err = S.codeError;
   var lead = S.team
-    ? '코드를 넣으면 바로 1번 문제가 열려요. 팀원 모두 <b>같은 문제·같은 보기 순서</b>예요.'
+    ? (S.teamIds.length
+      ? '코드를 넣으면 바로 1번 문제가 열려요. 팀원 모두 <b>같은 문제·같은 보기 순서</b>예요.'
+      : '이 링크에는 풀 수 있는 문항이 없어요. 교수님께 알려 주세요. 코드를 넣으면 연습 세트를 고를 수 있어요.')
     : '연습 문제를 풀고 바로 해설을 봐요. 점수는 어디에도 기록되지 않아요.';
   return '<div class="screen">' + band() +
     '<div class="content">' +
@@ -293,14 +320,17 @@ function viewResume() {
   var r = S.pendingRun, n = r.items.length, k = r.answers.length;
   var title = r.team ? "팀 연습 · 순서 고정" : (setById(r.setId).title + " · " + (r.amount === "8" ? PICK_COUNT + "문항 무작위" : "세트 전체"));
   var btn = k >= n ? "이어 풀기 (결과 보기)" : "이어 풀기 (" + (k + 1) + "번부터)";
+  var conflictNote = !S.conflict ? '' :
+    '<div class="note" id="conflict"><p class="note-title">' + ic("alert", 18) + (S.team ? '지금 연 주소는 교수님 지정 링크예요' : '지금 연 주소는 일반 연습이에요') + '</p>' +
+    '<p>[기록 지우고 새로 시작]을 누르면 아래 풀던 기록은 지워져요. 이어 풀려면 [이어 풀기]를 누르세요.</p></div>';
   return '<div class="screen">' + band() + '<div class="content">' +
     '<div class="brand"><div class="logo" aria-hidden="true">Lv</div><div class="brand-sub">AI Agent 실무역량 연습</div></div>' +
     '<div class="card" style="display:flex;flex-direction:column;gap:12px">' +
-    '<h2>풀던 연습이 있어요</h2>' +
+    '<h2>풀던 연습이 있어요</h2>' + conflictNote +
     '<p><b>' + esc(title) + '</b><br><span class="sub"><span class="mono">' + esc(r.code) + '</span>님 · ' + n + '문항 중 ' + k + '문항까지 풀었어요. 문제·보기 순서와 고른 답이 그대로 남아 있어요.</span></p>' +
     '<div class="btn-col">' +
     '<button class="btn btn-primary" data-act="resume">' + btn + '</button>' +
-    '<button class="btn btn-secondary" data-act="new-start">새로 시작</button>' +
+    '<button class="btn btn-secondary" data-act="new-start">' + (S.conflict ? '기록 지우고 새로 시작' : '새로 시작') + '</button>' +
     '</div>' +
     '<div class="info">' + ic("info", 18) + '<span>이 메모는 이 휴대폰 브라우저에만 있어요. 결과 화면까지 가면 지워져요.</span></div>' +
     '</div>' +
@@ -382,7 +412,7 @@ function viewQuiz() {
       (q.source_section ? '<p class="source">근거: ' + esc(q.source_section) + '</p>' : '') + '</section>';
   }
   var missing = (S.team && S.missing > 0 && i === 0 && !locked)
-    ? '<div class="note" id="missing"><p class="note-title">' + ic("alert", 18) + '이 링크에 없는 문항이 ' + S.missing + '개 있어요</p><p>있는 문항만 진행해요. 교수님께 알려 주세요.</p></div>' : '';
+    ? '<div class="note" id="missing"><p class="note-title">' + ic("alert", 18) + '링크의 번호 중 ' + S.missing + '개는 제외했어요</p><p>' + esc(S.missingDetail) + '. 있는 문항만 진행해요. 교수님께 알려 주세요.</p></div>' : '';
   var last = i === n - 1;
   var bar = locked
     ? '<button class="btn btn-primary" data-act="next">' + (last ? '결과 보기' : '다음 문제') + '</button>'
@@ -476,8 +506,94 @@ function render(opts) {
     }
   }
   if (opts.focusCode) { var c = document.getElementById("code"); if (c) c.focus(); }
+  fitBars();
 }
-function go(screen) { S.screen = screen; render({ top: true }); }
+/* 위·아래 고정 띠가 화면을 너무 많이 가리면(가로 모드 + 큰 글자 등) 고정을 풂 (v0.3.1) */
+function fitBars() {
+  var scr = app.querySelector(".screen");
+  document.body.classList.remove("bars-loose");
+  if (!scr) return;
+  var h = 0;
+  [".band", ".bottombar"].forEach(function (sel) { var el = scr.querySelector(sel); if (el) h += el.offsetHeight; });
+  if (h > window.innerHeight * 0.35) document.body.classList.add("bars-loose");
+}
+window.addEventListener("resize", fitBars);
+
+/* ---------- 뒤로 가기 (v0.3.1) ----------
+   앱 안의 화면 이동을 브라우저 기록(history)에 한 칸씩 적어 둡니다.
+   그래서 휴대폰 '뒤로 가기'를 누르면 앱 밖으로 나가지 않고 앱 안의 이전 화면으로 갑니다.
+   단계: 첫 화면(0) → 세트 고르기(1) → 문제·결과(2) → 다시 보기(3)
+         지정 링크는 세트 고르기가 없어서 첫 화면(0) → 문제·결과(1) → 다시 보기(2) */
+function depthOf(screen) {
+  if (screen === "sets") return 1;
+  var base = S.team ? 1 : 2;
+  if (screen === "quiz" || screen === "result") return base;
+  if (screen === "review") return base + 1;
+  return 0;                                        // start, resume, error
+}
+function screenAtDepth(d) {                        // 중간 단계를 채울 때 쓰는 화면
+  if (d === 0) return "start";
+  if (!S.team && d === 1) return "sets";
+  return "result";
+}
+var popIgnore = false;                             // 앱이 스스로 뒤로 이동할 때는 popstate를 무시
+function hist(method, screen, url) {
+  try { history[method]({ lu: 1, screen: screen, d: depthOf(screen) }, "", url); } catch (e) { /* 무시 */ }
+}
+/* 화면 바꾸기 + 브라우저 기록 맞추기 */
+function nav(screen, opts) {
+  var from = S.depth, to = depthOf(screen);
+  S.screen = screen;
+  render(opts || { top: true });
+  if (to > from) {
+    for (var d = from + 1; d < to; d++) hist("pushState", screenAtDepth(d));
+    hist("pushState", screen);
+  } else if (to === from) {
+    hist("replaceState", screen);
+  } else {
+    popIgnore = true;
+    try { history.go(to - from); } catch (e) { popIgnore = false; }
+  }
+  S.depth = to;
+}
+/* 이 화면을 지금 보여 줄 수 있나 */
+function canShow(screen) {
+  var done = S.items.length > 0 && S.answers.length === S.items.length;
+  if (screen === "start") return true;
+  if (screen === "resume") return !!S.pendingRun;
+  if (screen === "sets") return !!S.code;
+  if (screen === "quiz") return S.items.length > 0 && !done;
+  if (screen === "result" || screen === "review") return done;
+  return false;
+}
+function fallbackAt(d) {
+  if (d >= 1 && canShow("result")) return "result";
+  if (d >= 1 && !S.team && S.code) return "sets";
+  return "start";
+}
+/* 휴대폰 '뒤로 가기' / '앞으로 가기' */
+window.addEventListener("popstate", function (e) {
+  if (!DATA) return;
+  if (popIgnore) { popIgnore = false; hist("replaceState", S.screen); return; }
+  var st = (e.state && e.state.lu) ? e.state : { screen: "start", d: 0 };
+  var inRun = S.screen === "quiz" && S.items.length > 0 && S.answers.length < S.items.length;
+  if (inRun && st.d < S.depth) {
+    var quit = window.confirm("그만 풀까요?\n지금까지 푼 기록은 이 휴대폰에 남아 있어서, 다시 열면 '이어 풀기'로 이어 풀 수 있어요.");
+    if (!quit) { hist("pushState", "quiz"); return; }   // 취소: 문제 화면 그대로
+  }
+  var target = canShow(st.screen) ? st.screen : fallbackAt(st.d);
+  S.selected = null;
+  S.screen = target;
+  render({ top: true });
+  S.depth = depthOf(target);
+  hist("replaceState", target);
+});
+
+/* 지정 링크에서 나와 일반 연습으로 (주소의 ?ids= 도 지움) */
+function leaveTeam() {
+  S.team = false; S.missing = 0; S.missingDetail = ""; S.teamIds = []; S.teamKey = "";
+  hist("replaceState", S.screen, location.pathname);
+}
 
 /* ---------- 7. 버튼 동작 ---------- */
 app.addEventListener("input", function (e) { if (e.target.id === "code") S.draft = e.target.value; });
@@ -485,16 +601,16 @@ app.addEventListener("input", function (e) { if (e.target.id === "code") S.draft
 /* [시작하기] — 참가자 코드 확인 */
 app.addEventListener("submit", function (e) {
   e.preventDefault();
-  var v = (S.draft || "").trim().toUpperCase();
-  if (!validCode(v)) {
+  var v = cleanCode(S.draft);
+  if (!v) {
     S.codeError = "카드에 적힌 영문·숫자 코드를 넣어 주세요 (2~10자).";
     render({ focusCode: true });
     return;
   }
   S.codeError = ""; S.code = v; S.draft = v;
   store.set(KEY_CODE, v);                       // 다음에 미리 채워 두기 (이 휴대폰에만)
-  if (S.team) { startTeam(); render({ top: true }); }
-  else go("sets");
+  if (S.team && S.teamIds.length) { startTeam(); nav("quiz"); }
+  else { if (S.team) leaveTeam(); nav("sets"); }
 });
 
 app.addEventListener("click", function (e) {
@@ -504,11 +620,11 @@ app.addEventListener("click", function (e) {
   var now = Date.now();
   switch (act) {
     case "home":
-      S.codeError = ""; go("start"); break;
+      S.codeError = ""; nav("start"); break;
     case "new-start":
-      store.remove(KEY_RUN); S.pendingRun = null; S.codeError = ""; go("start"); break;
+      store.remove(KEY_RUN); S.pendingRun = null; S.conflict = false; S.codeError = ""; nav("start"); break;
     case "resume":
-      if (S.pendingRun) { resumeRun(S.pendingRun); render({ top: true }); }
+      if (S.pendingRun) { resumeRun(S.pendingRun); nav(S.screen); }
       break;
     case "pick-set":
       if (setById(b.getAttribute("data-id"))) { S.setId = b.getAttribute("data-id"); render(); }
@@ -516,7 +632,7 @@ app.addEventListener("click", function (e) {
     case "pick-amount":
       S.amount = b.getAttribute("data-v") === "all" ? "all" : "8"; render(); break;
     case "start-set":
-      startSet(S.setId, S.amount); render({ top: true }); break;
+      startSet(S.setId, S.amount); nav("quiz"); break;
     case "select":
       if (S.screen !== "quiz" || S.answers[S.idx]) return;        // 확정 후에는 바꿀 수 없음
       S.selected = +b.getAttribute("data-pos"); render(); break;
@@ -531,20 +647,17 @@ app.addEventListener("click", function (e) {
       if (now < S.lockUntil || !S.answers[S.idx]) return;         // 연타해도 한 문항만
       S.lockUntil = now + 600;
       S.selected = null;
-      if (S.idx >= S.items.length - 1) { finishRun(); render({ top: true }); }
+      if (S.idx >= S.items.length - 1) { finishRun(); nav("result"); }
       else { S.idx++; render({ top: true }); }
       break;
-    case "review": go("review"); break;
-    case "back-result": go("result"); break;
+    case "review": nav("review"); break;
+    case "back-result": nav("result"); break;
     case "replay":
       if (S.team) startTeam(); else startSet(S.setId, S.amount);
-      render({ top: true }); break;
+      nav("quiz"); break;
     case "other-set":
-      if (S.team) {                                               // 지정 링크에서 나와 일반 연습으로
-        S.team = false; S.missing = 0;
-        try { history.replaceState(null, "", location.pathname); } catch (err) { /* 무시 */ }
-      }
-      go("sets"); break;
+      if (S.team) leaveTeam();                                    // 지정 링크에서 나와 일반 연습으로
+      nav("sets"); break;
   }
 });
 
@@ -585,8 +698,10 @@ if (window.matchMedia) {
   var run = loadRun();
   if (run) {
     var same = S.team ? (run.team && run.teamKey === S.teamKey) : !run.team;
-    if (same) { S.pendingRun = run; S.screen = "resume"; }
-    else store.remove(KEY_RUN);                    // 다른 링크의 메모는 버림
+    S.pendingRun = run; S.screen = "resume";
+    S.conflict = !same;                            // 다른 주소의 기록이면 지우기 전에 물어봄 (v0.3.1)
   }
+  S.depth = 0;
+  hist("replaceState", S.screen);                  // 지금 자리를 '첫 단계'로 적어 둠
   render();
 })();

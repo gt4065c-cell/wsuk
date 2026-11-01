@@ -1,5 +1,6 @@
 /* =========================================================
-   레벨업 캠퍼스 연습 앱 v0.3 — 꾸미기(CSS)
+   레벨업 캠퍼스 연습 앱 v0.3.1 — 꾸미기(CSS)
+   글꼴: 휴대폰·컴퓨터 기본 글꼴 (바깥 서버에서 글꼴을 받지 않음)
    디자인: 디자인시스템.md A안 "차분한 연구노트"
    밝게/어둡게: 휴대폰 설정을 따라가고, 오른쪽 위 버튼으로 바꿀 수도 있음
    ========================================================= */
@@ -38,7 +39,7 @@
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0}
 body{
-  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
   background:var(--bg);color:var(--text);
 }
 .wrap{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;max-width:560px;margin:0 auto;background:var(--bg)}
@@ -95,6 +96,8 @@ svg{flex:none}
   background:var(--bg);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;
 }
 .hint{font-size:.875rem;color:var(--text-2);text-align:center}
+/* 가로 모드·큰 글자에서 위아래 띠가 화면의 35% 넘게 가리면 고정을 풂 (app.js fitBars) */
+.bars-loose .band,.bars-loose .bottombar{position:static}
 
 /* 안내 상자 */
 .info{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:calc(var(--r-card) - 4px);background:var(--surface-2);color:var(--text-2);font-size:.9375rem;line-height:1.55}
