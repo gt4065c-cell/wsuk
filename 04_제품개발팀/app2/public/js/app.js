@@ -126,7 +126,11 @@
     app.innerHTML = '<section class="screen" data-screen="' + S.screen + '">' + h.replace("<!--ERR-->", err) + '</section>';
     if (S.screen === "item") startTick();
   }
-  function vLoading() { return '<div class="content"><p class="sub">불러오는 중…</p></div>'; }
+  function vLoading() {
+    // 시작하다 막히면(인터넷 끊김 등) 오류 문장 + 다시 시도 버튼
+    return '<div class="content"><p class="sub">불러오는 중…</p><!--ERR-->' +
+      (S.err ? '<button class="btn btn-secondary" data-act="retry">다시 시도</button>' : "") + '</div>';
+  }
 
   function vLogin() {
     var local = STORE.mode === "local";
@@ -326,7 +330,9 @@
       case "login":
         STORE.login(S.draft).then(function (r) {
           if (!r.ok) {
-            S.err = r.error === "shape" ? "코드는 영문 대문자와 숫자 6자리예요 (0·O·1·I 없음)." : "등록되지 않은 코드예요. 교수님께 받은 카드를 다시 확인해 주세요.";
+            S.err = r.error === "shape" ? "코드는 영문 대문자와 숫자 6자리예요 (0·O·1·I 없음)."
+              : r.error === "too_many" ? "코드를 너무 여러 번 넣었어요. 10분쯤 뒤에 다시 해 주세요."
+              : "등록되지 않은 코드예요. 교수님께 받은 카드를 다시 확인해 주세요.";
             return render();
           }
           S.student = r.student; S.draft = ""; route();
@@ -335,7 +341,7 @@
         var nick = (S.draft || "").trim();
         if (nick.length < 2) { S.err = "별명은 2글자 이상이어야 해요."; return render(); }
         STORE.setNickname(nick).then(function (s) { S.student = s; S.draft = ""; route(); }).catch(fail); break;
-      case "logout": STORE.logout().then(function () { S.student = null; go("login"); }); break;
+      case "logout": STORE.logout().then(function () { S.student = null; S.draft = ""; go("login"); }); break;
 
       case "pick":
         if (S.screen === "diag") { S.diag.selected = Number(b.dataset.orig); render(); }
@@ -348,6 +354,7 @@
       case "diag-finish": finishDiag(); break;
 
       case "home": goHome(); break;
+      case "retry": S.err = ""; render(); boot(); break;
       case "start": startRun(false); break;
       case "start-extra": startRun(true); break;
 

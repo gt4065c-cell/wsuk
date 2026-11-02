@@ -298,18 +298,26 @@ function startServer() {
         await v.ctx.close();
       }
     });
-    await test('E-21', 'config.js MODE를 "supabase"로 바꾸면: 앱이 멈추지 않고 "아직 연결 전" 안내, 로컬 띠 없음', async () => {
-      const v = await newPage({ route: p => p.route('**/js/config.js', async r => {
-        const body = fs.readFileSync(path.join(PUBLIC, 'js/config.js'), 'utf8').replace('MODE: "local"', 'MODE: "supabase"');
-        await r.fulfill({ body, contentType: 'application/javascript' });
-      }) });
-      await open(v.page);
+    await test('E-21', '주소에 ?mode=supabase → 진짜 Supabase 라이브러리(vendor) 사용, 서버에 못 닿으면 쉬운 안내, 로컬 띠·data/ 파일·테스트용 문 없음', async () => {
+      // 실제 Supabase로 나가는 요청은 이 시험에서 모두 끊음(실DB 미사용) → "서버에 닿지 못했어요"가 나와야 함
+      const v = await newPage({ route: p => p.route(/supabase\.co/, r => r.abort()) });
+      await v.page.goto(BASE + 'index.html?mode=supabase');
+      await v.page.waitForSelector('#app .screen:not([data-screen=loading])');
+      ok(await screen(v.page) === 'login', '첫 화면 ' + await screen(v.page));
       ok(await v.page.$eval('#devbar', e => e.hidden), '로컬 띠가 보임');
+      ok(await v.page.evaluate(() => typeof window.supabase.createClient === 'function'), 'vendor/supabase.js 미적재');
+      ok(!v.page._requests.some(u => /supabase\.co/.test(u)), '화면을 열기만 했는데 서버 요청(익명 계정 생성)');
       await v.page.fill('#code', 'TEST23'); await v.page.click('[data-act=login]');
       await v.page.waitForSelector('#code-error');
-      ok((await v.page.textContent('#code-error')).includes('아직 연결 전'), await v.page.textContent('#code-error'));
+      ok((await v.page.textContent('#code-error')).includes('서버에 닿지 못했어요'), await v.page.textContent('#code-error'));
       ok(!(await v.page.evaluate(() => !!window.__LU_APP)), 'Supabase 모드에 테스트용 문이 열려 있음');
+      ok(!(await v.page.evaluate(() => !!window.STORE._debug)), 'Supabase 모드에 _debug');
+      ok(!v.page._requests.some(u => u.includes('/data/')), 'data/ 파일을 읽음: ' + v.page._requests.filter(u => u.includes('/data/')).join(','));
+      ok(!v.page._requests.some(u => !u.startsWith(BASE) && !/supabase\.co/.test(u)), '바깥 주소 요청');
+      ok(!v.page._errors.length, v.page._errors.join('|'));
       await v.ctx.close();
+      ok(!page._requests.some(u => u.includes('vendor/')), '로컬 모드가 vendor/supabase.js를 읽음');
+      return '로컬 모드 vendor 요청 0건 · Supabase 모드 data/ 요청 0건';
     });
     await test('E-23', 'SHOW_DRAFT_HINTS를 끄면(학생용 기준) 검토 전 힌트는 안 보이고 "준비 중"', async () => {
       const v = await newPage({ route: p => p.route('**/js/config.js', async r => {

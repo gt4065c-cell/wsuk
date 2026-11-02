@@ -10,7 +10,7 @@
     public/data/hints.js         미리 만든 힌트 L1~L3 (검토 끝난 것만)
     public/data/dev_diag_key.js  [개발용] 진단 정답·해설 — 로컬 모드에서만 읽음.
                                  Supabase 모드에서는 이 파일을 쓰지 않고, 서버가 채점합니다.
-                                 인터넷에 올릴 때는 이 파일을 빼야 합니다(README 4장).
+                                 인터넷에 올릴 때는 이 파일을 빼야 합니다(README 5장, tools/make_deploy.py).
   평가(assessment) 문항은 어떤 파일에도 넣지 않습니다.
 
 힌트 파일(hints_part1-3.json, hints_part4-6.json)이 아직 없으면

@@ -1,10 +1,11 @@
-# 2단계 앱 M1 (로컬 모드) 사용 설명서
+# 2단계 앱 M1 사용 설명서 (로컬 모드 + Supabase 모드)
 
-> **한 줄 요약**: 코드 6자리로 들어가 → 진단 12문항 → 내 수준에 맞춘 오늘의 문제 5개 → 막히면 힌트 4단계 → 경험치까지, **서버 없이 이 브라우저 안에서 끝까지 동작**하는 시제품입니다. 나중에 Supabase로 바꿀 자리는 비워 두었습니다.
+> **한 줄 요약**: 코드 6자리로 들어가 → 진단 12문항 → 내 수준에 맞춘 오늘의 문제 5개 → 막히면 힌트 4단계 → 경험치까지, **서버 없이 이 브라우저 안에서 끝까지 동작**하는 시제품입니다. 같은 화면을 **실제 Supabase(edu-gamify)에 연결하는 Supabase 모드**도 들어 있습니다(주소 뒤 `?mode=supabase`).
 
 - 1단계 앱(`04_제품개발팀/app/`)은 건드리지 않았습니다. 디자인(A안)과 꾸미기 파일만 복사해 썼습니다.
 - 빌드 도구(설치가 필요한 개발 프로그램) 없이 **HTML·CSS·JS 파일만**으로 만들었습니다(1단계와 같음).
-- 지금은 **로컬 모드(개발용)**입니다. 화면 맨 위 노란 띠로 표시되며, 기록은 그 브라우저에만 남습니다(다른 기기와 합쳐지지 않음).
+- 기본은 **로컬 모드(개발용)**입니다. 화면 맨 위 노란 띠로 표시되며, 기록은 그 브라우저에만 남습니다(다른 기기와 합쳐지지 않음).
+- **Supabase 모드**는 노란 띠가 없고, 기록이 서버에 남아 휴대폰·노트북에서 같은 코드로 이어집니다(5장).
 
 ---
 
@@ -42,14 +43,17 @@
 | 파일 | 무엇인가요 | 인터넷에 올리나요? |
 |---|---|---|
 | `public/index.html` · `style.css` | 화면 뼈대 · 꾸미기(1단계 A안 + 2단계 추가) | 올림 |
-| `public/js/config.js` | **설정 — 캡틴이 고칠 수 있는 유일한 파일**(모드, 열린 강, 개발용 코드) | 올림 |
+| `public/js/config.js` | **설정 — 캡틴이 고칠 수 있는 유일한 파일**(모드, Supabase 주소·공개 열쇠, 열린 강, 개발용 코드) | 올림 |
+| `public/js/loader.js` | 모드에 맞춰 필요한 파일만 순서대로 불러오기(Supabase 모드는 `data/`를 하나도 안 읽음) | 올림 |
+| `public/vendor/supabase.js` | Supabase 연결 라이브러리(남이 만든 공개 부품). **외부 CDN(인터넷 공용 창고)에서 받지 않고 이 폴더에 넣어 둠.** Supabase 모드에서만 읽음 | 올림 |
 | `public/js/logic.js` | 규칙 계산(Elo·문제 고르기·힌트·경험치·복습·연속일). 화면·저장과 분리 | 올림 |
-| `public/js/store.js` | **데이터 저장 창구.** 지금은 로컬 모드, Supabase 모드 자리는 비워 둠 | 올림 |
+| `public/js/store.js` | **데이터 저장 창구.** 로컬 모드(LocalStore)와 Supabase 모드(SupabaseStore)가 같은 모양으로 들어 있음 | 올림 |
 | `public/js/app.js` | 화면 그리기와 버튼 동작 | 올림 |
-| `public/data/practice.js` · `hints.js` · `diagnostic.js` | 연습 문항(정답 포함) · 힌트 · 진단 문항(**정답 없음**) — 자동 생성 | 올림 |
-| `public/data/dev_diag_key.js` | **[개발용] 진단 정답.** 로컬 모드에서 진단을 끝낼 때만 읽음 | **올리지 않음**(배포 때 제외) |
+| `public/data/practice.js` · `hints.js` · `diagnostic.js` | 연습 문항(정답 포함) · 힌트(검토 전 포함) · 진단 문항(**정답 없음**) — 자동 생성. **로컬 모드 전용** | **올리지 않음**(Supabase 모드는 서버에서 받음) |
+| `public/data/dev_diag_key.js` | **[개발용] 진단 정답.** 로컬 모드에서 진단을 끝낼 때만 읽음 | **절대 올리지 않음** |
+| `tools/make_deploy.py` | 배포용 폴더(`deploy_public/`) 만들기: `data/` 통째로 빼고 MODE를 supabase로. 업로드는 안 함 | — |
 | `tools/build_data.py` | 교육기획팀 원본 → 위 데이터 파일 만들기. 평가·주간 점검 문항은 넣지 않고, 새면 실패 | — |
-| `tests/` | 자동 테스트(4장) | — |
+| `tests/` | 자동 테스트(4장). `mock_supabase.js` = 시험용 가짜 Supabase | — |
 | `supabase/schema.sql` | Supabase 표·보안 규칙·서버 함수 초안 | — |
 
 ### 문항·힌트를 고친 뒤 (1-2-3)
@@ -65,21 +69,54 @@
 ```
 node tests/unit_logic.js   # 규칙 계산 단위 테스트 (1초)
 node tests/run_e2e.js      # 화면 흐름 자동 테스트 (약 1분, Playwright 필요)
+node tests/run_e2e_supabase_mock.js   # Supabase 모드 시험 — 가짜 서버로 (진짜 DB에는 접속 안 함)
 ```
-결과 기록: `04_제품개발팀/테스트보고서/2026-11-02_app2_M1_자체테스트.md`
+결과 기록: `04_제품개발팀/테스트보고서/2026-11-02_app2_M1_자체테스트.md`, `2026-11-02_app2_Supabase연결_자체테스트.md`
 
-## 5. Supabase로 바꿀 때 (순서)
+## 5. Supabase 모드 (실제 서버 연결)
 
-**캡틴이 할 일** (비서실장이 화면을 보며 안내 — 돈 드는 설정 없음)
-1. Supabase에서 **새 프로젝트** 만들기(무료 요금제, 지역은 서울 Northeast Asia (Seoul) 추천), DB 비밀번호는 캡틴 개인 노트에만.
-2. **Authentication → Sign In / Providers → "Allow anonymous sign-ins" 켜기** (코드 로그인에 필요).
-3. **SQL Editor**에 `supabase/schema.sql` 전체를 붙여 넣고 Run (개발자가 옆에서 확인).
-4. **Project Settings → API**에서 *Project URL*과 *anon(publishable) key* 두 개만 비서실장에게 알려 주기.
-   ⛔ `service_role`(관리자) 키와 DB 비밀번호는 채팅·파일 어디에도 붙여 넣지 않습니다.
-5. 코드 카드 만들기: SQL Editor에서 `select * from admin_make_codes(30, '2027-1');` → 나온 코드 목록은 **교수님 개인 노트에만** 옮깁니다(저장소·채팅·외부 AI에 올리지 않음).
+### 5-1. 이미 끝난 것 (비서실장, 2026-11-02)
+- Supabase 프로젝트 **edu-gamify**에 `supabase/schema.sql` 적용(보안 점검 반영본), 문항 221·정답 221·힌트 31(모두 검토 전 → 학생에게 안 보임) 입력, 익명 로그인 켬.
+- 앱 설정(`public/js/config.js`)에 아래 두 값이 들어 있습니다. **둘 다 원래 공개해도 되는 값**이고, 실제 보호는 DB 규칙(RLS)이 합니다.
+  - 주소 `SUPABASE_URL`: `https://ebquzmmvkknknpmiqnyk.supabase.co`
+  - 공개용 열쇠 `SUPABASE_ANON_KEY`: `sb_publishable_daID88tVdfivXFQFF5GyoQ_YTlFdYMm`
+  - ⛔ `service_role`(관리자) 키·`sb_secret_…` 키·DB 비밀번호는 어떤 파일·채팅에도 넣지 않습니다. 앱은 그 열쇠 없이 동작합니다.
+- 연결 라이브러리: **@supabase/supabase-js 2.118.0**의 UMD 파일(`dist/umd/supabase.js`)을 `public/vendor/supabase.js`로 넣음.
+  - 출처: npm 공식 저장소 `npm pack @supabase/supabase-js@2.118.0` (묶음 지문 sha1 `a590a3a0b301cb336c771a81c8d37a4bbc2647cf` = npm 공식값과 일치)
+  - 파일 지문 sha256 `ee3be8de192b97cb1d73d1e95d6b82bb1f6b658c0f97c4ef757fc331996ed3d3` (자동 시험 S-01이 매번 확인), 크기 약 213KB, MIT 라이선스(`public/vendor/supabase-LICENSE.txt`)
+  - 바꿀 때: 위 명령으로 새 버전을 받아 파일을 바꾸고, 이 칸의 버전·지문과 `tests/run_e2e_supabase_mock.js`의 `VENDOR_SHA256`을 함께 고칩니다.
 
-**개발자가 할 일**
-- 문항·정답·힌트 가져오기 작업(원본 JSON → `questions`·`question_keys`·`hints` 표)
-- `store.js`의 `SupabaseStore` 채우기(함수 이름은 이미 맞춰 둠: `claim_code`, `diag_answer`, `diag_finish`, `next_practice`, `close_item`, `today_summary`)
-- `config.js`의 `MODE`를 `"supabase"`로, 주소·공개용 열쇠 입력
-- 배포할 때 `public/data/dev_diag_key.js` 제외(이 파일이 없어도 Supabase 모드는 동작)
+### 5-2. Supabase 모드로 열어 보기 (1-2-3)
+1. 1장처럼 임시 서버를 켭니다(`python3 -m http.server 8010 --bind 127.0.0.1 --directory public`).
+2. 크롬 주소창에 **`http://127.0.0.1:8010/?mode=supabase`** → 노란 띠가 없으면 Supabase 모드입니다.
+   - 설정 파일을 고치지 않아도 이 주소로 연 창에서만 Supabase 모드가 됩니다. 늘 Supabase로 쓰려면 `config.js`의 `MODE: "local"`을 `"supabase"`로.
+   - 들어가려면 **Supabase에 등록된 진짜 코드 카드**가 필요합니다(로컬 모드 가짜 코드 `TEST23` 등은 서버에 없으면 "등록되지 않은 코드"). 코드 카드 만들기는 아래 5-4.
+3. 다 봤으면 터미널에서 Ctrl + C. (Supabase 모드 기록은 서버에 남습니다 — 시험용 코드로만 해 주세요)
+
+### 5-3. Supabase 모드에서 앱이 하는 일 (개발자 메모)
+| 화면 동작 | 부르는 것 | 메모 |
+|---|---|---|
+| 첫 화면 열기 | `auth.getSession()` | 저장된 로그인이 있으면 다시 씀. **열기만 해서는 계정을 만들지 않음** |
+| [들어가기] | `auth.signInAnonymously()`(세션 없을 때만) → `rpc claim_code(p_code)` | 모양이 틀린 코드는 서버에 묻지 않음. 오류 `shape`·`unknown`·`too_many`(10분에 10번) |
+| 별명 | `rpc set_nickname(p_name)` | |
+| 진단 문항 | `questions` 표 `pool=diagnostic`, `diag_order` 순 | 정답 칸은 요청하지 않음(DB 규칙상 읽을 수도 없음) |
+| 진단 답 · 끝내기 | `rpc diag_answer(p_qid, p_choice)` · `rpc diag_finish()` | "모르겠어요" = `p_choice: null`. 채점·해설은 서버가 |
+| 연습 문항·정답·해설 | `questions`(`pool=practice`) + `question_keys` | 처음 한 번 받아 두고 다시 씀 |
+| 힌트 | `hints` 표 | DB 규칙이 **검토 끝난(reviewed) 연습 문항 힌트만** 돌려줌 → 지금은 0개라 모든 문제가 "힌트 준비 중" |
+| 홈 숫자 | `rpc today_summary()` | 연속 학습일만 화면의 `logic.js streak()`로 계산 |
+| 다음 문제 · 마감 | `rpc next_practice(p_recent, p_exclude)` · `rpc close_item(p_qid, p_mode, p_level, p_submits)` | Elo·경험치·복습 상자는 서버 계산 |
+| [다른 코드로 들어가기] | `auth.signOut({scope:"local"})` | 이 기기 로그인만 지움. 서버 기록은 그대로 |
+- 서버 오류 이름(`NOT_LINKED`, `DIAG_TOO_FEW`, `NOT_DUE`, `BAD_SUBMITS` 등)과 인터넷 끊김은 `store.js`의 `explainError()`가 쉬운 한국어 한 줄로 바꿔 화면에 보여 줍니다.
+- Supabase 모드는 `public/data/` 파일을 **하나도 읽지 않습니다**(`dev_diag_key.js` 포함). 자동 시험 E-21·S-08·S-21·S-22가 확인합니다.
+
+### 5-4. 캡틴이 할 일 (필요할 때만)
+1. **코드 카드 만들기**(학생에게 나눠 줄 때): Supabase → SQL Editor에서 `select * from admin_make_codes(30, '2027-1');` → 나온 코드 목록은 **교수님 개인 노트에만** 옮깁니다(저장소·채팅·외부 AI에 올리지 않음). 개발자·비서실은 이 함수를 부르지 않습니다.
+2. **힌트 공개**: 교수님이 검토를 끝낸 힌트만 `hint_status = 'reviewed'`로 바꾸면 그 문제부터 힌트가 보입니다.
+
+### 5-5. 인터넷에 올릴 파일 고르기 (배포 준비 — 실제 배포는 캡틴 결재 후)
+1. 이 폴더에서 `python3 tools/make_deploy.py`
+2. `[배포용 폴더 완성] … data/ 없음 · MODE=supabase`가 나오면 `deploy_public/` 폴더가 올릴 파일 전부입니다.
+   - `data/` 폴더를 통째로 뺍니다: 진단 정답(`dev_diag_key.js`)은 물론, 검토 전 힌트가 든 `hints.js`도 서버 모드에선 필요 없으므로 함께 뺌.
+   - 복사본의 `config.js`만 `MODE: "supabase"`로 바뀝니다(원본 `public/`은 그대로 로컬 모드).
+   - 스스로 검사(data/ 없음, 진단 정답 없음, 관리자 열쇠 모양 없음)에서 하나라도 걸리면 "[실패]"로 멈춥니다.
+3. `deploy_public/`은 깃에 올라가지 않습니다(`.gitignore`). Vercel 등에 올리는 일은 **결재3 승인 뒤** 비서실장이 진행합니다.
