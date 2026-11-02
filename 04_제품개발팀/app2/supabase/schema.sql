@@ -1,8 +1,9 @@
 -- =====================================================================
 -- 레벨업 캠퍼스 2단계 M1 — Supabase 표(테이블)·보안 규칙(RLS)·서버 함수 초안
 --
--- 상태: 초안 (2026-11-02, 앱 개발자). 실제 Supabase에서 아직 실행해 보지 않았습니다(미검증).
---       캡틴 계정 연결 때 비서실장·개발자가 함께 SQL 편집기에서 실행하며 고칩니다.
+-- 상태: ✅ 실제 Supabase(edu-gamify)에 적용 완료 (2026-11-02, 비서실장). 보안 점검 반영본.
+--       적용 순서: archive_legacy_2025_tables → archive_legacy_rename_constraints → 이 파일
+--       (옛 2025년 빈 표 11개는 old_ 이름으로 보관, 이름표(인덱스·제약)도 old_ 로 바꿔 충돌 방지)
 --
 -- 원칙 (PRD 4장 "위험 크기만큼만"):
 --   1. 모든 표에 RLS(줄 단위 출입 규칙)를 켭니다. "RLS 꺼진 표 0개".
@@ -152,8 +153,10 @@ language sql stable security definer set search_path = public as $$
 $$;
 
 revoke all on all tables in schema public from anon, authenticated;
-grant select on app_settings, students, student_devices, questions, question_keys, hints,
+grant select on app_settings, student_devices, questions, question_keys, hints,
                diag_answers, attempts, review_box to authenticated;
+-- students: 숨은 실력값(theta)·답 수(n_answers)는 학생이 못 읽게 칸 단위로만 허용
+grant select (id, code, cohort, nickname, xp, diag_done, team_id, team_off, created_at) on students to authenticated;
 
 create policy settings_read  on app_settings    for select to authenticated using (true);
 create policy students_self  on students        for select to authenticated using (id = my_student_id());
@@ -171,18 +174,18 @@ create policy review_self    on review_box      for select to authenticated usin
 -- ---------------------------------------------------------------------
 -- 3. 계산 도우미 (logic.js 와 같은 공식)
 -- ---------------------------------------------------------------------
-create or replace function lu_today() returns date language sql stable as $$
+create or replace function lu_today() returns date language sql stable set search_path = public as $$
   select (now() at time zone 'Asia/Seoul')::date
 $$;
 create or replace function lu_p(theta double precision, b double precision, c double precision)
-returns double precision language sql immutable as $$
+returns double precision language sql immutable set search_path = public as $$
   select c + (1 - c) / (1 + exp(-(theta - b)))
 $$;
-create or replace function lu_k(n int) returns double precision language sql immutable as $$
+create or replace function lu_k(n int) returns double precision language sql immutable set search_path = public as $$
   select 0.8 / (1 + 0.05 * n)
 $$;
 create or replace function lu_clamp(x double precision, lo double precision, hi double precision)
-returns double precision language sql immutable as $$
+returns double precision language sql immutable set search_path = public as $$
   select greatest(lo, least(hi, x))
 $$;
 create or replace function lu_me() returns students
@@ -407,6 +410,9 @@ revoke execute on all functions in schema public from public, anon;
 grant execute on function my_student_id(), claim_code(text), set_nickname(text), diag_answer(text, int),
   diag_finish(), next_practice(jsonb, text[]), close_item(text, text, int, int[]), today_summary()
   to authenticated;
+-- 내부 계산 도우미는 학생이 직접 부를 수 없게 (Supabase는 새 함수를 authenticated에 자동 허용하므로 명시적으로 막음)
+revoke execute on function lu_me(), lu_today(), lu_p(double precision, double precision, double precision),
+  lu_k(int), lu_clamp(double precision, double precision, double precision) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------
 -- 5. 교수님(캡틴)용 — SQL 편집기에서만 실행 (학생은 실행 불가)
