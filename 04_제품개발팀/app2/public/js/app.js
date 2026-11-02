@@ -266,7 +266,7 @@
     var ladder = '<div class="ladder" aria-label="힌트 ' + st.level + ' / 4단계">' + [1, 2, 3, 4].map(function (k) { return '<i class="' + (k <= st.level ? "on" : "") + '"></i>'; }).join("") + '</div>';
     if (st.closed) return st.level ? '<div class="hints">' + ladder + shown + '</div>' : "";
     var needThought = st.level + 1 >= 3 && st.level + 1 <= 4 && !!it.hints;
-    return '<div class="hints" id="hints"><div class="h-label">막히면 힌트를 한 단계씩 열어요' + (it.hints && it.hints.fake ? ' <span class="tag">시험용 힌트</span>' : "") + (it.hints && it.hints.draft ? ' <span class="tag" id="draft-tag">검토 전 힌트(개발용)</span>' : "") + '</div>' +
+    return '<div class="hints" id="hints"><div class="h-label">' + (it.hints ? "막히면 힌트를 한 단계씩 열어요" : "정답과 해설") + (it.hints && it.hints.fake ? ' <span class="tag">시험용 힌트</span>' : "") + (it.hints && it.hints.draft ? ' <span class="tag" id="draft-tag">검토 전 힌트(개발용)</span>' : "") + '</div>' +
       ladder + shown + noHints +
       (needThought ? '<div class="field"><label for="thought">내 생각 한 줄 (꼭 써야 다음 힌트가 열려요)</label><textarea id="thought" rows="2" maxlength="200">' + esc(it.thought) + '</textarea></div>' : "") +
       '<button class="btn btn-secondary" id="hint-btn" data-act="hint"></button></div>';
