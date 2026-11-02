@@ -102,7 +102,7 @@ node tests/run_e2e_supabase_mock.js   # Supabase 모드 시험 — 가짜 서버
 | 진단 문항 | `questions` 표 `pool=diagnostic`, `diag_order` 순 | 정답 칸은 요청하지 않음(DB 규칙상 읽을 수도 없음) |
 | 진단 답 · 끝내기 | `rpc diag_answer(p_qid, p_choice)` · `rpc diag_finish()` | "모르겠어요" = `p_choice: null`. 채점·해설은 서버가 |
 | 연습 문항·정답·해설 | `questions`(`pool=practice`) + `question_keys` | 처음 한 번 받아 두고 다시 씀 |
-| 힌트 | `hints` 표 | DB 규칙이 **검토 끝난(reviewed) 연습 문항 힌트만** 돌려줌 → 지금은 0개라 모든 문제가 "힌트 준비 중" |
+| 힌트 | `hints` 표 | DB 규칙이 **검토 끝난(reviewed) 연습 문항 힌트만** 돌려줌 → 지금은 0개라 모든 문제가 "힌트 준비 중"(답을 한 번 낸 뒤 [정답과 해설 보기]는 열림) |
 | 홈 숫자 | `rpc today_summary()` | 연속 학습일만 화면의 `logic.js streak()`로 계산 |
 | 다음 문제 · 마감 | `rpc next_practice(p_recent, p_exclude)` · `rpc close_item(p_qid, p_mode, p_level, p_submits)` | Elo·경험치·복습 상자는 서버 계산 |
 | [다른 코드로 들어가기] | `auth.signOut({scope:"local"})` | 이 기기 로그인만 지움. 서버 기록은 그대로 |

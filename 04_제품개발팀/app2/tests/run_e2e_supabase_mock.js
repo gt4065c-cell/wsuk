@@ -299,11 +299,87 @@ function startServer(dir, port) {
     });
     await ctx.close();
 
+    console.log('■ QA 독립점검 반영 (느린 서버 0.4초 흉내 · 연타 · 진단 먼저 · 힌트 없는 문항 L4 · 서버 XP 그대로)');
+    const mash = (p, sel) => p.evaluate(sel => { for (let i = 0; i < 3; i++) document.querySelector(sel).dispatchEvent(new MouseEvent('click', { bubbles: true })); }, sel);
+    const delay = (p, o) => p.evaluate(o => localStorage.setItem('mock_delay', JSON.stringify(o)), o);
+    const Q = await newPage(); const qp = Q.page;
+    await test('S-25', '[QA 1] 진단 [다음]·[모르겠어요]를 서버 저장 중에 3번 연타 → diag_answer 1번씩, 한 칸씩만 이동', async () => {
+      await qp.goto(BASE + 'index.html?mode=supabase'); await settle(qp);
+      await qp.fill('#code', 'TEST45'); await qp.click('[data-act=login]'); await qp.waitForSelector('[data-screen=nickname]');
+      await qp.fill('#nick', '연타'); await qp.click('[data-act=save-nick]'); await qp.waitForSelector('[data-screen=diag]');
+      await delay(qp, { diag_answer: 400 }); await clearLog(qp);
+      await qp.click('.choice[data-orig="0"]'); await mash(qp, '[data-act=diag-next]');
+      ok(await qp.$eval('[data-act=diag-next]', b => b.disabled), '저장 중 버튼이 안 잠김');
+      await qp.waitForFunction(() => document.querySelector('#count').textContent.includes('2 / 12'));
+      await mash(qp, '[data-act=diag-unknown]'); await qp.waitForTimeout(1000);
+      ok((await qp.textContent('#count')).includes('3 / 12'), await qp.textContent('#count'));
+      const n = rpcs(await logOf(qp)).filter(x => x.name === 'diag_answer').length; ok(n === 2, 'diag_answer ' + n);
+    });
+    await test('S-26', '[QA 5] 진단 2문항 → [나중에 이어서 하기] → 홈에 "진단을 먼저 끝내요"·[진단 이어 하기]만 (연습 시작 없음, next_practice 0번)', async () => {
+      await delay(qp, {}); await clearLog(qp);
+      await qp.click('[data-act=diag-later]'); await qp.waitForSelector('[data-screen=home]');
+      ok(await qp.$('#diag-first') && (await qp.textContent('#diag-first')).includes('2 / 12'), '안내');
+      ok(!(await qp.$('[data-act=start]')) && !(await qp.$('[data-act=diag-finish]')), '연습 시작/진단 끝내기 버튼이 보임');
+      await qp.click('[data-act=diag-resume]'); await qp.waitForSelector('[data-screen=diag]');
+      ok((await qp.textContent('#count')).includes('3 / 12'), await qp.textContent('#count'));
+      ok(!rpcs(await logOf(qp)).some(x => x.name === 'next_practice' || x.name === 'close_item'), '진단 전에 연습 요청');
+      for (let i = 2; i < 12; i++) {
+        const id = await qp.getAttribute('#qid', 'data-id');
+        await qp.click('[data-act=diag-unknown]');
+        if (i < 11) await qp.waitForFunction(p => document.querySelector('#qid').dataset.id !== p, id);
+      }
+      await qp.waitForSelector('[data-screen=diagResult]');
+    });
+    await test('S-27', '[QA 2] [답 내기]·[다음 문제]를 서버 저장 중에 3번 연타 → close_item 1번, next_practice 1번, 같은 문항 두 번 안 열림', async () => {
+      await qp.click('[data-act=home]'); await qp.waitForSelector('[data-screen=home]');
+      await qp.click('[data-act=start]'); await qp.waitForSelector('[data-screen=item] .choice');
+      await delay(qp, { close_item: 400, next_practice: 400 }); await clearLog(qp);
+      const first = await qp.getAttribute('#qid', 'data-id');
+      await qp.click(`.choice[data-orig="${await answerOf(qp)}"]`); await mash(qp, '[data-act=submit]');
+      await qp.waitForSelector('#verdict');
+      await mash(qp, '[data-act=next]');
+      await qp.waitForFunction(f => document.querySelector('#qid') && document.querySelector('#qid').dataset.id !== f && !document.querySelector('#verdict'), first);
+      await qp.waitForTimeout(1000);
+      const r = rpcs(await logOf(qp));
+      ok(r.filter(x => x.name === 'close_item').length === 1, 'close_item ' + r.filter(x => x.name === 'close_item').length);
+      ok(r.filter(x => x.name === 'next_practice').length === 1, 'next_practice ' + r.filter(x => x.name === 'next_practice').length);
+      ok((await qp.textContent('#count')).includes('오늘 2번째'), await qp.textContent('#count'));
+      await delay(qp, {});
+    });
+    await test('S-28', '[QA 6] 검토 끝난 힌트가 없는 문항: 1번 틀린 뒤 [정답과 해설 보기] → close_item(p_level 4, p_submits [오답]) → "정답 보고 이해"', async () => {
+      const id = await qp.getAttribute('#qid', 'data-id');
+      ok(id !== HINT_QID && PRACTICE.find(x => x.id === id).type === 'mcq', '시험 문항 ' + id);
+      ok(await qp.$('#no-hints'), '준비 중 안내');
+      await clearLog(qp);
+      const ans = await answerOf(qp), wrong = (ans + 1) % 4;
+      await qp.click(`.choice[data-orig="${wrong}"]`); await qp.click('[data-act=submit]'); await qp.waitForSelector('#msg');
+      await qp.waitForFunction(() => !document.querySelector('#hint-btn').disabled && document.querySelector('#hint-btn').textContent.includes('정답과 해설'));
+      await qp.click('#hint-btn'); await qp.waitForSelector('#verdict');
+      ok((await qp.textContent('#outcome')).trim() === '정답 보고 이해', await qp.textContent('#outcome'));
+      const c = rpcs(await logOf(qp)).find(x => x.name === 'close_item');
+      ok(JSON.stringify(c.args) === JSON.stringify({ p_qid: id, p_mode: 'PRACTICE', p_level: 4, p_submits: [wrong] }), JSON.stringify(c.args));
+      ok(!qp._warn.some(w => w.includes('결과 이름이 달라요')), qp._warn.join('|'));
+    });
+    await test('S-29', '[서버 변경 반영] 같은 문항을 다시 내게 한 뒤 서버가 xp 0을 돌려주면 화면도 +0 XP + 이유 안내 / 엉터리 답은 BAD_SUBMITS 안내', async () => {
+      await qp.evaluate(() => localStorage.setItem('mock_next', JSON.stringify(document.querySelector('#qid').dataset.id)));
+      await qp.click('[data-act=next]'); await qp.waitForSelector('[data-screen=item] .choice');
+      const r = await solve(qp, 'right');
+      ok(r.xp === '+0 XP', JSON.stringify(r));
+      ok((await qp.textContent('#xp-why')).includes('전에 풀어 본'), await qp.textContent('#xp-why'));
+      const msg = await qp.evaluate(() => window.STORE.closeItem({ qid: document.querySelector('#qid').dataset.id, mode: 'PRACTICE', outcome: '정답 보고 이해', level: 0, submits: [99, 98] }).then(() => 'ok', e => e.message));
+      ok(msg.includes('저장하지 못했어요'), msg);
+      ok(!qp._errors.length, qp._errors.join('|'));
+    });
+    await Q.ctx.close();
+
     console.log('■ 배포용 폴더 (tools/make_deploy.py)');
     await test('S-22', '배포용 폴더: data/ 없음(진단 정답 파일 포함) · MODE=supabase가 기본 · 그 폴더만으로 로그인→진단 화면까지 동작', async () => {
       const out = execFileSync('python3', [path.join(APP, 'tools/make_deploy.py'), DEPLOY_DIR], { encoding: 'utf8' });
       ok(!fs.existsSync(path.join(DEPLOY_DIR, 'data')), 'data/ 남음');
-      ok(fs.readFileSync(path.join(DEPLOY_DIR, 'js/config.js'), 'utf8').includes('MODE: "supabase"'), 'MODE');
+      const dcfg = fs.readFileSync(path.join(DEPLOY_DIR, 'js/config.js'), 'utf8');
+      ok(dcfg.includes('MODE: "supabase"'), 'MODE');
+      ok(dcfg.includes('DEV_CODES: []') && !dcfg.includes('TEST23') && dcfg.includes('SHOW_DRAFT_HINTS: false'), '배포본에 개발용 설정(가짜 코드·검토 전 힌트)이 남음(QA 13)');
+      ok(!fs.existsSync(path.join(DEPLOY_DIR, '.lu_deploy')), '.lu_deploy 표시 파일이 남음(QA 13)');
       ok(fs.readFileSync(path.join(PUBLIC, 'js/config.js'), 'utf8').includes('MODE: "local"'), '원본 config.js가 바뀜');
       server2 = await startServer(DEPLOY_DIR, PORT2);
       const v = await newPage();

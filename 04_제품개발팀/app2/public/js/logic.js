@@ -175,13 +175,16 @@
     return { mode: mode, level: 0, lastOpenAt: 0, submits: [], closed: false, outcome: null, maxSubmits: maxSubmits || C.MAX_SUBMITS };
   }
   function maxSubmitsFor(q) { return q && q.type === "ox" ? C.MAX_SUBMITS_OX : C.MAX_SUBMITS; }
-  /* 다음 힌트를 열 수 있나? → {ok, reason, waitMs} */
+  /* 다음 힌트를 열 수 있나? → {ok, reason, waitMs}
+     미리 만든 힌트(L1~L3)가 없는 문항: 답을 내기 전에는 "준비 중", 한 번 이상 답을 냈으면
+     바로 L4(정답과 해설 보기)가 열림 (PRD 6장 "해설 L4는 답을 낸 뒤 보임", QA 6번) */
+  function nextHintLevel(st, hasHints) { return hasHints ? st.level + 1 : 4; }
   function canOpenHint(st, now, thought, hasHints) {
     if (st.mode !== "PRACTICE" && st.mode !== "REVIEW") return { ok: false, reason: "off" };
     if (st.closed) return { ok: false, reason: "closed" };
+    if (st.level >= 4) return { ok: false, reason: "max" };
+    if (!hasHints) return st.submits.length < 1 ? { ok: false, reason: "not-ready" } : { ok: true };
     var next = st.level + 1;
-    if (next > 4) return { ok: false, reason: "max" };
-    if (next <= 3 && !hasHints) return { ok: false, reason: "not-ready" };
     if (next >= 2) {
       var wait = st.lastOpenAt + C.HINT_WAIT_MS - now;
       if (wait > 0) return { ok: false, reason: "wait", waitMs: wait };
@@ -193,7 +196,7 @@
   function openHint(st, now, thought, hasHints) {
     var r = canOpenHint(st, now, thought, hasHints);
     if (!r.ok) return r;
-    st.level++; st.lastOpenAt = now;
+    st.level = nextHintLevel(st, hasHints); st.lastOpenAt = now;
     if (st.level === 4) { st.closed = true; st.outcome = OUTCOME.SHOWN; }
     return { ok: true, level: st.level };
   }

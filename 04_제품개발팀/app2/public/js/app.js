@@ -15,7 +15,8 @@
   var S = {
     screen: "loading", student: null, err: "", draft: "",
     diag: null, diagResult: null, today: null,
-    run: null,    // {reviews:[qid], newLeft, extra, recent:[{qid,lecture,R}], seen:[qid], log:[{qid,mode,outcome,xp}]}
+    busy: false,  // 서버(저장소)에 묻는 중이면 true → 그동안 버튼 잠금 (QA 1·2번: 연타로 문제 건너뜀 방지)
+    run: null,    // {reviews:[qid], newLeft, extra, xpStart, recent:[{qid,lecture,R}], seen:[qid], log:[{qid,mode,outcome,xp}]}
     item: null    // {qid, q, mode, order, st, selected, hints, thought, concept, result, triedWrong:[orig], msg}
   };
 
@@ -34,24 +35,42 @@
   function lecName(n) { return (n < 10 ? "0" : "") + n + "강"; }
   function fail(e) { S.err = (e && e.message) || String(e); render(); }
   function go(screen) { S.screen = screen; S.err = ""; render(); window.scrollTo(0, 0); }
+  function needDiag(s) { return !!s && !s.diagDone && s.diagAnswered < LU.C.DIAG_MIN; }   // 설계 D4: 10문항 미만이면 연습 전 진단 먼저
+
+  /* ---------- 연타 막기 (QA 1·2번) ----------
+     버튼을 누르면 응답이 올 때까지 화면의 모든 버튼을 잠그고, 그 사이 누른 것은 무시합니다. */
+  var renders = 0;
+  function lockButtons() {
+    app.setAttribute("aria-busy", "true");
+    Array.prototype.forEach.call(app.querySelectorAll("button"), function (x) { x.disabled = true; });
+  }
+  function guard(fn) {
+    if (S.busy) return;
+    S.busy = true; var r0 = renders; lockButtons();
+    var p; try { p = Promise.resolve(fn()); } catch (e) { p = Promise.reject(e); }
+    return p.catch(fail).then(function () {
+      S.busy = false; app.removeAttribute("aria-busy");
+      if (renders === r0) render();   // 화면이 그대로면 잠근 버튼을 다시 풀어 줌
+    });
+  }
 
   /* ---------- 시작 ---------- */
   function boot() {
     if (STORE.devLabel) { var d = document.getElementById("devbar"); d.textContent = STORE.devLabel; d.hidden = false; }
-    STORE.session().then(function (s) { S.student = s; route(); }).catch(fail);
+    return STORE.session().then(function (s) { S.student = s; return route(); }).catch(fail);
   }
   function route() {
     var s = S.student;
     if (!s) return go("login");
     if (!s.nickname) return go("nickname");
-    if (!s.diagDone && s.diagAnswered < LU.C.DIAG_MIN) return startDiag();
+    if (needDiag(s)) return startDiag();
     return goHome();
   }
   function refreshStudent() { return STORE.session().then(function (s) { S.student = s; }); }
 
   /* ---------- 진단 ---------- */
   function startDiag() {
-    STORE.diagnostic().then(function (d) {
+    return STORE.diagnostic().then(function (d) {
       var done = {}; d.answered.forEach(function (id) { done[id] = true; });
       var idx = 0; while (idx < d.questions.length && done[d.questions[idx].id]) idx++;
       S.diag = { questions: d.questions, idx: idx, selected: null };
@@ -60,35 +79,36 @@
     }).catch(fail);
   }
   function finishDiag() {
-    STORE.finishDiagnostic().then(function (r) {
+    return STORE.finishDiagnostic().then(function (r) {
       S.diagResult = r; return refreshStudent();
     }).then(function () { go("diagResult"); }).catch(fail);
   }
 
   /* ---------- 홈 ---------- */
   function goHome() {
-    Promise.all([refreshStudent(), STORE.today()]).then(function (r) { S.today = r[1]; go("home"); }).catch(fail);
+    return Promise.all([refreshStudent(), STORE.today()]).then(function (r) { S.today = r[1]; go("home"); }).catch(fail);
   }
 
   /* ---------- 오늘의 학습 ---------- */
   function startRun(extra) {
+    if (needDiag(S.student)) return startDiag();   // 진단 10문항 전에는 연습 못 함 (D4)
     var t = S.today;
     S.run = { reviews: extra ? [] : t.reviews.slice(), newLeft: extra ? LU.C.NEW_PER_DAY : Math.max(0, t.newTarget - t.newDone),
-              extra: !!extra, recent: [], seen: [], log: [] };
-    nextItem();
+              extra: !!extra, xpStart: Number(t.xpToday) || 0, recent: [], seen: [], log: [] };
+    return nextItem();
   }
   function nextItem() {
     var run = S.run;
     if (run.reviews.length) return openItem(run.reviews.shift(), "REVIEW", false);
     if (run.newLeft <= 0) return endRun(false);
-    STORE.nextPractice(run.recent, run.seen).then(function (p) {
+    return STORE.nextPractice(run.recent, run.seen).then(function (p) {
       if (!p) return endRun(true);
       run.newLeft--;
-      openItem(p.qid, "PRACTICE", p.conceptCard);
+      return openItem(p.qid, "PRACTICE", p.conceptCard);
     }).catch(fail);
   }
   function openItem(qid, mode, concept) {
-    Promise.all([STORE.question(qid), STORE.hints(qid)]).then(function (r) {
+    return Promise.all([STORE.question(qid), STORE.hints(qid)]).then(function (r) {
       var q = r[0];
       S.run.seen.push(qid);
       S.item = {
@@ -101,13 +121,15 @@
   }
   function endRun(noMore) {
     S.run.noMore = noMore;
-    Promise.all([refreshStudent(), STORE.today()]).then(function (r) { S.today = r[1]; go("done"); }).catch(fail);
+    return Promise.all([refreshStudent(), STORE.today()]).then(function (r) { S.today = r[1]; go("done"); }).catch(fail);
   }
   function closeIfNeeded() {
     var it = S.item;
-    if (!it.st.closed || it.result) return render();
-    STORE.closeItem({ qid: it.qid, mode: it.mode, outcome: it.st.outcome, level: it.st.level, submits: it.submitted || [] })
+    if (!it.st.closed || it.result) { render(); return Promise.resolve(); }
+    return STORE.closeItem({ qid: it.qid, mode: it.mode, outcome: it.st.outcome, level: it.st.level, submits: it.submitted || [] })
       .then(function (res) {
+        // 서버(또는 로컬 저장소)가 돌려준 XP를 그대로 씀. 이 문제 전까지 오늘 받은 XP도 기억(상한/다시 풀기 안내 구분용)
+        it.xpBefore = (S.run.xpStart || 0) + S.run.log.reduce(function (a, l) { return a + l.xp; }, 0);
         it.result = res;
         S.run.recent.push({ qid: it.qid, lecture: it.q.lecture, R: LU.R_OF[it.st.outcome] });
         S.run.log.push({ qid: it.qid, mode: it.mode, outcome: it.st.outcome, xp: res.xp, reviewNote: res.reviewNote });
@@ -117,7 +139,7 @@
 
   /* ---------- 화면 그리기 ---------- */
   function render() {
-    stopTick();
+    stopTick(); renders++;
     var who = document.getElementById("who");
     who.textContent = S.student && S.student.nickname ? S.student.nickname + " 님" : "";
     var h = ({ loading: vLoading, login: vLogin, nickname: vNickname, diag: vDiag, diagResult: vDiagResult,
@@ -147,7 +169,8 @@
     return '<div class="content"><h2>별명을 정해 주세요</h2>' +
       '<p class="sub">처음 한 번만 정해요. 팀원에게 이 별명으로 보여요.</p>' +
       '<div class="note"><div class="note-title">실명은 쓰지 마세요</div>이름·학번·전화번호 대신 별명만 써 주세요.</div>' +
-      '<div class="field"><label for="nick">별명 (2~12글자)</label><input id="nick" class="text" maxlength="12" autocomplete="off" value="' + esc(S.draft) + '"></div>' +
+      '<div class="field' + (S.nickHint ? " err" : "") + '"><label for="nick">별명 (2~12글자)</label><input id="nick" class="text" maxlength="12" autocomplete="off" value="' + esc(S.draft) + '">' +
+      (S.nickHint ? '<p class="error" id="nick-error">' + esc(S.nickHint) + '</p>' : "") + '</div>' +
       '<!--ERR--></div><div class="bottombar"><button class="btn btn-primary" data-act="save-nick">이 별명으로 시작</button></div>';
   }
 
@@ -202,14 +225,18 @@
 
   function vHome() {
     var t = S.today, s = S.student, st = t.streak;
-    var diagPending = !s.diagDone;
+    var diagPending = !s.diagDone, diagFirst = needDiag(s), diagLeft = Math.max(0, LU.C.DIAG_COUNT - s.diagAnswered);
     var total = t.reviews.length + t.newTarget, doneN = Math.min(t.newDone, t.newTarget);
     var allDone = t.reviews.length === 0 && t.newDone >= t.newTarget;
     var streakTxt = st.current > 0
       ? '연속 학습 <b id="streak">' + st.current + '</b>일째 <span class="sub">(학습 ' + st.studied + '일 · 휴식 보호 ' + st.protectedDays + '일)</span>'
       : '오늘 3문항을 끝까지 풀면 연속 학습이 시작돼요' + '<span id="streak" hidden>0</span>';
     return '<div class="content"><h2>오늘 이것만 하면 돼요</h2>' +
-      (diagPending ? '<div class="note"><div class="note-title">진단이 ' + (LU.C.DIAG_COUNT - s.diagAnswered) + '문항 남았어요</div>' +
+      (diagFirst ? '<div class="note" id="diag-first"><div class="note-title">진단을 먼저 끝내요</div>' +
+        '진단을 ' + LU.C.DIAG_MIN + '문항 이상 마치면 오늘의 학습이 열려요. 지금 ' + s.diagAnswered + ' / ' + LU.C.DIAG_COUNT + '문항 했어요.</div>'
+      : diagPending && diagLeft === 0 ? '<div class="note"><div class="note-title">진단 채점만 남았어요</div>' +
+        '<div class="btn-col"><button class="btn btn-secondary" data-act="diag-finish">진단 결과 보기</button></div></div>'
+      : diagPending ? '<div class="note"><div class="note-title">진단이 ' + diagLeft + '문항 남았어요</div>' +
         '<div class="btn-col"><button class="btn btn-secondary" data-act="diag-resume">진단 마저 하기</button>' +
         '<button class="btn btn-secondary" data-act="diag-finish">여기까지로 진단 끝내기</button></div></div>' : "") +
       '<div class="card plan"><div class="plan-row"><span>복습</span><span id="plan-review">' + t.reviews.length + '문제</span></div>' +
@@ -219,9 +246,11 @@
       '<ul class="stats"><li><b id="xp-week">' + t.weekXp + '</b><span>이번 주 학습량 XP</span></li>' +
       '<li><b id="solved-week">' + t.weekSolved + '</b><span>이번 주 푼 문항</span></li>' +
       '<li><b id="xp-total">' + s.xp + '</b><span>모은 XP</span></li></ul>' +
-      '<p class="sub">경험치는 문제를 끝까지 풀면 10 XP, 복습에서 혼자 맞히면 +5 XP예요. 힌트를 써도 줄지 않아요.</p>' +
+      '<p class="sub">경험치는 문제를 끝까지 풀면 10 XP, 복습에서 혼자 맞히면 +5 XP예요. 힌트를 써도 줄지 않아요. 이미 푼 문제는 복습 날에 다시 풀 때만 경험치가 있어요.</p>' +
       '<!--ERR--><button class="linkbtn" data-act="logout">다른 코드로 들어가기</button></div>' +
-      '<div class="bottombar">' + (allDone
+      '<div class="bottombar">' + (diagFirst
+        ? '<button class="btn btn-primary" data-act="diag-resume">진단 이어 하기</button>'
+        : allDone
         ? '<p class="hint" id="all-done">오늘 할 일 완료! 더 풀고 싶으면 아래를 눌러요.</p><button class="btn btn-secondary" data-act="start-extra">더 풀기 (선택)</button>'
         : '<button class="btn btn-primary" data-act="start">오늘의 학습 시작</button>') + '</div>';
   }
@@ -230,24 +259,25 @@
     var it = S.item, st = it.st;
     if (it.mode !== "PRACTICE" && it.mode !== "REVIEW") return "";   // 진단·평가에는 힌트 없음
     var shown = "";
-    for (var L = 1; L <= Math.min(st.level, 3); L++) {
+    for (var L = 1; it.hints && L <= Math.min(st.level, 3); L++) {
       shown += '<div class="hint-step" data-level="' + L + '"><span class="h-lv">힌트 ' + L + '단계</span>' + esc(it.hints["L" + L]) + '</div>';
     }
+    var noHints = !it.hints ? '<p class="sub" id="no-hints">이 문제는 미리 만든 힌트를 준비 중이에요. 답을 한 번 낸 뒤에는 정답과 해설을 볼 수 있어요.</p>' : "";
     var ladder = '<div class="ladder" aria-label="힌트 ' + st.level + ' / 4단계">' + [1, 2, 3, 4].map(function (k) { return '<i class="' + (k <= st.level ? "on" : "") + '"></i>'; }).join("") + '</div>';
     if (st.closed) return st.level ? '<div class="hints">' + ladder + shown + '</div>' : "";
     var needThought = st.level + 1 >= 3 && st.level + 1 <= 4 && !!it.hints;
     return '<div class="hints" id="hints"><div class="h-label">막히면 힌트를 한 단계씩 열어요' + (it.hints && it.hints.fake ? ' <span class="tag">시험용 힌트</span>' : "") + (it.hints && it.hints.draft ? ' <span class="tag" id="draft-tag">검토 전 힌트(개발용)</span>' : "") + '</div>' +
-      ladder + shown +
+      ladder + shown + noHints +
       (needThought ? '<div class="field"><label for="thought">내 생각 한 줄 (꼭 써야 다음 힌트가 열려요)</label><textarea id="thought" rows="2" maxlength="200">' + esc(it.thought) + '</textarea></div>' : "") +
       '<button class="btn btn-secondary" id="hint-btn" data-act="hint"></button></div>';
   }
   function hintBtnState() {
     var it = S.item, st = it.st, next = st.level + 1;
     var r = LU.canOpenHint(st, STORE.now(), it.thought, !!it.hints);
-    var label = next === 4 ? "정답과 해설 보기" : "힌트 " + next + "단계 보기";
+    var label = next === 4 || !it.hints ? "정답과 해설 보기" : "힌트 " + next + "단계 보기";
     if (r.ok) return { label: label, disabled: false };
     var why = { wait: Math.ceil((r.waitMs || 0) / 1000) + "초 뒤에 " + label, thought: "내 생각 한 줄을 쓰면 " + label,
-                "submit-first": "정답 보기는 답을 한 번 낸 뒤에 열려요", "not-ready": "이 문제 힌트는 준비 중이에요",
+                "submit-first": "정답 보기는 답을 한 번 낸 뒤에 열려요", "not-ready": "힌트 준비 중 · 정답 보기는 답을 낸 뒤에 열려요",
                 max: label, closed: label, off: label }[r.reason];
     return { label: why, disabled: true };
   }
@@ -264,8 +294,10 @@
         choiceBtns(q, it.order, { selected: it.selected, tried: it.triedWrong }) +
         (it.msg ? '<p class="tried" id="msg">' + esc(it.msg) + '</p>' : "") +
         hintPanel() + '<!--ERR--></div>' +
-        '<div class="bottombar"><button class="btn btn-primary" data-act="submit"' + (it.selected === null || st.closed ? " disabled" : "") + '>답 내기' +
-        (st.submits.length ? ' (남은 기회 ' + left + '번)' : "") + '</button></div>';
+        '<div class="bottombar">' + (st.closed
+          ? '<button class="btn btn-primary" data-act="retry-close">기록 다시 저장하기</button>'
+          : '<button class="btn btn-primary" data-act="submit"' + (it.selected === null ? " disabled" : "") + '>답 내기' +
+            (st.submits.length ? ' (남은 기회 ' + left + '번)' : "") + '</button>') + '</div>';
     }
     // 마감 → 해설 (L4)
     var res = it.result, oc = st.outcome;
@@ -277,8 +309,13 @@
     if (res.reviewNote === "box-up") note = "다시 도전 성공! 다음 복습은 조금 더 뒤에 만나요.";
     if (res.reviewNote === "review-done") note = "복습 완료! 이 문제는 이제 졸업이에요.";
     var last = run.reviews.length === 0 && run.newLeft <= 0;
+    var fullXp = LU.C.XP_COMPLETE + (it.mode === "REVIEW" && oc === O.SOLO ? LU.C.XP_REVIEW_SOLO_BONUS : 0);
+    var xpWhy = "";
+    if (res.xp < fullXp) xpWhy = (it.xpBefore || 0) + fullXp > LU.C.XP_DAILY_CAP
+      ? ' <span class="sub" id="xp-why">(오늘 경험치 상한에 닿았어요)</span>'
+      : ' <span class="sub" id="xp-why">(전에 풀어 본 문제라 이번엔 경험치가 없어요. 복습 날에 다시 만나면 받아요)</span>';
     return '<div class="content">' + head + verdict +
-      '<p><span class="xp-pop" id="xp-gain">+' + res.xp + ' XP</span>' + (res.xp < LU.C.XP_COMPLETE ? ' <span class="sub">(오늘 경험치 상한에 닿았어요)</span>' : "") + '</p>' +
+      '<p><span class="xp-pop" id="xp-gain">+' + res.xp + ' XP</span>' + xpWhy + '</p>' +
       (note ? '<p class="sub" id="review-note">' + esc(note) + '</p>' : "") + qcard +
       choiceBtns(q, it.order, { reveal: true, answer: q.answer_index, picked: it.submitted || [] }) +
       hintPanel() +
@@ -305,7 +342,7 @@
   var tick = null;
   function updateHintBtn() {
     var b = document.getElementById("hint-btn"); if (!b || !S.item) return;
-    var s = hintBtnState(); b.textContent = s.label; b.disabled = s.disabled;
+    var s = hintBtnState(); b.textContent = s.label; b.disabled = s.disabled || S.busy;
   }
   function startTick() { updateHintBtn(); tick = setInterval(updateHintBtn, 500); }
   function stopTick() { if (tick) clearInterval(tick); tick = null; }
@@ -321,62 +358,71 @@
   });
   app.addEventListener("click", function (e) {
     var b = e.target.closest("[data-act]"); if (!b || b.disabled || b.getAttribute("aria-disabled") === "true") return;
+    if (S.busy) return;   // 저장 중에 누른 것은 무시 (연타 방지)
     act(b.dataset.act, b);
   });
 
   function act(a, b) {
+    if (S.busy) return;
     var it = S.item;
     switch (a) {
       case "login":
-        STORE.login(S.draft).then(function (r) {
-          if (!r.ok) {
-            S.err = r.error === "shape" ? "코드는 영문 대문자와 숫자 6자리예요 (0·O·1·I 없음)."
-              : r.error === "too_many" ? "코드를 너무 여러 번 넣었어요. 10분쯤 뒤에 다시 해 주세요."
-              : "등록되지 않은 코드예요. 교수님께 받은 카드를 다시 확인해 주세요.";
-            return render();
-          }
-          S.student = r.student; S.draft = ""; route();
-        }).catch(fail); break;
+        return guard(function () {
+          return STORE.login(S.draft).then(function (r) {
+            if (!r.ok) {
+              S.err = r.error === "shape" ? "코드는 영문 대문자와 숫자 6자리예요 (0·O·1·I 없음)."
+                : r.error === "too_many" ? "코드를 너무 여러 번 넣었어요. 10분쯤 뒤에 다시 해 주세요."
+                : "등록되지 않은 코드예요. 교수님께 받은 카드를 다시 확인해 주세요.";
+              return render();
+            }
+            S.student = r.student; S.draft = ""; return route();
+          });
+        });
       case "save-nick":
         var nick = (S.draft || "").trim();
-        if (nick.length < 2) { S.err = "별명은 2글자 이상이어야 해요."; return render(); }
-        STORE.setNickname(nick).then(function (s) { S.student = s; S.draft = ""; route(); }).catch(fail); break;
-      case "logout": STORE.logout().then(function () { S.student = null; S.draft = ""; go("login"); }); break;
+        if (nick.length < 2) { S.nickHint = "별명은 2글자 이상이어야 해요."; return render(); }
+        S.nickHint = "";
+        return guard(function () { return STORE.setNickname(nick).then(function (s) { S.student = s; S.draft = ""; return route(); }); });
+      case "logout": return guard(function () { return STORE.logout().then(function () { S.student = null; S.draft = ""; go("login"); }); });
 
       case "pick":
         if (S.screen === "diag") { S.diag.selected = Number(b.dataset.orig); render(); }
         else if (it && !it.st.closed) { it.selected = Number(b.dataset.orig); render(); }
         break;
-      case "diag-unknown": diagAnswer(null); break;
-      case "diag-next": diagAnswer(S.diag.selected); break;
-      case "diag-later": goHome(); break;
-      case "diag-resume": startDiag(); break;
-      case "diag-finish": finishDiag(); break;
+      case "diag-unknown": return guard(function () { return diagAnswer(null); });
+      case "diag-next": if (S.diag.selected === null) return; return guard(function () { return diagAnswer(S.diag.selected); });
+      case "diag-later": return guard(goHome);
+      case "diag-resume": return guard(startDiag);
+      case "diag-finish": return guard(finishDiag);
 
-      case "home": goHome(); break;
-      case "retry": S.err = ""; render(); boot(); break;
-      case "start": startRun(false); break;
-      case "start-extra": startRun(true); break;
+      case "home": return guard(goHome);
+      case "retry": S.err = ""; render(); return guard(boot);
+      case "start": return guard(function () { return startRun(false); });
+      case "start-extra": return guard(function () { return startRun(true); });
 
       case "hint":
-        var r = LU.openHint(it.st, STORE.now(), it.thought, !!it.hints);
-        if (r.ok) { it.thought = ""; it.msg = ""; closeIfNeeded(); }
-        else updateHintBtn();
-        break;
+        return guard(function () {
+          var r = LU.openHint(it.st, STORE.now(), it.thought, !!it.hints);
+          if (r.ok) { it.thought = ""; it.msg = ""; return closeIfNeeded(); }
+          updateHintBtn();
+        });
       case "submit":
-        if (it.selected === null) return;
-        var orig = it.selected, correct = orig === it.q.answer_index;
-        it.submitted = (it.submitted || []).concat([orig]);
-        LU.submit(it.st, correct);
-        it.selected = null;
-        if (!it.st.closed) { it.triedWrong.push(orig); it.msg = "아직 아니에요. 힌트를 보거나 한 번 더 골라 보세요."; }
-        closeIfNeeded(); break;
-      case "next": nextItem(); break;
+        if (it.selected === null || it.st.closed) return;
+        return guard(function () {
+          var orig = it.selected, correct = orig === it.q.answer_index;
+          it.submitted = (it.submitted || []).concat([orig]);
+          LU.submit(it.st, correct);
+          it.selected = null;
+          if (!it.st.closed) { it.triedWrong.push(orig); it.msg = "아직 아니에요. 힌트를 보거나 한 번 더 골라 보세요."; }
+          return closeIfNeeded();
+        });
+      case "retry-close": S.err = ""; return guard(closeIfNeeded);
+      case "next": return guard(nextItem);
     }
   }
   function diagAnswer(choice) {
     var d = S.diag, q = d.questions[d.idx];
-    STORE.answerDiagnostic(q.id, choice).then(function () {
+    return STORE.answerDiagnostic(q.id, choice).then(function () {
       d.idx++; d.selected = null;
       if (d.idx >= d.questions.length) return finishDiag();
       render(); window.scrollTo(0, 0);

@@ -134,7 +134,8 @@ function startServer() {
       await page.waitForSelector('[data-screen=nickname]');
       ok((await page.textContent('#app')).includes('실명은 쓰지 마세요'), '안내');
       await shot(page, '390_03_별명');
-      await page.fill('#nick', '별'); await page.click('[data-act=save-nick]'); await page.waitForSelector('#err');
+      await page.fill('#nick', '별'); await page.click('[data-act=save-nick]'); await page.waitForSelector('#nick-error');
+      ok(!(await page.$('#err')), '입력 안내가 빨간 "문제가 생겼어요" 상자로 나옴(QA 14)');
       await page.fill('#nick', '하늘별'); await page.click('[data-act=save-nick]');
       await page.waitForSelector('[data-screen=diag]');
     });
@@ -332,6 +333,109 @@ function startServer() {
       ok(!(await v.page.$('#draft-tag')), '검토 전 표시가 보임');
       await v.ctx.close(); return draftId + ' 힌트 숨김 확인';
     });
+    console.log('■ QA 독립점검 반영 (연타 · 진단 먼저 · 힌트 없는 문항 L4 · 다시 풀기 XP)');
+    // 저장소 응답을 0.4초 늦추는 도구 (느린 인터넷 흉내). 부른 횟수는 window.__calls[이름]
+    const slow = (p, names) => p.evaluate(ns => {
+      window.__calls = window.__calls || {};
+      ns.forEach(n => { const f = window.STORE[n].bind(window.STORE); window.__calls[n] = 0;
+        window.STORE[n] = function () { window.__calls[n]++; const a = arguments; return new Promise(r => setTimeout(r, 400)).then(() => f.apply(null, a)); }; });
+    }, names);
+    // 같은 버튼을 아주 빨리 3번 누르기 (사람 손가락처럼 실제 클릭 이벤트, 버튼이 잠겨도 억지로 보냄)
+    const mash = (p, sel) => p.evaluate(sel => { for (let i = 0; i < 3; i++) document.querySelector(sel).dispatchEvent(new MouseEvent('click', { bubbles: true })); }, sel);
+    const q = await newPage();
+    await test('E-24', '[QA 1] 진단 [다음]을 저장 중에 3번 연타 → 2/12로 한 칸만, 답 1개만 저장, 저장 중 버튼 잠김', async () => {
+      const p = q.page; await open(p); await login(p, 'TEST23', '연타');
+      await slow(p, ['answerDiagnostic']);
+      await p.click('.choice[data-orig="0"]');
+      await mash(p, '[data-act=diag-next]');
+      ok(await p.$eval('[data-act=diag-next]', b => b.disabled), '저장 중에 버튼이 안 잠김');
+      await p.waitForFunction(() => document.querySelector('#count').textContent.includes('2 / 12'));
+      await p.waitForTimeout(900);
+      ok((await p.textContent('#count')).includes('2 / 12'), await p.textContent('#count'));
+      const d = await debug(p); ok(d.db.diag.TEST23.answers.length === 1, '저장된 답 ' + d.db.diag.TEST23.answers.length);
+      ok(await p.evaluate(() => window.__calls.answerDiagnostic) === 1, '저장 요청 ' + await p.evaluate(() => window.__calls.answerDiagnostic));
+      await mash(p, '[data-act=diag-unknown]'); await p.waitForTimeout(900);
+      ok((await p.textContent('#count')).includes('3 / 12'), '모르겠어요 연타 ' + await p.textContent('#count'));
+    });
+    await test('E-25', '[QA 5] 진단 2문항 → [나중에 이어서 하기] → 홈: "진단을 먼저 끝내요" + [진단 이어 하기]만, 연습 시작 버튼 없음', async () => {
+      const p = q.page;
+      await p.click('[data-act=diag-later]'); await p.waitForSelector('[data-screen=home]');
+      ok(await p.$('#diag-first'), '진단 먼저 안내');
+      ok((await p.textContent('#diag-first')).includes('2 / 12'), await p.textContent('#diag-first'));
+      ok(!(await p.$('[data-act=start]')) && !(await p.$('[data-act=start-extra]')), '연습 시작 버튼이 보임');
+      ok(!(await p.$('[data-act=diag-finish]')), '10문항 전인데 "진단 끝내기"가 보임');
+      await shot(p, '390_16_진단먼저');
+      await p.click('[data-act=diag-resume]'); await p.waitForSelector('[data-screen=diag]');
+      ok((await p.textContent('#count')).includes('3 / 12'), await p.textContent('#count'));
+      ok(!(await debug(p)).db.attempts.length, '연습 기록이 생김');
+    });
+    await test('E-26', '[QA 2] [다음 문제]·[답 내기]를 저장 중에 연타 → 요청 1번, 새 문제 1개만 줄고, 복습 목록도 1개만 꺼냄', async () => {
+      const p = q.page;
+      await p.evaluate(() => localStorage.setItem('lu2_dev_day_offset', '0'));
+      await diagAnswerAll(p, 2);
+      await p.click('[data-act=home]'); await p.waitForSelector('[data-screen=home]');
+      await p.click('[data-act=start]'); await p.waitForSelector('[data-screen=item] .choice');
+      await slow(p, ['closeItem', 'nextPractice', 'question']);
+      const ans = await answerOf(p);
+      await p.click(`.choice[data-orig="${ans}"]`); await mash(p, '[data-act=submit]');
+      await p.waitForSelector('#verdict'); await p.waitForTimeout(500);
+      ok(await p.evaluate(() => window.__calls.closeItem) === 1, '마감 요청 ' + await p.evaluate(() => window.__calls.closeItem));
+      const first = await p.getAttribute('#qid', 'data-id');
+      await mash(p, '[data-act=next]');
+      await p.waitForFunction(f => document.querySelector('#qid') && document.querySelector('#qid').dataset.id !== f && !document.querySelector('#verdict'), first);
+      await p.waitForTimeout(1200);
+      const st = await p.evaluate(() => ({ left: window.__LU_APP.S.run.newLeft, seen: window.__LU_APP.S.run.seen.slice() }));
+      ok(await p.evaluate(() => window.__calls.nextPractice) === 1, 'next 요청 ' + await p.evaluate(() => window.__calls.nextPractice));
+      ok(st.left === 3, '남은 새 문제 ' + st.left);
+      ok(new Set(st.seen).size === st.seen.length, '같은 문항이 두 번 열림 ' + st.seen.join(','));
+      // 복습 2개가 줄 서 있을 때 연타 → 1개만 꺼냄
+      const sol = await solve(p, 'right'); ok(sol.xp === '+10 XP', JSON.stringify(sol));
+      const ids = await p.evaluate(() => window.LU_PRACTICE.questions.slice(40, 42).map(x => x.id));
+      await p.evaluate(ids => { window.__LU_APP.S.run.reviews = ids.slice(); }, ids);
+      await mash(p, '[data-act=next]');
+      await p.waitForFunction(id => document.querySelector('#qid') && document.querySelector('#qid').dataset.id === id, ids[0]);
+      await p.waitForTimeout(1200);
+      const rv = await p.evaluate(() => window.__LU_APP.S.run.reviews.slice());
+      ok(rv.length === 1 && rv[0] === ids[1], '남은 복습 ' + JSON.stringify(rv));
+      ok((await p.getAttribute('#qid', 'data-id')) === ids[0], '복습 첫 문항이 아님');
+      return '연타 3번 → 요청 1번씩';
+    });
+    await q.ctx.close();
+    const nh = await newPage();
+    await test('E-27', '[QA 6] 미리 만든 힌트가 없는 문항: 답 전 "준비 중" → 1번 틀린 뒤 [정답과 해설 보기] 열림 → "정답 보고 이해" +10 XP (기록 L4)', async () => {
+      const p = nh.page; await open(p); await login(p, 'TEST45', '힌트없음'); await diagAnswerAll(p);
+      const id = await p.evaluate(() => window.LU_PRACTICE.questions.find(x => !window.LU_HINTS.hints[x.id] && x.type === 'mcq').id);
+      await p.evaluate(id => window.__LU_APP.openItem(id, 'PRACTICE'), id); await p.waitForSelector('#hint-btn');
+      ok(await p.$('#no-hints'), '"미리 만든 힌트 준비 중" 안내 없음');
+      await p.waitForFunction(() => document.querySelector('#hint-btn').textContent.includes('준비 중'));
+      ok(await p.$eval('#hint-btn', b => b.disabled), '답 전에 열림');
+      const ans = await answerOf(p);
+      await p.click(`.choice[data-orig="${(ans + 1) % 4}"]`); await p.click('[data-act=submit]'); await p.waitForSelector('#msg');
+      await p.waitForFunction(() => !document.querySelector('#hint-btn').disabled && document.querySelector('#hint-btn').textContent.includes('정답과 해설'));
+      ok(!(await p.$('#thought')), '힌트가 없는데 "내 생각 한 줄"을 요구');
+      await shot(p, '390_17_힌트없음_L4열림');
+      await p.click('#hint-btn'); await p.waitForSelector('#verdict');
+      ok((await p.textContent('#outcome')).trim() === '정답 보고 이해' && (await p.textContent('#xp-gain')).trim() === '+10 XP', '결과');
+      const last = (await debug(p)).db.attempts.slice(-1)[0];
+      ok(last.level === 4 && last.submits.length === 1, JSON.stringify(last));
+      ok(!p._errors.length, p._errors.join('|'));
+      return id;
+    });
+    await test('E-28', '[서버와 같게] 복습 일정 밖에서 같은 연습 문항을 다시 풀면 +0 XP + 이유 안내, 엉터리 답 기록은 거절', async () => {
+      const p = nh.page;
+      const id = (await debug(p)).db.attempts.slice(-1)[0].qid;
+      const before = (await debug(p)).me.xp;
+      await p.evaluate(id => window.__LU_APP.openItem(id, 'PRACTICE'), id); await p.waitForSelector('[data-screen=item] .choice');
+      const r = await solve(p, 'right');
+      ok(r.xp === '+0 XP', JSON.stringify(r));
+      ok((await p.textContent('#xp-why')).includes('전에 풀어 본'), await p.textContent('#xp-why'));
+      ok((await debug(p)).me.xp === before, 'XP가 늘어남');
+      const bad = await p.evaluate(id => Promise.all([
+        window.STORE.closeItem({ qid: id, mode: 'PRACTICE', outcome: '정답 보고 이해', level: 0, submits: [99, 98] }).then(() => 'ok', e => e.message),
+        window.STORE.closeItem({ qid: id, mode: 'PRACTICE', outcome: '정답 보고 이해', level: 0, submits: [1, 1] }).then(() => 'ok', e => e.message)]), id);
+      ok(bad.every(m => m.includes('저장하지 못했어요')), JSON.stringify(bad));
+    });
+    await nh.ctx.close();
     await test('E-22', '자바스크립트 오류 0건 (전체 흐름)', async () => { ok(!page._errors.length, page._errors.join('|')); });
     await ctx.close();
   } finally {

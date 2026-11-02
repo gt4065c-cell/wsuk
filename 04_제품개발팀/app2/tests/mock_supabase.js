@@ -61,6 +61,7 @@
       var c = meCode(); if (!c) return err("NOT_LINKED");
       var x = db(); var done = {}; x.attempts.forEach(function (t) { if (t.code === c) done[t.qid] = 1; });
       var ex = a.p_exclude || [];
+      var forced = ls("mock_next"); if (forced) { localStorage.removeItem("mock_next"); return ok({ qid: forced, conceptCard: false }); }   // 시험용: 다음 문항 지정
       var q = D.practice.find(function (q) { return ex.indexOf(q.id) < 0 && !done[q.id]; });
       return ok(q ? { qid: q.id, conceptCard: false } : null);
     },
@@ -70,8 +71,14 @@
       if (["PRACTICE", "REVIEW"].indexOf(a.p_mode) < 0) return err("BAD_MODE");
       if (!Array.isArray(a.p_submits) || typeof a.p_level !== "number") return err("BAD_SUBMITS");
       var ns = a.p_submits.length, last = ns > 0 && a.p_submits[ns - 1] === q.answer_index;
+      // schema.sql 과 같게: 보기 번호 범위 밖·같은 답 두 번 → BAD_SUBMITS
+      if (ns > (q.type === "ox" ? 1 : 2) || a.p_submits.some(function (v) { return !(v >= 0 && v < q.choices.length); }) ||
+          (ns === 2 && a.p_submits[0] === a.p_submits[1])) return err("BAD_SUBMITS");
+      if (a.p_level === 4 && ns === 0) return err("L4_BEFORE_SUBMIT");
       var outcome = a.p_level >= 4 || !last ? "정답 보고 이해" : a.p_level >= 1 ? "힌트로 해결" : ns === 1 ? "혼자 맞힘" : "두 번째에 맞힘";
       var x = db(); var xp = 10 + (a.p_mode === "REVIEW" && outcome === "혼자 맞힘" ? 5 : 0);
+      // schema.sql 과 같게: 연습(PRACTICE)에서 전에 푼 적 있는 문항이면 XP 0
+      if (a.p_mode === "PRACTICE" && x.attempts.some(function (t) { return t.code === c && t.qid === q.id; })) xp = 0;
       x.students[c].xp += xp;
       x.attempts.push({ code: c, qid: q.id, mode: a.p_mode, outcome: outcome, xp: xp, day: today() }); save(x);
       return ok({ xp: xp, xpTotal: x.students[c].xp, outcome: outcome, reviewNote: outcome === "혼자 맞힘" ? null : "again" });
@@ -142,6 +149,9 @@
           var f = fail()[name];
           if (f && f !== "too_many") return err(f);
           if (!RPC[name]) return err("Could not find the function public." + name);
+          // 느린 인터넷 흉내: localStorage 'mock_delay' = {rpc이름: 밀리초}
+          var dl = (ls("mock_delay") || {})[name];
+          if (dl) return new Promise(function (r) { setTimeout(r, dl); }).then(function () { return RPC[name](args || {}); });
           return RPC[name](args || {});
         },
         from: from

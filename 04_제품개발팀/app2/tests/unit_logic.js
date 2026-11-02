@@ -178,6 +178,16 @@ t('U-21', '진단(DIAG)·평가(EVAL) 모드에서는 힌트가 꺼짐 / 힌트 
   ok(LU.openHint(LU.newItemState('EVAL'), 0, 'x', true).reason === 'off', 'EVAL');
   ok(LU.openHint(LU.newItemState('PRACTICE'), 0, 'x', false).reason === 'not-ready', '준비 중');
 });
+t('U-21b', '[QA 6] 미리 만든 힌트가 없는 문항: 답 내기 전 "준비 중" → 1번 낸 뒤 바로 L4(정답과 해설) 열림, 생각 한 줄·10초 대기 없음', () => {
+  const s = LU.newItemState('PRACTICE');
+  ok(LU.canOpenHint(s, 0, '', false).reason === 'not-ready', '제출 전 준비 중');
+  LU.submit(s, false); ok(!s.closed, '4지선다 1번 오답은 아직 안 끝남');
+  ok(LU.canOpenHint(s, 1, '', false).ok, '제출 뒤 L4 가능');
+  ok(LU.openHint(s, 1, '', false).ok && s.level === 4 && s.closed && s.outcome === O.SHOWN, 'L4 → 정답 보고 이해');
+  ok(LU.canOpenHint(s, 2, '', false).reason === 'closed', '마감 뒤 더 못 엶');
+  const r = LU.newItemState('REVIEW'); LU.submit(r, false);
+  ok(LU.openHint(r, 0, '', false).ok && r.level === 4, '복습도 같음');
+});
 t('U-22', '결과 이름 4가지 (설계 ③ 표)', () => {
   let s = LU.newItemState('PRACTICE'); LU.submit(s, true); ok(s.outcome === O.SOLO, '혼자 맞힘');
   s = LU.newItemState('PRACTICE'); LU.openHint(s, 0, '', true); LU.submit(s, true); ok(s.outcome === O.HINT, '힌트로 해결');

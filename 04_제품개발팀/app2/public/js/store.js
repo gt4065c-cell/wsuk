@@ -201,6 +201,10 @@
       var q = QBY[rec.qid]; if (!q) return Promise.reject(new Error("없는 문항"));
       if (rec.mode !== "PRACTICE" && rec.mode !== "REVIEW") return Promise.reject(new Error("모드 오류"));
       if (!has(LU.R_OF, rec.outcome)) return Promise.reject(new Error("결과 이름 오류"));
+      // 서버 close_item과 같은 검사(BAD_SUBMITS): 보기 번호 범위, 같은 답 두 번 금지
+      var sub = (rec.submits || []).map(Number);
+      if (sub.length > LU.maxSubmitsFor(q) || sub.some(function (x) { return !(x >= 0 && x < q.choices.length && x === Math.floor(x)); }) ||
+          (sub.length === 2 && sub[0] === sub[1])) return Promise.reject(new Error(ERR_TEXT.BAD_SUBMITS));
       var day = today();
       var xp = LU.xpFor(rec.mode, rec.outcome, xpToday(db, s.code, day));
       var R = LU.R_OF[rec.outcome];
@@ -210,6 +214,8 @@
         // Elo는 문항 하나당 한 번, 연습에서만. 문항 응답 수는 학습자별 첫 응답만 셈
         var item = db.items[q.id] || { b: LU.initialB(q), n: 0 };
         var first = !db.attempts.some(function (a) { return a.code === s.code && a.qid === q.id; });
+        // 서버 close_item과 같게: 복습 일정 밖에서 같은 문항을 다시 풀면 XP 없음 (팀게임 설계 1-1, QA 3번)
+        if (!first) xp = 0;
         var e = LU.applyElo(s, item, q, R);
         s.theta = e.theta; s.n = e.n;
         if (first) { item.b = e.b; item.n = e.itemN; }

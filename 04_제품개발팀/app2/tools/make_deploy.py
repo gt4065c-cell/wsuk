@@ -10,6 +10,8 @@
        - data/practice.js · diagnostic.js · hints.js : Supabase 모드에서는 쓰지 않음(문항은 서버에서 받음).
          특히 hints.js 에는 교수 검토 전 힌트가 들어 있어 빼는 것이 안전
     2) 복사본 config.js 의 MODE 를 "supabase" 로 바꿉니다(원본 public/ 은 그대로 local).
+       개발용 줄도 지웁니다: DEV_CODES(가짜 코드) → [], SHOW_DRAFT_HINTS → false (QA 13번)
+       이 도구가 만든 폴더라는 표시는 config.js 첫 줄 주석으로 남깁니다(따로 표시 파일 없음).
     3) 다 만든 뒤 스스로 검사: data/ 없음, 진단 정답 파일 없음, 관리자 열쇠 모양 없음. 하나라도 걸리면 실패.
 
 실행: python3 04_제품개발팀/app2/tools/make_deploy.py [만들 폴더]
@@ -23,6 +25,7 @@ import sys
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.dirname(TOOLS)
 SRC = os.path.join(APP, "public")
+STAMP = "/* make_deploy.py 가 만든 배포용 복사본 — 고치려면 public/js/config.js 를 고친 뒤 다시 만드세요 */"
 
 
 def main():
@@ -30,18 +33,24 @@ def main():
     if os.path.abspath(out) == os.path.abspath(SRC):
         sys.exit("[실패] public/ 자체에 덮어쓸 수 없어요")
     if os.path.exists(out):
-        if not os.path.exists(os.path.join(out, ".lu_deploy")):
+        made_by_me = os.path.exists(os.path.join(out, ".lu_deploy"))   # 옛 표시 파일
+        try:
+            made_by_me = made_by_me or open(os.path.join(out, "js", "config.js"), encoding="utf-8").read().startswith(STAMP)
+        except OSError:
+            pass
+        if not made_by_me:
             sys.exit("[실패] %s 가 이미 있고 이 도구가 만든 폴더가 아니에요. 다른 이름을 주세요." % out)
         shutil.rmtree(out)
     shutil.copytree(SRC, out, ignore=lambda d, names: ["data"] if os.path.abspath(d) == SRC else [])
-    open(os.path.join(out, ".lu_deploy"), "w").write("make_deploy.py 가 만든 폴더 (지워도 됨)\n")
 
     cfg = os.path.join(out, "js", "config.js")
     s = open(cfg, encoding="utf-8").read()
     s2 = re.sub(r'MODE:\s*"local"', 'MODE: "supabase"', s, count=1)
     if s2 == s:
         sys.exit('[실패] config.js 에서 MODE: "local" 줄을 찾지 못했어요')
-    open(cfg, "w", encoding="utf-8").write(s2)
+    s2 = re.sub(r'DEV_CODES:\s*\[[^\]]*\]', "DEV_CODES: []", s2, count=1)
+    s2 = re.sub(r'SHOW_DRAFT_HINTS:\s*true', "SHOW_DRAFT_HINTS: false", s2, count=1)
+    open(cfg, "w", encoding="utf-8").write(STAMP + "\n" + s2)
 
     # 스스로 검사
     problems = []
@@ -61,6 +70,8 @@ def main():
             problems.append("비밀 열쇠 모양: " + rel)
         if re.search(r"service_role[\"']?\s*[:=]\s*[\"'][^\"']+", t):
             problems.append("service_role 값: " + rel)
+        if rel.endswith("config.js") and re.search(r'DEV_CODES:\s*\[\s*"|SHOW_DRAFT_HINTS:\s*true', t):
+            problems.append("개발용 설정이 남음: " + rel)
         if "window.LU_DEV_DIAG_KEY = {" in t:
             problems.append("진단 정답 내용: " + rel)
     if problems:
