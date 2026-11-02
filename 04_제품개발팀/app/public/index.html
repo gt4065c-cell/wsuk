@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>AI Agent 실무역량 연습</title>
+<!-- 글꼴: 휴대폰 기본 글꼴 사용 (바깥 서버에서 글꼴을 받지 않음 → 외부 요청 0건, 빠른 첫 화면). 2026-11-02 비서실장 결정 -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <!-- 맨 위: 밝게/어둡게 바꾸기 버튼 -->
+  <header class="appbar">
+    <button type="button" class="theme-btn" id="theme-btn">어둡게 보기</button>
+  </header>
+  <!-- 화면은 app.js가 이 안에 그립니다 -->
+  <main id="app"></main>
+  <noscript><p style="padding:20px">이 연습 앱은 자바스크립트가 켜져 있어야 동작해요.</p></noscript>
+</div>
+<!-- 1) 문항 데이터 (tools/build_data.py 가 만든 파일) → 2) 앱 동작 -->
+<script src="data/practice.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

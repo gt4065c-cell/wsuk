@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>레벨업 캠퍼스 — 오늘의 학습</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="devbar" id="devbar" hidden></div>
+  <header class="appbar">
+    <span class="who" id="who"></span>
+    <button type="button" class="theme-btn" id="theme-btn">어둡게 보기</button>
+  </header>
+  <main id="app"></main>
+  <noscript><p style="padding:20px">이 앱은 자바스크립트가 켜져 있어야 동작해요.</p></noscript>
+</div>
+<!-- 순서: 1) 설정 → 2) 문항·힌트 데이터 → 3) 계산 규칙 → 4) 저장 창구 → 5) 화면
+     진단 정답(개발용)은 여기서 읽지 않습니다. 로컬 모드에서 진단을 끝낼 때만 store.js가 따로 읽습니다. -->
+<script src="js/config.js"></script>
+<script src="data/practice.js"></script>
+<script src="data/diagnostic.js"></script>
+<script src="data/hints.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
