@@ -4,6 +4,11 @@
    - 인터넷에 나가지 않고, 브라우저 저장소 안의 "가짜 서버"가 schema.sql 의 서버 함수와
      같은 모양으로 답합니다. 부른 순서·인자는 localStorage 'mock_log' 에 적어 둡니다.
    - 가짜 문항 데이터는 시험 도구가 window.__MOCK_DATA 로 미리 넣어 줍니다(가짜 학생만 사용).
+   - [M2] 팀(my_team_summary·set_team_off)과 교수 화면(이메일 매직링크 로그인 + admin_*)도 흉내 냅니다.
+     로그인 저장 칸(storageKey)마다 세션을 따로 둠: 학생 'lu2_sb_auth' → 'mock_session', 교수 'lu2_sb_admin' → 'mock_session:lu2_sb_admin'
+     __MOCK_DATA.team = {name, goalPerMember, mates:[{nickname,count,resting}], achievedOthers:[팀 이름]} (없으면 팀 없음)
+     __MOCK_DATA.adminUsers = [교수 화면에 로그인할 수 있는(등록된) 이메일], adminEmails = [admins 표 이메일]
+     __MOCK_DATA.adminStats / adminTeams = 교수 함수가 돌려줄 가짜 값
    ========================================================= */
 (function () {
   "use strict";
@@ -21,8 +26,33 @@
   var PBY = {}; D.practice.forEach(function (q) { PBY[q.id] = q; });
   var DBY = {}; D.diag.forEach(function (q) { DBY[q.id] = q; });
 
-  function session() { return ls("mock_session"); }
+  var SKEY = "mock_session";   // 지금 부르는 클라이언트의 세션 칸 (createClient 의 storageKey 로 정함)
+  function session() { return ls(SKEY); }
   function meCode() { var s = session(); if (!s) return null; return db().devices[s.uid] || null; }
+
+  /* [M2] 팀 요약: 가짜 팀원 숫자 + 내 이번 주 기록(xp > 0)으로 schema(30_m2) 와 같은 규칙 계산 */
+  function weekStartOf(day) { var d = new Date(day + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return d.toISOString().slice(0, 10); }
+  function teamSummary(c) {
+    var x = db(), st = x.students[c], T = D.team;
+    var off = !!st.team_off, wk = weekStartOf(today());
+    if (!T) return { inTeam: false, teamOff: off, weekStart: wk };
+    var g = T.goalPerMember || 15;
+    var mine = x.attempts.filter(function (a) { return a.code === c && a.day >= wk && a.xp > 0; }).length;
+    var people = (T.mates || []).map(function (m) { return { nickname: m.nickname, me: false, resting: !!m.resting, count: m.count }; })
+      .concat([{ nickname: st.nickname || "(별명 정하기 전)", me: true, resting: off, count: mine }]);
+    people.sort(function (a, b) { return a.nickname < b.nickname ? -1 : a.nickname > b.nickname ? 1 : 0; });
+    var act = people.filter(function (p) { return !p.resting; });
+    var prog = act.reduce(function (s2, p) { return s2 + Math.min(p.count, g); }, 0), goal = g * act.length, ach = act.length > 0 && prog >= goal;
+    return { inTeam: true, teamOff: off, name: T.name, weekStart: wk, goalPerMember: g,
+             members: people.map(function (p) { return { nickname: p.nickname, me: p.me, resting: p.resting }; }),
+             activeMembers: act.length, progress: prog, goal: goal, achieved: ach, myCount: Math.min(mine, g),
+             achievedTeams: (T.achievedOthers || []).concat(ach ? [T.name] : []) };
+  }
+  function adminOf() {
+    var s = session(); if (!s || !s.user || s.user.is_anonymous) return null;
+    var e = String(s.user.email || "").toLowerCase();
+    return (D.adminEmails || []).map(function (y) { return y.toLowerCase(); }).indexOf(e) >= 0 ? e : null;
+  }
 
   var RPC = {
     claim_code: function (a) {
@@ -83,6 +113,28 @@
       x.attempts.push({ code: c, qid: q.id, mode: a.p_mode, outcome: outcome, xp: xp, day: today() }); save(x);
       return ok({ xp: xp, xpTotal: x.students[c].xp, outcome: outcome, reviewNote: outcome === "혼자 맞힘" ? null : "again" });
     },
+    my_team_summary: function () {
+      var c = meCode(); if (!c) return err("NOT_LINKED");
+      return ok(teamSummary(c));
+    },
+    set_team_off: function (a) {
+      var c = meCode(); if (!c) return err("NOT_LINKED");
+      var x = db(); x.students[c].team_off = !!a.p_off; save(x);
+      return ok(teamSummary(c));
+    },
+    admin_whoami: function () {
+      var e = adminOf(); if (!e) return ok({ admin: false });
+      var t = today();
+      return ok({ admin: true, email: e, today: t, weekStart: weekStartOf(t), cohorts: ["2027-1", "2026-9"] });
+    },
+    admin_item_stats: function (a) {
+      if (!adminOf()) return err("NOT_ADMIN");
+      return ok(Object.assign({ cohort: a.p_cohort }, D.adminStats || { items: [], lectures: [] }));
+    },
+    admin_team_week: function (a) {
+      if (!adminOf()) return err("NOT_ADMIN");
+      return ok(Object.assign({}, D.adminTeams || { teams: [] }, { cohort: a.p_cohort, weekStart: a.p_week || weekStartOf(today()) }));
+    },
     today_summary: function () {
       var c = meCode(); if (!c) return err("NOT_LINKED");
       var x = db(), t = today(), mine = x.attempts.filter(function (a) { return a.code === c; });
@@ -133,28 +185,47 @@
   window.supabase = {
     __mock: true,
     createClient: function (url, key, opts) {
-      log({ t: "createClient", url: url, key: key, storageKey: opts && opts.auth && opts.auth.storageKey });
+      var au = (opts && opts.auth) || {};
+      var mySk = !au.storageKey || au.storageKey === "lu2_sb_auth" ? "mock_session" : "mock_session:" + au.storageKey;
+      log({ t: "createClient", url: url, key: key, storageKey: au.storageKey, detectSessionInUrl: au.detectSessionInUrl, flowType: au.flowType });
+      function use() { SKEY = mySk; }
       return {
         auth: {
-          getSession: function () { log({ t: "getSession" }); return ok({ session: session() }); },
-          signInAnonymously: function () {
-            log({ t: "signInAnonymously" });
-            var s = { uid: "anon-" + Math.random().toString(36).slice(2, 10), access_token: "fake" };
-            ls("mock_session", s); return ok({ user: { id: s.uid, is_anonymous: true }, session: s });
+          getSession: function () { use(); log({ t: "getSession" }); return ok({ session: session() }); },
+          // [M2] 교수 이메일 로그인 흉내: 등록된 이메일(adminUsers)만 메일 발송, 6자리 숫자 123456 이면 로그인
+          signInWithOtp: function (p) {
+            use(); log({ t: "signInWithOtp", email: p && p.email, options: p && p.options });
+            var f = fail().signInWithOtp; if (f) return Promise.resolve({ data: null, error: { message: f, status: 429 } });
+            var e = String((p && p.email) || "").toLowerCase();
+            var known = (D.adminUsers || []).map(function (y) { return y.toLowerCase(); }).indexOf(e) >= 0;
+            if (!known && p.options && p.options.shouldCreateUser === false) return Promise.resolve({ data: null, error: { message: "Signups not allowed for otp", status: 422, code: "otp_disabled" } });
+            ls("mock_otp_pending", e); return ok({ user: null, session: null });
           },
-          signOut: function (o) { log({ t: "signOut", scope: o && o.scope }); localStorage.removeItem("mock_session"); return ok(null); }
+          verifyOtp: function (p) {
+            use(); log({ t: "verifyOtp", email: p && p.email, token: p && p.token, type: p && p.type });
+            if (String(p.token) !== "123456" || ls("mock_otp_pending") !== String(p.email).toLowerCase())
+              return Promise.resolve({ data: null, error: { message: "Token has expired or is invalid", status: 403, code: "otp_expired" } });
+            var s = { uid: "user-" + p.email, access_token: "fake", user: { id: "user-" + p.email, email: String(p.email).toLowerCase(), is_anonymous: false } };
+            ls(SKEY, s); localStorage.removeItem("mock_otp_pending"); return ok({ user: s.user, session: s });
+          },
+          signInAnonymously: function () {
+            use(); log({ t: "signInAnonymously" });
+            var s = { uid: "anon-" + Math.random().toString(36).slice(2, 10), access_token: "fake" };
+            ls(SKEY, s); return ok({ user: { id: s.uid, is_anonymous: true }, session: s });
+          },
+          signOut: function (o) { use(); log({ t: "signOut", scope: o && o.scope }); localStorage.removeItem(SKEY); return ok(null); }
         },
         rpc: function (name, args) {
-          log({ t: "rpc", name: name, args: JSON.parse(JSON.stringify(args || {})) });
+          use(); log({ t: "rpc", name: name, args: JSON.parse(JSON.stringify(args || {})) });
           var f = fail()[name];
           if (f && f !== "too_many") return err(f);
           if (!RPC[name]) return err("Could not find the function public." + name);
           // 느린 인터넷 흉내: localStorage 'mock_delay' = {rpc이름: 밀리초}
           var dl = (ls("mock_delay") || {})[name];
-          if (dl) return new Promise(function (r) { setTimeout(r, dl); }).then(function () { return RPC[name](args || {}); });
+          if (dl) return new Promise(function (r) { setTimeout(r, dl); }).then(function () { use(); return RPC[name](args || {}); });
           return RPC[name](args || {});
         },
-        from: from
+        from: function (t) { use(); return from(t); }
       };
     }
   };

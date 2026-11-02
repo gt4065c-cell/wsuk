@@ -55,6 +55,9 @@
 | `tools/build_data.py` | 교육기획팀 원본 → 위 데이터 파일 만들기. 평가·주간 점검 문항은 넣지 않고, 새면 실패 | — |
 | `tests/` | 자동 테스트(4장). `mock_supabase.js` = 시험용 가짜 Supabase | — |
 | `supabase/schema.sql` | Supabase 표·보안 규칙·서버 함수 초안 | — |
+| `public/admin.html` · `public/js/admin.js` | **[M2] 교수 화면**(교수 이메일 로그인 → 많이 틀린 문항·강별 정답률·팀별 주간 목표) | 올림 |
+| `supabase/30_m2_teams_admin.sql` | **[M2] 팀 표·팀 함수·교수 화면 함수** (schema.sql 다음에 실행) | — |
+| `supabase/local_test/run_m2_local.sh` | [개발용] 임시 PostgreSQL로 위 SQL 시험 | — |
 
 ### 문항·힌트를 고친 뒤 (1-2-3)
 1. `03_교육기획팀/문항은행/`의 원본을 고칩니다(앱의 `public/data/`는 직접 고치지 않음).
@@ -70,6 +73,8 @@
 node tests/unit_logic.js   # 규칙 계산 단위 테스트 (1초)
 node tests/run_e2e.js      # 화면 흐름 자동 테스트 (약 1분, Playwright 필요)
 node tests/run_e2e_supabase_mock.js   # Supabase 모드 시험 — 가짜 서버로 (진짜 DB에는 접속 안 함)
+node tests/run_e2e_m2.js   # [M2 1차] 팀 카드 + 교수 화면 (로컬·가짜 서버·배포 폴더·SQL, PostgreSQL 있으면 SQL 66개 시험도)
+bash supabase/local_test/run_m2_local.sh   # [M2 1차] SQL만 따로 시험 (임시 DB를 만들고 끝나면 지움)
 ```
 결과 기록: `04_제품개발팀/테스트보고서/2026-11-02_app2_M1_자체테스트.md`, `2026-11-02_app2_Supabase연결_자체테스트.md`
 
@@ -119,4 +124,54 @@ node tests/run_e2e_supabase_mock.js   # Supabase 모드 시험 — 가짜 서버
    - `data/` 폴더를 통째로 뺍니다: 진단 정답(`dev_diag_key.js`)은 물론, 검토 전 힌트가 든 `hints.js`도 서버 모드에선 필요 없으므로 함께 뺌.
    - 복사본의 `config.js`만 `MODE: "supabase"`로 바뀝니다(원본 `public/`은 그대로 로컬 모드).
    - 스스로 검사(data/ 없음, 진단 정답 없음, 관리자 열쇠 모양 없음)에서 하나라도 걸리면 "[실패]"로 멈춥니다.
+   - [M2] 교수 화면(`admin.html`·`js/admin.js`)도 함께 들어가고, 가짜 교수 이메일(`DEV_ADMIN_EMAILS`)은 비우며, 검색 차단(noindex) 표시와 example.com 이 아닌 이메일 주소가 없는지도 검사합니다.
+   - 저장소에 이미 있는 `deploy_public/`(M1 체험판)은 이번에 다시 만들지 않았습니다 — 다시 만들고 올리는 것은 결재 후.
 3. `deploy_public/`은 깃에 올라가지 않습니다(`.gitignore`). Vercel 등에 올리는 일은 **결재3 승인 뒤** 비서실장이 진행합니다.
+
+---
+
+## 6. M2 1차 — 팀 + 교수 화면 (2026-11-02, DB 적용 전)
+
+> **한 줄 요약**: 학생 홈에 **팀 카드**(팀원 별명 + 이번 주 팀 합계 + 참여 목표 달성 여부)가 생기고, 교수님 전용 **교수 화면**(`admin.html`)에서 반 전체 많이 틀린 문항과 팀별 주간 달성을 봅니다. AI 튜터·주간 공통 점검은 다음 차수입니다.
+
+### 6-1. 규칙 (이름 = 실제 의미)
+| 항목 | 규칙 |
+|---|---|
+| 팀 | 같은 기수 3~4명. 교수님이 SQL 한 줄로 짜 줌(실력이 고르게 섞이도록 지그재그), 팀 이름은 무작위 번호("7팀") |
+| **주간 팀 참여 목표** | 활동 중인 팀원 **모두 이번 주(월~일) 15문항**을 끝까지 풀기. 팀 진행 = 팀원별 min(내 문항 수, 15)의 합 → 한 사람이 혼자 채울 수 없음 |
+| 세는 것 | 경험치를 받은 풀이만(같은 문제 다시 풀기·하루 상한 넘은 풀이는 안 셈) |
+| 학생이 보는 것 | 팀 이름, 팀원 별명(가나다순)·"팀 활동 쉼", 팀 합계/목표, 달성 여부, **내** 이번 주 문항 수, 같은 기수의 달성 팀 이름 |
+| 학생이 못 보는 것 | 팀원 개인의 XP·문항 수·정오답·숨은 실력값, 개인 등수, 달성 못 한 다른 팀 |
+| 팀 활동 쉬기 | 홈 카드에서 언제든. 개인 학습·XP 그대로, 팀 목표 계산에서 빠짐 |
+| 주의 | 이것은 **"참여 목표"**입니다. 설계 문서의 "학습목표 달성"(주간 공통 점검 점수)은 공통 점검을 만드는 다음 차수에 따로 붙습니다 |
+
+### 6-2. 교수 화면 열어 보기 — 로컬 모드 (1-2-3)
+1. 1장처럼 임시 서버를 켭니다: `python3 -m http.server 8010 --bind 127.0.0.1 --directory public`
+2. 크롬에서 **`http://127.0.0.1:8010/admin.html`** → 이메일 칸에 가짜 교수 이메일 **`prof@example.com`** → [들어가기]
+   - 가짜 학생 50명의 **가짜 통계**가 보입니다(노란 띠 + "가짜" 안내). 학생 홈 팀 카드는 `index.html`에서 `TEST23`으로 들어가면 보입니다(가짜 팀원 바다·소나무).
+3. 다 봤으면 터미널에서 Ctrl + C.
+
+### 6-3. Supabase 모드에서 교수 화면을 쓰려면 (DB 적용 후, 비서실장·캡틴)
+1. **SQL 적용**(비서실장): `supabase/30_m2_teams_admin.sql`을 실행(schema.sql 다음). 적용 전에도 학생 앱은 그대로 동작합니다(팀 카드만 안 보임).
+2. **교수 계정 등록**(캡틴, Supabase 관리 화면):
+   - Authentication → Users → **Add user / Invite**로 교수님 이메일 계정을 만듭니다(교수 화면은 새 계정을 만들지 않음).
+   - Authentication → URL Configuration → **Redirect URLs**에 교수 화면 주소를 추가합니다(예: `http://127.0.0.1:8010/admin.html?mode=supabase`, 배포 후엔 그 주소의 `/admin.html`).
+   - "Confirm email(메일 확인)"은 **켜 둔 채로** 둡니다.
+   - SQL Editor에서 `insert into admins (email) values ('교수님 이메일');` — **이메일은 이 저장소·채팅·외부 AI에 쓰지 않습니다**(저장소 공개).
+3. **팀 짜기**(학생들이 별명을 정한 뒤, 2주차): SQL Editor에서 `select * from admin_assign_teams('2027-1');`
+   - 다시 짜기: `admin_assign_teams('2027-1', true)` · 한 명 옮기기: `select admin_move_student('코드', '3팀');` · 1인 목표 바꾸기: `update teams set goal_per_member = 10 where cohort = '2027-1';`
+   - 결과에 나오는 코드는 교수님 화면에서만 봅니다.
+
+교수 화면 로그인: `admin.html?mode=supabase` → 교수 이메일 → 메일의 링크를 **같은 브라우저에서** 누름(메일에 6자리 숫자가 있으면 숫자로도 가능). 서버 함수가 매번 "admins 표의 이메일 + 메일 확인 끝난 계정 + 익명 아님"을 다시 확인하므로, 학생 기기로 열면 "교수 계정이 아니에요"가 나옵니다.
+
+### 6-4. 서버 함수 (30_m2_teams_admin.sql)
+| 함수 | 누가 | 하는 일 |
+|---|---|---|
+| `my_team_summary()` | 학생(로그인 기기) | 내 팀 요약 (6-1의 "학생이 보는 것"만) |
+| `set_team_off(p_off)` | 학생 | 팀 활동 쉬기/다시 하기 |
+| `admin_whoami()` | 로그인한 누구나 | 교수면 기수 목록, 아니면 `{admin:false}`만 |
+| `admin_item_stats(p_cohort, p_min_n=3, p_limit=10)` | 교수만(아니면 NOT_ADMIN) | 많이 틀린 문항(연습=학생마다 첫 풀이, 진단 포함, 응답 3명 미만 제외)·강별 정답률·인원 |
+| `admin_team_week(p_cohort, p_week)` | 교수만 | 팀별 주간 진행·달성, 팀원 별명·쉼·그 주 활동 여부(개인 숫자 없음) |
+| `admin_assign_teams` · `admin_move_student` | SQL 편집기만 | 팀 짜기·옮기기 |
+- 새 표 `teams`: RLS 켬, 학생·익명 권한 0. 새 함수 11개 모두 anon에서 회수, 로그인한 사람에게는 위 5개만 허용.
+- `next_practice`·`close_item` 등 M1 함수는 건드리지 않았습니다(자동 시험 M-66·N-29가 확인).

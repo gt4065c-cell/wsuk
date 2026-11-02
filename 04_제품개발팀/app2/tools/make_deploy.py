@@ -10,9 +10,12 @@
        - data/practice.js · diagnostic.js · hints.js : Supabase 모드에서는 쓰지 않음(문항은 서버에서 받음).
          특히 hints.js 에는 교수 검토 전 힌트가 들어 있어 빼는 것이 안전
     2) 복사본 config.js 의 MODE 를 "supabase" 로 바꿉니다(원본 public/ 은 그대로 local).
-       개발용 줄도 지웁니다: DEV_CODES(가짜 코드) → [], SHOW_DRAFT_HINTS → false (QA 13번)
+       개발용 줄도 지웁니다: DEV_CODES(가짜 코드) → [], SHOW_DRAFT_HINTS → false (QA 13번),
+       DEV_ADMIN_EMAILS(교수 화면 가짜 교수 이메일) → [] (M2)
        이 도구가 만든 폴더라는 표시는 config.js 첫 줄 주석으로 남깁니다(따로 표시 파일 없음).
-    3) 다 만든 뒤 스스로 검사: data/ 없음, 진단 정답 파일 없음, 관리자 열쇠 모양 없음. 하나라도 걸리면 실패.
+    3) 다 만든 뒤 스스로 검사: data/ 없음, 진단 정답 파일 없음, 관리자 열쇠 모양 없음,
+       교수 화면(admin.html·js/admin.js)이 들어 있고 검색 차단 표시(noindex)가 있음,
+       example.com 이 아닌 이메일 주소가 화면 파일에 없음(교수 이메일은 Supabase admins 표에만). 하나라도 걸리면 실패.
 
 실행: python3 04_제품개발팀/app2/tools/make_deploy.py [만들 폴더]
       (만들 폴더를 안 적으면 04_제품개발팀/app2/deploy_public — 깃에는 올라가지 않음)
@@ -50,6 +53,7 @@ def main():
         sys.exit('[실패] config.js 에서 MODE: "local" 줄을 찾지 못했어요')
     s2 = re.sub(r'DEV_CODES:\s*\[[^\]]*\]', "DEV_CODES: []", s2, count=1)
     s2 = re.sub(r'SHOW_DRAFT_HINTS:\s*true', "SHOW_DRAFT_HINTS: false", s2, count=1)
+    s2 = re.sub(r'DEV_ADMIN_EMAILS:\s*\[[^\]]*\]', "DEV_ADMIN_EMAILS: []", s2, count=1)
     open(cfg, "w", encoding="utf-8").write(STAMP + "\n" + s2)
 
     # 스스로 검사
@@ -70,10 +74,19 @@ def main():
             problems.append("비밀 열쇠 모양: " + rel)
         if re.search(r"service_role[\"']?\s*[:=]\s*[\"'][^\"']+", t):
             problems.append("service_role 값: " + rel)
-        if rel.endswith("config.js") and re.search(r'DEV_CODES:\s*\[\s*"|SHOW_DRAFT_HINTS:\s*true', t):
+        if rel.endswith("config.js") and re.search(r'DEV_CODES:\s*\[\s*"|SHOW_DRAFT_HINTS:\s*true|DEV_ADMIN_EMAILS:\s*\[\s*"', t):
             problems.append("개발용 설정이 남음: " + rel)
         if "window.LU_DEV_DIAG_KEY = {" in t:
             problems.append("진단 정답 내용: " + rel)
+        for em in re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", t):
+            if not em.lower().endswith("@example.com"):
+                problems.append("이메일 주소(교수 이메일은 admins 표에만): " + rel)
+                break
+    for need in ("admin.html", os.path.join("js", "admin.js")):
+        if need not in texts:
+            problems.append("교수 화면 파일 없음: " + need)
+    if "admin.html" in texts and "noindex" not in texts["admin.html"]:
+        problems.append("admin.html 에 검색 차단(noindex) 표시 없음")
     if problems:
         sys.exit("[실패] " + " / ".join(problems))
     n = sum(len(fs) for _, _, fs in os.walk(out))

@@ -79,7 +79,9 @@ select zz_check((select count(*) from teams where cohort = '2026-9') = 1, 'M-10 
 -- =====================================================================
 select uid as uid_a from dev where code = 'TEAMA2' \gset
 select uid as uid_rest from dev where code = 'RESTX2' \gset
-select uid as uid_nonick from dev where code = 'NNNNK2' \gset
+select uid as uid_b from dev where code = 'TEAMB2' \gset
+select id as uid_free from auth.users where email is null and id not in (select auth_uid from student_devices) limit 1 \gset
+select lu_today() - 7 as lastweek \gset
 set role authenticated;
 select set_config('test.uid', :'uid_a', false);
 select set_config('test.jwt', json_build_object('sub', :'uid_a', 'role', 'authenticated', 'is_anonymous', true)::text, false);
@@ -127,7 +129,7 @@ select zz_check(:'s1'::jsonb -> 'achievedTeams' = '[]'::jsonb, 'M-26 달성 팀 
 
 reset role;
 insert into attempts (student_id, question_id, mode, outcome, xp, day)
-  select m.id, 'T-P2', 'PRACTICE', '힌트로 해결', 10, lu_today() from myteam m cross join generate_series(1, 10)
+  select m.id, 'T-P1', 'PRACTICE', '힌트로 해결', 10, lu_today() from myteam m cross join generate_series(1, 10)
   where m.code <> 'TEAMA2' and m.k <> (select min(k) from myteam where code <> 'TEAMA2');
 set role authenticated;
 select my_team_summary() as s2 \gset
@@ -143,14 +145,18 @@ select zz_check((select bool_or((m ->> 'me')::boolean and (m ->> 'resting')::boo
   'M-30 팀원 목록에서 나는 "팀 활동 쉼"으로 보임');
 select set_team_off(false) as s4 \gset
 select zz_check(not (:'s4'::jsonb ->> 'teamOff')::boolean and (:'s4'::jsonb ->> 'goal')::int = 45, 'M-31 다시 켜면 목표 45로 돌아옴');
-select zz_check((select xp from students) >= 0, 'M-32 팀 기능은 내 XP를 바꾸지 않음(읽기만)');
+select set_config('test.uid', :'uid_b', false);
+select my_team_summary() as sb \gset
+select zz_check((:'sb'::jsonb ->> 'name') <> (:'s4'::jsonb ->> 'name') and not (:'sb'::text like '%가람%'),
+  'M-32 다른 팀 학생에게는 그 팀 정보만(우리 팀 이름·별명 안 보임)');
+select set_config('test.uid', :'uid_a', false);
 
 -- 팀 없는 학생 · 연결 안 된 기기
 select set_config('test.uid', :'uid_rest', false);
 select my_team_summary() as s5 \gset
 select zz_check(not (:'s5'::jsonb ->> 'inTeam')::boolean and (:'s5'::jsonb ->> 'teamOff')::boolean and :'s5'::jsonb -> 'members' is null,
   'M-33 팀 끈 학생: 팀 없음 + teamOff 표시, 다른 정보 없음');
-select set_config('test.uid', (select id::text from auth.users where id not in (select auth_uid from student_devices) and email is null limit 1), false);
+select set_config('test.uid', :'uid_free', false);
 select zz_expect_error($$select my_team_summary()$$, 'NOT_LINKED', 'M-34 코드와 연결 안 된 기기는 NOT_LINKED');
 
 -- =====================================================================
@@ -185,7 +191,6 @@ select zz_check((:'w'::jsonb ->> 'admin')::boolean and :'w'::jsonb -> 'cohorts' 
 
 -- 문항 통계용 가짜 기록: 학생 4명이 T-P2 를 처음 풀 때 → 오답 3(①번 2명, ②번 1명), 정답 1. 다시 푼 기록(정답)은 안 셈
 reset role;
-delete from attempts where question_id = 'T-P2';
 insert into attempts (student_id, question_id, mode, outcome, hint_level, submits, xp, day, created_at)
 select s.id, 'T-P2', 'PRACTICE', v.o, v.h, v.sub, 10, lu_today(), now() - interval '1 hour'
 from (values ('TEAMB2', '두 번째에 맞힘', 0, array[1, 0]), ('TEAMC2', '정답 보고 이해', 2, array[1, 2]),
@@ -215,9 +220,8 @@ select zz_check(not exists (select 1 from jsonb_array_elements(:'st'::jsonb -> '
 select (select x from jsonb_array_elements(:'st'::jsonb -> 'items') x where x ->> 'qid' = 'T-D1') as d1 \gset
 select zz_check((:'d1'::jsonb ->> 'pool') = 'diagnostic' and (:'d1'::jsonb ->> 'n')::int = 3 and (:'d1'::jsonb ->> 'wrong')::int = 2
   and (:'d1'::jsonb ->> 'unknown')::int = 1 and (:'d1'::jsonb ->> 'topWrongText') = '라', 'M-47 진단 문항: 응답 3 · 오답 2(모르겠어요 1 포함) · 많이 고른 오답 "라"');
-select zz_check((select array_agg(x ->> 'qid') from jsonb_array_elements(:'st'::jsonb -> 'items') x) = array['T-P1', 'T-P2', 'T-D1']
-  or (select (array_agg((x ->> 'wrongRate')::numeric))[1] >= (array_agg((x ->> 'wrongRate')::numeric))[2] from jsonb_array_elements(:'st'::jsonb -> 'items') x),
-  'M-48 오답률 높은 순 정렬');
+select zz_check((select array_agg(x ->> 'qid' order by o) from jsonb_array_elements(:'st'::jsonb -> 'items') with ordinality t(x, o)) = array['T-P1', 'T-P2', 'T-D1'],
+  'M-48 오답률 높은 순 정렬: T-P1(1.0) → T-P2(0.75) → T-D1(0.67)');
 select zz_check((:'st'::jsonb ->> 'students')::int = 11 and (:'st'::jsonb ->> 'linked')::int = 11, 'M-49 기수 인원 11 · 기기 연결 11');
 select zz_check(not (:'st'::text ~* '"(code|nickname|theta|student_id)"\s*:'), 'M-50 문항 통계에 학생 코드·별명·θ 없음');
 select zz_check(jsonb_array_length(:'st'::jsonb -> 'lectures') >= 1, 'M-51 강별 첫 시도 정답률 있음');
@@ -228,8 +232,9 @@ select zz_check(jsonb_array_length(:'tw'::jsonb -> 'teams') = 3 and (:'tw'::json
   'M-53 팀별 주간: 2027-1 팀 3개, 배정 안 된 학생 0, 팀 쉼 1');
 select zz_check((:'tw'::jsonb ->> 'achievedCount')::int = 1, 'M-54 이번 주 참여 목표 달성 팀 1개');
 select zz_check(not (:'tw'::text ~* '"(code|xp|theta|count|score)"\s*:'), 'M-55 교수 팀 화면에도 개인 코드·XP·θ·개인 문항 수 없음(활동 여부만)');
-select zz_check(jsonb_array_length(admin_team_week('2027-1', lu_week_start(current_date) - 7)::jsonb -> 'teams') = 3
-  and (admin_team_week('2027-1', current_date - 7)::jsonb ->> 'achievedCount')::int = 0, 'M-56 지난주 보기: 목표 달성 0');
+select zz_check(jsonb_array_length(admin_team_week('2027-1', :'lastweek')::jsonb -> 'teams') = 3
+  and (admin_team_week('2027-1', :'lastweek')::jsonb ->> 'achievedCount')::int = 1
+  and (admin_team_week('2027-1', :'lastweek')::jsonb ->> 'weekStart') <> (:'tw'::jsonb ->> 'weekStart'), 'M-56 지난주 보기: 지난주 기록(복습 30개씩)으로 따로 계산 → 달성 1');
 
 -- =====================================================================
 -- E. 권한 표 점검 (Supabase 자동 허용 흉내 없이도 명시적으로 막혔는지)
@@ -249,8 +254,10 @@ select zz_check(string_agg(p.proname, ',' order by p.proname) = 'admin_item_stat
     'admin_whoami', 'admin_item_stats', 'admin_team_week', 'admin_assign_teams', 'admin_move_student')
     and has_function_privilege('authenticated', p.oid, 'execute');
 -- 팀 옮기기 (관리자 권한)
-select zz_check(admin_move_student('teama2', null) like '%뺐어요%' and (select team_id from students where code = 'TEAMA2') is null, 'M-62 팀 옮기기: 빼기');
+select admin_move_student('teama2', null) as moved \gset
+select zz_check(:'moved' like '%뺐어요%' and (select team_id from students where code = 'TEAMA2') is null, 'M-62 팀 옮기기: 빼기(코드 소문자도 받음)');
 select zz_expect_error($$select admin_move_student('TEAMA2', '없는팀')$$, 'UNKNOWN_TEAM', 'M-63 없는 팀 이름 거절');
 select zz_check(admin_move_student('TEAMA2', (select name from teams where cohort = '2027-1' order by name limit 1)) like '%옮겼어요%', 'M-64 팀 옮기기: 넣기');
-select zz_expect_error($$select admin_move_student('TEAMA2', (select name from teams where cohort = '2026-9' limit 1))$$, 'UNKNOWN_TEAM', 'M-65 다른 기수 팀으로는 못 옮김');
+select zz_expect_error($$select admin_move_student('ZZZZA2', (select name from teams where cohort = '2027-1' and name not in (select name from teams where cohort = '2026-9') limit 1))$$,
+  'UNKNOWN_TEAM', 'M-65 다른 기수의 팀으로는 못 옮김(같은 기수 안에서만 찾음)');
 -- 기존 M1 함수(next_practice·close_item)는 이 파일이 바꾸지 않음: 함수 본문 지문이 schema.sql 적용 직후와 같은지 run_m2_local.sh 가 확인

@@ -30,6 +30,7 @@
     XP_DAILY_CAP: 200,             // 연습·복습 XP 하루 상한
     STUDY_DAY_MIN: 3,              // 하루 3문항 이상 끝까지 풀면 '학습한 날'
     PROTECT_PER_WEEK: 2,           // 주(월~일)마다 쉬는 날 보호 2일
+    TEAM_GOAL_PER_MEMBER: 15,      // M2 팀: 주간 팀 참여 목표 = 팀원 모두 이번 주 15문항 (서버 teams.goal_per_member 기본값과 같음)
     DIAG_COUNT: 12, DIAG_MIN: 10,
     CODE_CHARS: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"   // 0·O·1·I 제외
   };
@@ -272,6 +273,22 @@
     return { current: cur, studied: studied, protectedDays: prot, longest: longest };
   }
 
+  /* ---------- M2 팀: 주간 팀 참여 목표 (supabase/30_m2_teams_admin.sql 의 lu_team_week 와 같은 규칙) ----------
+     members = [{count: 이번 주 경험치를 받은 마감 수, resting: 팀 활동 쉼}], goalPerMember = 1인 목표(기본 15)
+     진행 = Σ min(count, 1인 목표) (쉼 제외) · 목표 = 1인 목표 × 활동 인원 · 달성 = 활동 인원 > 0 이고 진행 ≥ 목표 */
+  function teamWeek(members, goalPerMember) {
+    var g = Math.max(1, Math.floor(Number(goalPerMember) || C.TEAM_GOAL_PER_MEMBER));
+    var active = (members || []).filter(function (m) { return !m.resting; });
+    var progress = active.reduce(function (t, m) { return t + Math.min(Math.max(0, Number(m.count) || 0), g); }, 0);
+    var goal = g * active.length;
+    return { activeMembers: active.length, progress: progress, goal: goal, achieved: active.length > 0 && progress >= goal };
+  }
+  /* 이번 주(월~일, 한국 날짜) 경험치를 받은 마감 수 — 같은 문항 다시 풀기(XP 0)·하루 상한 넘은 풀이는 안 셈 */
+  function weekCount(attempts, today) {
+    var w = weekKey(today), end = addDays(w, 7);
+    return (attempts || []).filter(function (a) { return a.day >= w && a.day < end && (a.xp || 0) > 0; }).length;
+  }
+
   var api = {
     C: C, OUTCOME: OUTCOME, R_OF: R_OF,
     normalizeCode: normalizeCode, isValidCodeShape: isValidCodeShape,
@@ -283,7 +300,8 @@
     newItemState: newItemState, maxSubmitsFor: maxSubmitsFor, canOpenHint: canOpenHint, openHint: openHint, submit: submit, outcomeOf: outcomeOf,
     xpFor: xpFor,
     reviewAfterPractice: reviewAfterPractice, reviewAfterReview: reviewAfterReview, pickReviews: pickReviews,
-    streak: streak
+    streak: streak,
+    teamWeek: teamWeek, weekCount: weekCount
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LU = api;

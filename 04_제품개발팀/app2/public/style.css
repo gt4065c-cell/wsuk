@@ -280,3 +280,33 @@ svg{flex:none}
 .lect{display:flex;gap:8px;flex-wrap:wrap}
 /* '정답 보고 이해'는 벌점이 아니므로 빨강 대신 차분한 노랑 (설계 X5) */
 .verdict.calm{background:var(--note-bg);border-color:var(--note);color:var(--note)}
+
+/* ---------- M2 팀 카드 (학생 홈) ---------- */
+.team-card{display:flex;flex-direction:column;gap:8px}
+.team-card .plan-row{align-items:center;gap:8px}
+.team-mates{margin:0;font-weight:600;line-height:1.6}
+.team-mate.resting{color:var(--text-2);font-weight:500}
+.team-mates .sep{color:var(--text-2)}
+.team-ok{padding:8px 12px;border-radius:10px;background:var(--correct-bg);color:var(--correct)}
+
+/* ---------- M2 교수 화면 (admin.html) ---------- */
+.admin-wrap{max-width:960px}
+.admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;list-style:none;margin:0;padding:0}
+.admin-grid li{display:flex;flex-direction:column;gap:2px;padding:12px 8px;border-radius:12px;background:var(--surface);border:1px solid var(--border);text-align:center}
+.admin-grid b{font-size:1.375rem;font-weight:800;color:var(--accent);font-family:var(--mono)}
+.admin-grid span{font-size:.8125rem;font-weight:600;color:var(--text-2)}
+.tbl{width:100%;border-collapse:collapse;font-size:.9375rem}
+.tbl th,.tbl td{padding:8px 6px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+.tbl th{font-size:.8125rem;color:var(--text-2);font-weight:700}
+.tbl td.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.tbl .qtxt{max-width:420px}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.row-flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.admin-section{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.team-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+select.sel{min-height:44px;padding:8px 10px;border-radius:var(--r-btn);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit}
+@media (max-width:560px){.admin-grid{grid-template-columns:repeat(2,1fr)}.tbl .hide-sm{display:none}}
+.tbl td:nth-child(2),.tbl td:nth-child(3),.tbl .tag{white-space:nowrap}
+.row-flex .btn{width:auto;flex:0 0 auto;padding-left:16px;padding-right:16px}
+.team-card .plan-row span:last-child{white-space:nowrap}

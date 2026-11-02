@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>레벨업 캠퍼스 — 교수 화면</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap admin-wrap">
+  <div class="devbar" id="devbar" hidden></div>
+  <header class="appbar">
+    <span class="who" id="who">교수 화면</span>
+    <button type="button" class="theme-btn" id="theme-btn">어둡게 보기</button>
+  </header>
+  <main id="admin"></main>
+  <noscript><p style="padding:20px">이 화면은 자바스크립트가 켜져 있어야 동작해요.</p></noscript>
+</div>
+<!-- 교수 화면 (M2 1차): 교수 이메일 로그인(Supabase 매직링크) → 반 전체 많이 틀린 문항 · 강별 정답률 · 팀별 주간 참여 목표
+     순서: 1) 설정 → 2) 교수 화면 (admin.js가 모드에 맞춰 필요한 파일만 불러옴)
+       로컬 모드   : data/practice.js·diagnostic.js(문항 글만) + 가짜 통계 (진단 정답 파일은 읽지 않음)
+       Supabase 모드: vendor/supabase.js + 서버 함수 admin_whoami·admin_item_stats·admin_team_week (data/ 는 하나도 안 읽음) -->
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
