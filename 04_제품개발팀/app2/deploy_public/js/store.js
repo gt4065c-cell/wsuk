@@ -16,6 +16,8 @@
      today()                홈 화면 숫자 (오늘 복습 목록, 새 문제 진행, 경험치, 연속 학습일)
      nextPractice(recent, exclude)   다음 연습 문제 하나 (Elo 맞춤)
      closeItem(rec)         문항 마감 기록 → 경험치·복습 상자·Elo 반영
+     myTeam()               [M2] 내 팀 요약 (팀원 별명·이번 주 팀 합계·참여 목표 달성 여부. 팀원 개인 숫자 없음)
+     setTeamOff(off)        [M2] 팀 활동 쉬기 / 다시 하기 → 바뀐 팀 요약
 
    두 가지 창구가 같은 모양으로 들어 있습니다.
      A. LocalStore    : 로컬 모드(개발용). 이 브라우저에만 저장
@@ -88,6 +90,24 @@
   function xpToday(db, code, day) {
     return db.attempts.filter(function (a) { return a.code === code && a.day === day; })
       .reduce(function (t, a) { return t + (a.xp || 0); }, 0);
+  }
+
+  var FAKE_MATES = [{ nickname: "바다", count: 15 }, { nickname: "소나무", count: 15 }];   // [개발용] 가짜 팀원
+  var FAKE_ACHIEVED = ["2팀", "5팀"];                                                     // [개발용] 가짜 다른 팀
+  function localTeam(db, s) {
+    var g = LU.C.TEAM_GOAL_PER_MEMBER, day = today(), week = LU.weekKey(day);
+    var mine = LU.weekCount(db.attempts.filter(function (a) { return a.code === s.code; }), day);
+    var people = FAKE_MATES.map(function (m) { return { nickname: m.nickname, me: false, resting: false, count: m.count }; })
+      .concat([{ nickname: s.nickname || "(별명 정하기 전)", me: true, resting: !!s.teamOff, count: mine }]);
+    people.sort(function (a, b) { return a.nickname < b.nickname ? -1 : a.nickname > b.nickname ? 1 : 0; });   // 별명 가나다순
+    var w = LU.teamWeek(people, g);
+    var achievedTeams = FAKE_ACHIEVED.concat(w.achieved ? ["7팀"] : []).sort(function (a, b) { return a.length - b.length || (a < b ? -1 : 1); });
+    return {
+      inTeam: true, teamOff: !!s.teamOff, name: "7팀", weekStart: week, goalPerMember: g,
+      members: people.map(function (p) { return { nickname: p.nickname, me: p.me, resting: p.resting }; }),   // 팀원 개인 숫자는 빼고
+      activeMembers: w.activeMembers, progress: w.progress, goal: w.goal, achieved: w.achieved,
+      myCount: Math.min(mine, g), achievedTeams: achievedTeams, fake: true
+    };
   }
 
   var picks = [];
@@ -233,6 +253,18 @@
                          submits: rec.submits, xp: xp, day: day, at: now() });
       saveDb(db);
       return Promise.resolve({ xp: xp, xpTotal: s.xp, reviewNote: reviewNote });
+    },
+
+    /* [M2] 로컬 모드 팀: 가짜 팀원 2명(바다·소나무 — 실제 사람 아님)이 이번 주 이미 15문항씩 푼 것으로 흉내.
+       내 이번 주 문항 수만 실제 이 브라우저 기록에서 셈. 화면에 돌려주는 모양은 서버 my_team_summary 와 같음 */
+    myTeam: function () {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      return Promise.resolve(localTeam(db, s));
+    },
+    setTeamOff: function (off) {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      s.teamOff = !!off; saveDb(db);
+      return Promise.resolve(localTeam(db, s));
     },
 
     /* [개발용] 자동 테스트가 속을 들여다보는 문. 화면 코드는 쓰지 않음. Supabase 모드에는 없음 */
@@ -391,6 +423,20 @@
   }
   function strip(s) { if (!s) return s; var o = {}; for (var k in s) if (has(s, k) && k[0] !== "_") o[k] = s[k]; return o; }
 
+  /* 서버 팀 요약 → 화면 모양 (모르는 칸은 버림: 혹시 서버가 더 보내도 화면에는 별명·쉼 여부만) */
+  function normTeam(t) {
+    t = t || {};
+    if (!t.inTeam) return { inTeam: false, teamOff: !!t.teamOff };
+    return {
+      inTeam: true, teamOff: !!t.teamOff, name: String(t.name || ""), weekStart: t.weekStart || "",
+      goalPerMember: Number(t.goalPerMember) || LU.C.TEAM_GOAL_PER_MEMBER,
+      members: (t.members || []).map(function (m) { return { nickname: String(m.nickname || ""), me: !!m.me, resting: !!m.resting }; }),
+      activeMembers: Number(t.activeMembers) || 0, progress: Number(t.progress) || 0, goal: Number(t.goal) || 0,
+      achieved: !!t.achieved, myCount: Number(t.myCount) || 0,
+      achievedTeams: (t.achievedTeams || []).map(String), fake: false
+    };
+  }
+
   var SupabaseStore = {
     mode: "supabase", devLabel: "", hintsAreFake: false,
     now: function () { return Date.now(); },
@@ -493,6 +539,13 @@
           if (!r[1].by[p.qid]) throw new Error("서버가 고른 문항(" + p.qid + ")을 화면 문항 목록에서 찾지 못했어요");
           return { qid: p.qid, conceptCard: !!p.conceptCard };
         }).catch(function (e) { throw friendly(e); });
+    },
+    /* [M2] 팀 — 서버 함수 my_team_summary / set_team_off (30_m2_teams_admin.sql) */
+    myTeam: function () {
+      return rpc("my_team_summary").then(normTeam).catch(function (e) { throw friendly(e); });
+    },
+    setTeamOff: function (off) {
+      return rpc("set_team_off", { p_off: !!off }).then(normTeam).catch(function (e) { throw friendly(e); });
     },
     closeItem: function (rec) {
       return rpc("close_item", { p_qid: rec.qid, p_mode: rec.mode, p_level: Number(rec.level) || 0,

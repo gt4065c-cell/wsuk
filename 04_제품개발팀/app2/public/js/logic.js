@@ -18,6 +18,8 @@
     B_FROM_DIFFICULTY: { 0: -2, 1: -1, 2: 0, 3: 1 },   // 0 = 아주 쉬운 확인 문항(결재2 ④ⓐ)
     ITEM_FIXED_UNTIL: 10,          // 문항 난이도는 응답 10개 전까지 고정
     P_LOW: 0.75, P_HIGH: 0.90, P_TARGET: 0.82,
+    C_SELECT: 0.25,                // 문제 고를 때 쓰는 찍기 확률 (O/X 쏠림 방지, 2026-11-02 OX쏠림_해결안). Elo·진단 채점은 진짜 c(1÷보기 수)
+    OX_PER_SESSION_MAX: 2,         // 한 판(이번 판 exclude)에 O/X 최대 2개 (E7)
     RECENT_DAYS: 7,                // 최근 7일 안에 푼 문항은 빼기
     SAME_LECTURE_RUN: 3,           // 같은 강 3연속이면 4번째는 다른 강
     NEW_PER_DAY: 5, REVIEW_PER_DAY: 5, REVIEW_SAME_LECTURE_PER_DAY: 2,
@@ -117,7 +119,7 @@
     return addDays(day, -w);
   }
 
-  /* ---------- 5. 다음 연습 문제 고르기 (E1~E6) ---------- */
+  /* ---------- 5. 다음 연습 문제 고르기 (E0~E7) — 순서: E1 → null → E7 → E5 → 고르기용 P → E4 → E2 → E3 ---------- */
   /* ctx = {theta, questions, items:{qid:{b,n}}, history:[{qid, day, outcome, mode}], reviewIds:[],
             today, openUpTo, recent:[최근 마감 결과 {qid, lecture, R}], exclude:[], rand} */
   function pickNext(ctx) {
@@ -139,6 +141,13 @@
     //     E1이 이미 '7일 지난 + 복습 상자 밖' 문항을 남겨 두므로 따로 할 일 없음. 그마저 0개면 null.
     if (!cand.length) return null;
     var reused = cand.every(function (q) { return lastDay[q.id]; });
+    // E7: 이번 판(exclude)에 이미 O/X가 2개 이상이면, O/X 아닌 후보가 있을 때 O/X를 모두 뺀다
+    //     (open에서 exclude 문항을 이미 뺐으므로 개수는 ctx.questions 전체에서 id로 찾아 셈)
+    var oxUsed = ctx.questions.filter(function (q) { return excl[q.id] && q.type === "ox"; }).length;
+    if (oxUsed >= C.OX_PER_SESSION_MAX) {
+      var nonOx = cand.filter(function (q) { return q.type !== "ox"; });
+      if (nonOx.length) cand = nonOx;
+    }
     // E5: 같은 강 3연속이면 다른 강
     var rec = ctx.recent || [];
     if (rec.length >= C.SAME_LECTURE_RUN) {
@@ -150,7 +159,8 @@
     }
     var withP = cand.map(function (q) {
       var it = (ctx.items && ctx.items[q.id]) || { b: initialB(q), n: 0 };
-      return { q: q, P: pCorrect(ctx.theta, it.b, guessRate(q)), unseen: !lastDay[q.id] };
+      // E0: 고를 때는 종류와 상관없이 c = 0.25 ("고르기용 P", O/X 착시 방지)
+      return { q: q, P: pCorrect(ctx.theta, it.b, C.C_SELECT), unseen: !lastDay[q.id] };
     });
     // E4: 바로 전 2문항이 연속 R = 0 → P가 가장 높은 문항 + 개념 정리 카드
     if (rec.length >= 2 && rec[rec.length - 1].R === 0 && rec[rec.length - 2].R === 0) {

@@ -92,7 +92,13 @@
       var x = db(); var done = {}; x.attempts.forEach(function (t) { if (t.code === c) done[t.qid] = 1; });
       var ex = a.p_exclude || [];
       var forced = ls("mock_next"); if (forced) { localStorage.removeItem("mock_next"); return ok({ qid: forced, conceptCard: false }); }   // 시험용: 다음 문항 지정
-      var q = D.practice.find(function (q) { return ex.indexOf(q.id) < 0 && !done[q.id]; });
+      var cand = D.practice.filter(function (q) { return ex.indexOf(q.id) < 0 && !done[q.id]; });
+      // schema.sql 과 같게 E7: 이번 판(p_exclude)에 O/X가 2개 이상이면, O/X 아닌 후보가 있을 때 O/X 빼기
+      // (E0 고르기용 c 0.25·Elo 구간은 흉내 내지 않음 — 이 가짜 서버엔 θ가 없어 예전처럼 문항 순서대로 고름)
+      var oxUsed = ex.filter(function (id) { return PBY[id] && PBY[id].type === "ox"; }).length;
+      var nonOx = cand.filter(function (q) { return q.type !== "ox"; });
+      if (oxUsed >= 2 && nonOx.length) cand = nonOx;
+      var q = cand[0];
       return ok(q ? { qid: q.id, conceptCard: false } : null);
     },
     close_item: function (a) {

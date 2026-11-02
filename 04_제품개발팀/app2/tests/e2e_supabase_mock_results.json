@@ -4,35 +4,35 @@
   "name": "vendor/supabase.js = @supabase/supabase-js 2.118.0 UMD 원본 그대로(지문 일치), createClient 있음",
   "status": "pass",
   "note": "213KB",
-  "ms": 2
+  "ms": 1
  },
  {
   "id": "S-02",
   "name": "?mode=supabase 첫 화면: 설정의 주소·공개 열쇠로 연결 준비, 익명 계정은 아직 안 만듦, 로컬 띠 없음",
   "status": "pass",
   "note": "",
-  "ms": 192
+  "ms": 200
  },
  {
   "id": "S-03",
   "name": "모양이 틀린 코드: 서버에 묻지 않고(RPC 0·계정 0) 바로 \"6자리\" 안내",
   "status": "pass",
   "note": "",
-  "ms": 98
+  "ms": 84
  },
  {
   "id": "S-04",
   "name": "없는 코드: 익명 로그인 1번 → claim_code(p_code) → \"등록되지 않은 코드\"",
   "status": "pass",
   "note": "",
-  "ms": 63
+  "ms": 49
  },
  {
   "id": "S-05",
   "name": "맞는 코드(소문자·빈칸) → 세션 재사용(익명 로그인 추가 0) → claim_code(\"TEST23\") → 별명 set_nickname → 진단",
   "status": "pass",
   "note": "",
-  "ms": 159
+  "ms": 160
  },
  {
   "id": "S-06",
@@ -46,77 +46,77 @@
   "name": "5문항 답한 뒤 새로고침 → 서버 기록(diag_answers)으로 6번째부터 이어 풀기",
   "status": "pass",
   "note": "",
-  "ms": 476
+  "ms": 477
  },
  {
   "id": "S-08",
   "name": "나머지 답 → diag_answer 12번(모르겠어요 = p_choice null) → diag_finish 1번 → 결과: 서버 해설 12개, [개발용] 표시 없음",
   "status": "pass",
   "note": "",
-  "ms": 576
+  "ms": 569
  },
  {
   "id": "S-09",
   "name": "홈: today_summary 숫자 그대로 (새 문제 0/5, XP 0)",
   "status": "pass",
   "note": "",
-  "ms": 42
+  "ms": 69
  },
  {
   "id": "S-10",
   "name": "첫 문제: next_practice(p_recent [], p_exclude []) → 연습 문항·정답은 questions+question_keys 표에서 → 검토 끝난 힌트 L1 표시",
   "status": "pass",
   "note": "",
-  "ms": 911
+  "ms": 914
  },
  {
   "id": "S-11",
   "name": "힌트 1단계 보고 맞힘 → close_item(p_qid, PRACTICE, p_level 1, p_submits [정답]) → \"힌트로 해결\" +10 XP",
   "status": "pass",
   "note": "",
-  "ms": 117
+  "ms": 91
  },
  {
   "id": "S-12",
   "name": "다음 문제: next_practice에 이번 판 기록(p_recent [{qid,lecture,R:0.5}], p_exclude [첫 문항]) 전달, 힌트 없는 문항은 \"준비 중\"",
   "status": "pass",
   "note": "",
-  "ms": 36
+  "ms": 39
  },
  {
   "id": "S-13",
   "name": "2번 틀림 → close_item(p_submits 오답 2개) → \"정답 보고 이해\" +10 XP + 복습 안내, 화면·서버 결과 이름 일치",
   "status": "pass",
   "note": "",
-  "ms": 202
+  "ms": 171
  },
  {
   "id": "S-14",
   "name": "나머지 3문제 → 오늘 결과(+50 XP) → 홈 XP 50 (서버 값)",
   "status": "pass",
   "note": "close_item 누적 4번(이 구간)",
-  "ms": 537
+  "ms": 516
  },
  {
   "id": "S-15",
   "name": "새로고침 → 저장된 세션 재사용(익명 로그인 0번, claim_code 0번) → 바로 홈, 기록 유지",
   "status": "pass",
   "note": "",
-  "ms": 99
+  "ms": 111
  },
  {
   "id": "S-16",
   "name": "서버가 NOT_LINKED를 돌려주면 시작 화면에 쉬운 안내 + [다시 시도], 고친 뒤 다시 시도하면 홈",
   "status": "pass",
   "note": "",
-  "ms": 118
+  "ms": 127
  },
  {
   "id": "S-17",
   "name": "오류 문장 표: 서버 오류 코드·네트워크 끊김·익명 로그인 꺼짐·알 수 없는 오류 → 모두 한국어",
   "status": "pass",
   "note": "",
-  "ms": 4
+  "ms": 3
  },
  {
   "id": "S-18",
@@ -130,7 +130,7 @@
   "name": "[다른 코드로 들어가기] → signOut(이 기기만) → 로그인 화면 → 다른 코드는 새 익명 계정으로 claim_code",
   "status": "pass",
   "note": "",
-  "ms": 91
+  "ms": 95
  },
  {
   "id": "S-20",
@@ -144,62 +144,69 @@
   "name": "전체 흐름: 자바스크립트 오류 0, 진짜 서버·바깥 주소 요청 0, data/ 파일 요청 0, 테스트용 문(__LU_APP·_debug) 없음",
   "status": "pass",
   "note": "요청 40건 모두 127.0.0.1",
-  "ms": 1
+  "ms": 2
  },
  {
   "id": "S-25",
   "name": "[QA 1] 진단 [다음]·[모르겠어요]를 서버 저장 중에 3번 연타 → diag_answer 1번씩, 한 칸씩만 이동",
   "status": "pass",
   "note": "",
-  "ms": 1737
+  "ms": 1740
  },
  {
   "id": "S-26",
   "name": "[QA 5] 진단 2문항 → [나중에 이어서 하기] → 홈에 \"진단을 먼저 끝내요\"·[진단 이어 하기]만 (연습 시작 없음, next_practice 0번)",
   "status": "pass",
   "note": "",
-  "ms": 552
+  "ms": 596
  },
  {
   "id": "S-27",
   "name": "[QA 2] [답 내기]·[다음 문제]를 서버 저장 중에 3번 연타 → close_item 1번, next_practice 1번, 같은 문항 두 번 안 열림",
   "status": "pass",
   "note": "",
-  "ms": 2360
+  "ms": 2352
  },
  {
   "id": "S-28",
   "name": "[QA 6] 검토 끝난 힌트가 없는 문항: 1번 틀린 뒤 [정답과 해설 보기] → close_item(p_level 4, p_submits [오답]) → \"정답 보고 이해\"",
   "status": "pass",
   "note": "",
-  "ms": 733
+  "ms": 744
  },
  {
   "id": "S-29",
   "name": "[서버 변경 반영] 같은 문항을 다시 내게 한 뒤 서버가 xp 0을 돌려주면 화면도 +0 XP + 이유 안내 / 엉터리 답은 BAD_SUBMITS 안내",
   "status": "pass",
   "note": "",
-  "ms": 130
+  "ms": 132
+ },
+ {
+  "id": "S-30",
+  "name": "[O/X 수정 E7] 가짜 서버 next_practice: 이번 판 p_exclude 에 O/X 2개면 다음은 4지선다, 1개면 O/X도 나옴, 4지선다가 없으면 O/X",
+  "status": "pass",
+  "note": "2개 뒤 L06-Q4(4지) · 1개 뒤 L03-Q4(O/X) · 4지 없음 L06-Q2(O/X)",
+  "ms": 5
  },
  {
   "id": "S-22",
   "name": "배포용 폴더: data/ 없음(진단 정답 파일 포함) · MODE=supabase가 기본 · 그 폴더만으로 로그인→진단 화면까지 동작",
   "status": "pass",
   "note": "[배포용 폴더 완성] (임시 폴더) · 파일 11개 · data/ 없음 · MODE=supabase · 업로드는 하지 않았어요",
-  "ms": 571
+  "ms": 531
  },
  {
   "id": "S-23",
   "name": "로컬 모드(기본 주소)는 지금과 같음: vendor/supabase.js 안 읽음, 로컬 띠 보임",
   "status": "pass",
   "note": "",
-  "ms": 215
+  "ms": 199
  },
  {
   "id": "S-24",
   "name": "진짜 supabase-js가 만드는 요청: 익명 로그인(/auth/v1/signup), claim_code·next_practice(/rest/v1/rpc/…) 본문, apikey 머리말, 세션 재사용",
   "status": "pass",
   "note": "요청 16건 (signup 1, rpc 6)",
-  "ms": 558
+  "ms": 530
  }
 ]

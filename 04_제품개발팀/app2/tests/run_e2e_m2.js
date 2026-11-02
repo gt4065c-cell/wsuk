@@ -454,9 +454,17 @@ const PRE_DB = { students: { TEST23: { code: 'TEST23', nickname: '하늘별', xp
     });
 
     console.log('■ 서버 SQL (30_m2_teams_admin.sql)');
-    await test('N-29', 'schema.sql 은 그대로(실DB 적용본), 30번 파일은 next_practice·close_item 을 다시 만들지 않음, 새 함수는 모두 anon 에서 회수', async () => {
-      const r = spawnSync('git', ['diff', '--quiet', 'HEAD', '--', 'supabase/schema.sql'], { cwd: APP });
-      ok(r.status === 0, 'schema.sql 이 바뀜');
+    await test('N-29', 'schema.sql 은 next_practice(O/X 수정)만 바뀜 = 40_ox_fix.sql 과 본문 같음, 30번 파일은 next_practice·close_item 을 다시 만들지 않음, 새 함수는 모두 anon 에서 회수', async () => {
+      const fnOf = t => { const i = t.indexOf('create or replace function next_practice'); return i < 0 ? '' : t.slice(i, t.indexOf('end $$;', i) + 7); };
+      const cut = t => { const f = fnOf(t); return t.replace(f, '').replace(/^-- F3 [\s\S]*?(?=\n\n)/m, ''); };
+      const now = fs.readFileSync(path.join(APP, 'supabase/schema.sql'), 'utf8');
+      const r = spawnSync('git', ['show', 'HEAD:./supabase/schema.sql'], { cwd: APP, encoding: 'utf8' });
+      if (r.status === 0) ok(cut(r.stdout).replace(/^--.*\n/gm, '') === cut(now).replace(/^--.*\n/gm, ''), 'schema.sql 에서 next_practice 밖이 바뀜');
+      const fix = fs.readFileSync(path.join(APP, 'supabase/40_ox_fix.sql'), 'utf8');
+      ok(fnOf(now) && fnOf(fix) === fnOf(now), '40_ox_fix.sql 의 next_practice 가 schema.sql 과 다름');
+      ok([...fix.matchAll(/create or replace function\s+(\w+)/gi)].length === 1, '40번 파일에 다른 함수');
+      ok(/revoke execute on function next_practice\(jsonb, text\[\]\) from public, anon;/.test(fix) && /grant execute on function next_practice\(jsonb, text\[\]\) to authenticated;/.test(fix), '40번 권한');
+      ok(fnOf(now).includes('lu_p(me.theta, q.b, 0.25)') && /v_ox_used < 2/.test(fnOf(now)), 'O/X 수정 내용');
       const sql = fs.readFileSync(path.join(APP, 'supabase/30_m2_teams_admin.sql'), 'utf8');
       ok(!/function\s+(next_practice|close_item|claim_code|today_summary|diag_finish)\s*\(/i.test(sql), 'M1 함수 재정의');
       const fns = [...sql.matchAll(/create or replace function\s+(\w+)\s*\(/gi)].map(m => m[1]);

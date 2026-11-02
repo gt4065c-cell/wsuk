@@ -28,7 +28,11 @@ window.LU_CONFIG = {
 
   // [로컬 모드 전용 · 개발용] 가짜 참가자 코드. 실제 학생 코드가 아닙니다.
   // (Supabase 모드에서는 코드 목록이 Supabase 안에만 있고 이 줄은 쓰이지 않음)
-  DEV_CODES: []
+  DEV_CODES: [],
+
+  // [로컬 모드 전용 · 개발용] 교수 화면(admin.html) 가짜 교수 이메일. 실제 주소가 아닙니다(example.com = 예시 전용 주소).
+  // Supabase 모드의 교수 이메일은 Supabase의 admins 표에만 넣습니다 — 이 파일·저장소에는 절대 쓰지 마세요(저장소가 공개).
+  DEV_ADMIN_EMAILS: []
 };
 
 /* 주소에 ?mode=supabase 가 있으면 그 창에서만 Supabase 모드로.

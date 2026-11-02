@@ -158,6 +158,64 @@ t('U-18b', `(나) [참고·판정 안 함] 실제 연습 ${REAL.length}문항(30
   return Object.entries(SIM.real).map(([k, v]) => `${k} ${v}%`).join(' / ') + ' — 30강이 모두 열린 학기 말 기준. 학기 초(열린 강이 적을 때)는 더 낮음. θ −1.5는 아주 쉬운 문항으로도 75% 미만(설계 한계 1)';
 });
 
+console.log('■ O/X 쏠림 수정 (03_교육기획팀/2026-11-02_OX쏠림_해결안.md 4장: E0 고르기용 c 0.25 · E7 한 판 O/X 최대 2)');
+// 가짜 문항 은행: 실제 연습 106문항과 같은 구성(4지선다 난이도0/1/2/3 = 30/27/13/20, O/X 난이도1 1개 + 난이도2 15개), 30강에 골고루
+function oxBank() {
+  const qs = []; let i = 0;
+  const add = (mk, d, n) => { for (let k = 0; k < n; k++, i++) qs.push(mk('F' + i, (i % 30) + 1, d)); };
+  add(mcq, 0, 30); add(mcq, 1, 27); add(mcq, 2, 13); add(mcq, 3, 20); add(ox, 1, 1); add(ox, 2, 15);
+  return qs;
+}
+const OXB = oxBank();
+function session(bank, theta, rand) {   // 빈 기록, θ 고정, 한 판 5문제 (exclude = 이번 판에 낸 문항)
+  const seen = [], out = [];
+  for (let k = 0; k < 5; k++) {
+    const p = LU.pickNext({ theta, questions: bank, items: {}, history: [], reviewIds: [], today: '2026-12-10', openUpTo: 30, recent: [], exclude: seen, rand });
+    if (!p) break; const q = bank.find(x => x.id === p.qid); seen.push(q.id); out.push(q);
+  }
+  return out;
+}
+t('U-30', '[O/X 새1] θ −3 학생, 빈 기록으로 한 판 5문제 → 5문제 모두 4지선다·난이도 0 (가짜 은행 + 실제 은행)', () => {
+  ok(OXB.length === 106 && OXB.filter(q => q.type === 'ox').length === 16, '가짜 은행 구성');
+  for (const [name, bank] of [['가짜', OXB], ['실제', REAL]]) {
+    for (let s = 1; s <= 10; s++) {
+      const r = session(bank, -3, seeded(s));
+      ok(r.length === 5 && r.every(q => q.type !== 'ox' && q.difficulty === 0), name + ' 씨앗 ' + s + ': ' + r.map(q => q.id + '/' + q.type + q.difficulty).join(','));
+    }
+  }
+  return '두 은행 × 씨앗 10개 모두 4지선다 난이도 0 (고치기 전 규칙이면 O/X 5개)';
+});
+t('U-31', '[O/X 새2] θ 1 학생, 한 판 5문제 × 20번(씨앗 다르게) → 어느 판도 O/X 3개 이상 없음', () => {
+  const tally = {};
+  for (const [name, bank] of [['가짜', OXB], ['실제', REAL]]) {
+    let oxTotal = 0, max = 0;
+    for (let s = 1; s <= 20; s++) {
+      const n = session(bank, 1, seeded(s * 7 + 1)).filter(q => q.type === 'ox').length;
+      ok(n <= 2, name + ' 씨앗 ' + s + ': O/X ' + n + '개'); oxTotal += n; max = Math.max(max, n);
+    }
+    tally[name] = `O/X 평균 ${(oxTotal / 100 * 100).toFixed(0)}%·판당 최대 ${max}개`;
+  }
+  return Object.entries(tally).map(([k, v]) => k + ' ' + v).join(' / ');
+});
+t('U-32', '[O/X 새3] O/X 문항(b 0)을 θ 0 학생이 맞힘 → applyElo는 진짜 c 0.5 그대로: P = 0.75, θ 0 → 0.2 / 진단 채점도 c 0.5', () => {
+  const e = LU.applyElo({ theta: 0, n: 0 }, { b: 0, n: 0 }, ox('o', 1, 2), 1);
+  ok(near(e.P, 0.75) && near(e.theta, 0.8 * 0.25), JSON.stringify(e));
+  const d = LU.scoreDiagnostic([ox('o', 1, 2)], [{ qid: 'o', choice: 0 }], { o: { answer_index: 0 } });
+  ok(near(d.theta, 0.2), '진단 θ ' + d.theta);
+  const pick = LU.pickNext(base({ questions: [ox('o', 1, 2)] }));
+  ok(near(pick.P, 0.625), '고르기용 P는 c 0.25 → 0.625, 받은 값 ' + pick.P);
+  return 'Elo P 0.75 · 고르기용 P 0.625 (서로 다름 = 의도대로)';
+});
+t('U-33', '[O/X E7] 이번 판 O/X 2개 뒤에는 O/X 빼기, 단 O/X 아닌 후보가 0개면 빼지 않음', () => {
+  const qs = [ox('X1', 1, 2), ox('X2', 2, 2), ox('X3', 3, 2), mcq('M1', 4, 3)];
+  const r = LU.pickNext(base({ theta: 1, questions: qs, exclude: ['X1', 'X2'] }));
+  ok(r.qid === 'M1', '4지선다가 나와야 함: ' + r.qid);
+  const r1 = LU.pickNext(base({ theta: 1, questions: qs, exclude: ['X1'], rand: () => 0 }));
+  ok(r1.qid === 'X2', 'O/X 1개 뒤에는 O/X 허용: ' + r1.qid);
+  const r2 = LU.pickNext(base({ theta: 1, questions: qs, exclude: ['X1', 'X2', 'M1'] }));
+  ok(r2.qid === 'X3', 'O/X 아닌 후보 0개면 O/X: ' + (r2 && r2.qid));
+});
+
 console.log('■ 힌트 사다리 · 제출');
 t('U-19', 'L1은 바로, L2는 10초 뒤, 건너뛰기 없음', () => {
   const s = LU.newItemState('PRACTICE');

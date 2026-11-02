@@ -18,6 +18,8 @@
     B_FROM_DIFFICULTY: { 0: -2, 1: -1, 2: 0, 3: 1 },   // 0 = 아주 쉬운 확인 문항(결재2 ④ⓐ)
     ITEM_FIXED_UNTIL: 10,          // 문항 난이도는 응답 10개 전까지 고정
     P_LOW: 0.75, P_HIGH: 0.90, P_TARGET: 0.82,
+    C_SELECT: 0.25,                // 문제 고를 때 쓰는 찍기 확률 (O/X 쏠림 방지, 2026-11-02 OX쏠림_해결안). Elo·진단 채점은 진짜 c(1÷보기 수)
+    OX_PER_SESSION_MAX: 2,         // 한 판(이번 판 exclude)에 O/X 최대 2개 (E7)
     RECENT_DAYS: 7,                // 최근 7일 안에 푼 문항은 빼기
     SAME_LECTURE_RUN: 3,           // 같은 강 3연속이면 4번째는 다른 강
     NEW_PER_DAY: 5, REVIEW_PER_DAY: 5, REVIEW_SAME_LECTURE_PER_DAY: 2,
@@ -30,6 +32,7 @@
     XP_DAILY_CAP: 200,             // 연습·복습 XP 하루 상한
     STUDY_DAY_MIN: 3,              // 하루 3문항 이상 끝까지 풀면 '학습한 날'
     PROTECT_PER_WEEK: 2,           // 주(월~일)마다 쉬는 날 보호 2일
+    TEAM_GOAL_PER_MEMBER: 15,      // M2 팀: 주간 팀 참여 목표 = 팀원 모두 이번 주 15문항 (서버 teams.goal_per_member 기본값과 같음)
     DIAG_COUNT: 12, DIAG_MIN: 10,
     CODE_CHARS: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"   // 0·O·1·I 제외
   };
@@ -116,7 +119,7 @@
     return addDays(day, -w);
   }
 
-  /* ---------- 5. 다음 연습 문제 고르기 (E1~E6) ---------- */
+  /* ---------- 5. 다음 연습 문제 고르기 (E0~E7) — 순서: E1 → null → E7 → E5 → 고르기용 P → E4 → E2 → E3 ---------- */
   /* ctx = {theta, questions, items:{qid:{b,n}}, history:[{qid, day, outcome, mode}], reviewIds:[],
             today, openUpTo, recent:[최근 마감 결과 {qid, lecture, R}], exclude:[], rand} */
   function pickNext(ctx) {
@@ -138,6 +141,13 @@
     //     E1이 이미 '7일 지난 + 복습 상자 밖' 문항을 남겨 두므로 따로 할 일 없음. 그마저 0개면 null.
     if (!cand.length) return null;
     var reused = cand.every(function (q) { return lastDay[q.id]; });
+    // E7: 이번 판(exclude)에 이미 O/X가 2개 이상이면, O/X 아닌 후보가 있을 때 O/X를 모두 뺀다
+    //     (open에서 exclude 문항을 이미 뺐으므로 개수는 ctx.questions 전체에서 id로 찾아 셈)
+    var oxUsed = ctx.questions.filter(function (q) { return excl[q.id] && q.type === "ox"; }).length;
+    if (oxUsed >= C.OX_PER_SESSION_MAX) {
+      var nonOx = cand.filter(function (q) { return q.type !== "ox"; });
+      if (nonOx.length) cand = nonOx;
+    }
     // E5: 같은 강 3연속이면 다른 강
     var rec = ctx.recent || [];
     if (rec.length >= C.SAME_LECTURE_RUN) {
@@ -149,7 +159,8 @@
     }
     var withP = cand.map(function (q) {
       var it = (ctx.items && ctx.items[q.id]) || { b: initialB(q), n: 0 };
-      return { q: q, P: pCorrect(ctx.theta, it.b, guessRate(q)), unseen: !lastDay[q.id] };
+      // E0: 고를 때는 종류와 상관없이 c = 0.25 ("고르기용 P", O/X 착시 방지)
+      return { q: q, P: pCorrect(ctx.theta, it.b, C.C_SELECT), unseen: !lastDay[q.id] };
     });
     // E4: 바로 전 2문항이 연속 R = 0 → P가 가장 높은 문항 + 개념 정리 카드
     if (rec.length >= 2 && rec[rec.length - 1].R === 0 && rec[rec.length - 2].R === 0) {
@@ -272,6 +283,22 @@
     return { current: cur, studied: studied, protectedDays: prot, longest: longest };
   }
 
+  /* ---------- M2 팀: 주간 팀 참여 목표 (supabase/30_m2_teams_admin.sql 의 lu_team_week 와 같은 규칙) ----------
+     members = [{count: 이번 주 경험치를 받은 마감 수, resting: 팀 활동 쉼}], goalPerMember = 1인 목표(기본 15)
+     진행 = Σ min(count, 1인 목표) (쉼 제외) · 목표 = 1인 목표 × 활동 인원 · 달성 = 활동 인원 > 0 이고 진행 ≥ 목표 */
+  function teamWeek(members, goalPerMember) {
+    var g = Math.max(1, Math.floor(Number(goalPerMember) || C.TEAM_GOAL_PER_MEMBER));
+    var active = (members || []).filter(function (m) { return !m.resting; });
+    var progress = active.reduce(function (t, m) { return t + Math.min(Math.max(0, Number(m.count) || 0), g); }, 0);
+    var goal = g * active.length;
+    return { activeMembers: active.length, progress: progress, goal: goal, achieved: active.length > 0 && progress >= goal };
+  }
+  /* 이번 주(월~일, 한국 날짜) 경험치를 받은 마감 수 — 같은 문항 다시 풀기(XP 0)·하루 상한 넘은 풀이는 안 셈 */
+  function weekCount(attempts, today) {
+    var w = weekKey(today), end = addDays(w, 7);
+    return (attempts || []).filter(function (a) { return a.day >= w && a.day < end && (a.xp || 0) > 0; }).length;
+  }
+
   var api = {
     C: C, OUTCOME: OUTCOME, R_OF: R_OF,
     normalizeCode: normalizeCode, isValidCodeShape: isValidCodeShape,
@@ -283,7 +310,8 @@
     newItemState: newItemState, maxSubmitsFor: maxSubmitsFor, canOpenHint: canOpenHint, openHint: openHint, submit: submit, outcomeOf: outcomeOf,
     xpFor: xpFor,
     reviewAfterPractice: reviewAfterPractice, reviewAfterReview: reviewAfterReview, pickReviews: pickReviews,
-    streak: streak
+    streak: streak,
+    teamWeek: teamWeek, weekCount: weekCount
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LU = api;

@@ -370,6 +370,17 @@ function startServer(dir, port) {
       ok(msg.includes('저장하지 못했어요'), msg);
       ok(!qp._errors.length, qp._errors.join('|'));
     });
+    await test('S-30', '[O/X 수정 E7] 가짜 서버 next_practice: 이번 판 p_exclude 에 O/X 2개면 다음은 4지선다, 1개면 O/X도 나옴, 4지선다가 없으면 O/X', async () => {
+      const OXS = PRACTICE.filter(q => q.type === 'ox').map(q => q.id), MCQ = PRACTICE.filter(q => q.type !== 'ox').map(q => q.id);
+      const before = PRACTICE.slice(0, PRACTICE.findIndex(q => q.id === OXS[2])).filter(q => q.type !== 'ox').map(q => q.id);
+      const call = ex => qp.evaluate(ex => window.supabase.createClient('http://mock', 'k').rpc('next_practice', { p_recent: [], p_exclude: ex }).then(r => r.data && r.data.qid), ex);
+      const typeOf = id => (PRACTICE.find(q => q.id === id) || {}).type;
+      const a = await call([OXS[0], OXS[1]].concat(before)), b = await call([OXS[0]].concat(before)), c = await call(MCQ.concat([OXS[0], OXS[1]]));
+      ok(typeOf(a) === 'mcq', 'O/X 2개 뒤 ' + a + '/' + typeOf(a));
+      ok(typeOf(b) === 'ox', 'O/X 1개 뒤 ' + b + '/' + typeOf(b));
+      ok(typeOf(c) === 'ox', '4지선다 없음 ' + c + '/' + typeOf(c));
+      return `2개 뒤 ${a}(4지) · 1개 뒤 ${b}(O/X) · 4지 없음 ${c}(O/X)`;
+    });
     await Q.ctx.close();
 
     console.log('■ 배포용 폴더 (tools/make_deploy.py)');

@@ -273,12 +273,16 @@ begin
   return json_build_object('strong', coalesce(v_strong, '[]'), 'weak', coalesce(v_weak, '[]'), 'review', v_review);
 end $$;
 
--- F3 다음 연습 문제 (E1~E5). p_recent = [{"lecture":3,"R":0}, ...] 이번 판 최근 결과, p_exclude = 이번 판에 낸 문항
+-- F3 다음 연습 문제 (E1~E5 + E0·E7). p_recent = [{"lecture":3,"R":0}, ...] 이번 판 최근 결과, p_exclude = 이번 판에 낸 문항
+-- [O/X 쏠림 수정 2026-11-02, 03_교육기획팀/2026-11-02_OX쏠림_해결안.md 4장 — 40_ox_fix.sql 과 같은 본문]
+--   E0: 고를 때 P는 종류와 상관없이 c = 0.25 (Elo의 close_item·진단의 diag_finish 는 진짜 c = 1 ÷ 보기 수 그대로)
+--   E7: 이번 판(p_exclude)에 O/X가 2개 이상이면, O/X 아닌 후보가 있을 때 O/X 빼기
 create or replace function next_practice(p_recent jsonb default '[]', p_exclude text[] default '{}') returns json
 language plpgsql security definer set search_path = public as $$
 declare
   me students := lu_me(); v_today date := lu_today(); n int := jsonb_array_length(coalesce(p_recent, '[]'));
   v_avoid int := null; v_pick record; v_e4 boolean := false;
+  v_ox_used int := (select count(*) from questions where id = any (coalesce(p_exclude, '{}')) and type = 'ox');
 begin
   if n >= 2 and (p_recent -> (n - 1) ->> 'R')::float = 0 and (p_recent -> (n - 2) ->> 'R')::float = 0 then v_e4 := true; end if;
   if n >= 3 and (p_recent -> (n - 1) ->> 'lecture') = (p_recent -> (n - 2) ->> 'lecture')
@@ -286,8 +290,8 @@ begin
     v_avoid := (p_recent -> (n - 1) ->> 'lecture')::int;
   end if;
   with cand as (
-    select q.id, q.lecture,
-           lu_p(me.theta, q.b, 1.0 / jsonb_array_length(q.choices)) as p,
+    select q.id, q.lecture, q.type,
+           lu_p(me.theta, q.b, 0.25) as p,                                     -- E0: 고르기용 P (c 0.25)
            not exists (select 1 from attempts a where a.student_id = me.id and a.question_id = q.id) as unseen
     from questions q
     where q.pool = 'practice'
@@ -295,9 +299,12 @@ begin
       and not (q.id = any (coalesce(p_exclude, '{}')))
       and not exists (select 1 from review_box rb where rb.student_id = me.id and rb.question_id = q.id)
       and not exists (select 1 from attempts a where a.student_id = me.id and a.question_id = q.id and a.day > v_today - 7)
+  ), c1 as (   -- E7: 이번 판 O/X 2개 이상이면 O/X 빼기 (O/X 아닌 후보가 있을 때만)
+    select * from cand where v_ox_used < 2 or type <> 'ox'
+      or not exists (select 1 from cand where type <> 'ox')
   ), c2 as (   -- E5: 다른 강이 있으면 같은 강 4연속 피하기
-    select * from cand where v_avoid is null or lecture <> v_avoid
-      or not exists (select 1 from cand where lecture <> v_avoid)
+    select * from c1 where v_avoid is null or lecture <> v_avoid
+      or not exists (select 1 from c1 where lecture <> v_avoid)
   )
   select id, p into v_pick from c2
   order by

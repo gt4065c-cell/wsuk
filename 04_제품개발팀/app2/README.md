@@ -57,6 +57,7 @@
 | `supabase/schema.sql` | Supabase 표·보안 규칙·서버 함수 초안 | — |
 | `public/admin.html` · `public/js/admin.js` | **[M2] 교수 화면**(교수 이메일 로그인 → 많이 틀린 문항·강별 정답률·팀별 주간 목표) | 올림 |
 | `supabase/30_m2_teams_admin.sql` | **[M2] 팀 표·팀 함수·교수 화면 함수** (schema.sql 다음에 실행) | — |
+| `supabase/40_ox_fix.sql` | **O/X 쏠림 수정**: `next_practice` 함수만 다시 만듦(고를 때 찍기 0.25, 한 판 O/X 최대 2). 30번 다음에 실행, 여러 번 실행해도 안전 | — |
 | `supabase/local_test/run_m2_local.sh` | [개발용] 임시 PostgreSQL로 위 SQL 시험 | — |
 
 ### 문항·힌트를 고친 뒤 (1-2-3)

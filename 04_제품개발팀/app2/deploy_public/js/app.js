@@ -15,6 +15,7 @@
   var S = {
     screen: "loading", student: null, err: "", draft: "",
     diag: null, diagResult: null, today: null,
+    team: null, teamErr: "", teamConfirm: false,   // [M2] 홈 팀 카드
     busy: false,  // 서버(저장소)에 묻는 중이면 true → 그동안 버튼 잠금 (QA 1·2번: 연타로 문제 건너뜀 방지)
     run: null,    // {reviews:[qid], newLeft, extra, xpStart, recent:[{qid,lecture,R}], seen:[qid], log:[{qid,mode,outcome,xp}]}
     item: null    // {qid, q, mode, order, st, selected, hints, thought, concept, result, triedWrong:[orig], msg}
@@ -86,7 +87,15 @@
 
   /* ---------- 홈 ---------- */
   function goHome() {
-    return Promise.all([refreshStudent(), STORE.today()]).then(function (r) { S.today = r[1]; go("home"); }).catch(fail);
+    return Promise.all([refreshStudent(), STORE.today(), loadTeam()]).then(function (r) { S.today = r[1]; go("home"); }).catch(fail);
+  }
+  /* [M2] 팀 요약은 실패해도 홈은 열림 (서버에 팀 함수가 아직 없거나 인터넷이 잠깐 끊겨도 오늘의 학습은 가능) */
+  function loadTeam() {
+    if (!STORE.myTeam) { S.team = null; return Promise.resolve(); }
+    return STORE.myTeam().then(function (t) { S.team = t; S.teamErr = ""; }, function (e) {
+      S.team = null; S.teamErr = (e && e.message) || "팀 정보를 불러오지 못했어요";
+      if (window.console) console.warn("[레벨업] 팀 정보를 불러오지 못했어요:", S.teamErr);
+    });
   }
 
   /* ---------- 오늘의 학습 ---------- */
@@ -246,6 +255,7 @@
       '<ul class="stats"><li><b id="xp-week">' + t.weekXp + '</b><span>이번 주 학습량 XP</span></li>' +
       '<li><b id="solved-week">' + t.weekSolved + '</b><span>이번 주 푼 문항</span></li>' +
       '<li><b id="xp-total">' + s.xp + '</b><span>모은 XP</span></li></ul>' +
+      teamCard() +
       '<p class="sub">경험치는 문제를 끝까지 풀면 10 XP, 복습에서 혼자 맞히면 +5 XP예요. 힌트를 써도 줄지 않아요. 이미 푼 문제는 복습 날에 다시 풀 때만 경험치가 있어요.</p>' +
       '<!--ERR--><button class="linkbtn" data-act="logout">다른 코드로 들어가기</button></div>' +
       '<div class="bottombar">' + (diagFirst
@@ -253,6 +263,44 @@
         : allDone
         ? '<p class="hint" id="all-done">오늘 할 일 완료! 더 풀고 싶으면 아래를 눌러요.</p><button class="btn btn-secondary" data-act="start-extra">더 풀기 (선택)</button>'
         : '<button class="btn btn-primary" data-act="start">오늘의 학습 시작</button>') + '</div>';
+  }
+
+  /* ---------- [M2] 홈 팀 카드 ----------
+     보이는 것: 팀 이름, 팀원 별명(가나다순)·팀 활동 쉼, 이번 주 팀 합계/목표, 참여 목표 달성 여부, 내 이번 주 문항 수,
+               같은 기수에서 달성한 팀 이름. 팀원 개인 XP·실력·정오답·문항 수는 서버도 보내지 않음(팀게임 설계 2-5) */
+  function teamCard() {
+    var t = S.team;
+    if (!t) return "";
+    var offBtn = S.teamConfirm
+      ? '<div class="note" id="team-confirm"><div class="note-title">팀 활동을 쉴까요?</div>개인 학습과 경험치는 그대로예요. 팀원에게는 "팀 활동 쉼"으로만 보이고, 팀 목표 계산에서 빠져요. 언제든 다시 켤 수 있어요.' +
+        '<div class="btn-col"><button class="btn btn-secondary" data-act="team-off-yes">네, 쉴게요</button><button class="btn btn-secondary" data-act="team-off-no">아니요</button></div></div>'
+      : "";
+    if (!t.inTeam) {
+      return '<div class="card team-card" id="team-card" data-state="none"><h3>팀</h3>' +
+        (t.teamOff
+          ? '<p id="team-status">팀 활동을 하지 않기로 해 두었어요. 혼자 학습은 그대로 할 수 있어요.</p><button class="linkbtn" data-act="team-on">팀 활동 다시 하기</button>'
+          : '<p id="team-status">팀은 2주차부터 교수님이 같은 기수 3~4명으로 정해 드려요. 그 전까지는 혼자 연습해요.</p>' +
+            (S.teamConfirm ? offBtn : '<button class="linkbtn" data-act="team-off">팀 활동 안 하기</button>')) + '</div>';
+    }
+    var pct = t.goal ? Math.min(100, Math.round(t.progress / t.goal * 100)) : 0;
+    var names = t.members.map(function (m) {
+      return '<span class="team-mate' + (m.resting ? " resting" : "") + '">' + esc(m.nickname) + (m.me ? " (나)" : "") + (m.resting ? " · 팀 활동 쉼" : "") + '</span>';
+    }).join('<span class="sep"> · </span>');
+    var status = t.teamOff
+      ? '<p id="team-status">팀 활동을 쉬고 있어요. 개인 학습과 경험치는 그대로예요.</p>'
+      : t.achieved
+      ? '<p id="team-status" class="team-ok"><b>이번 주 팀 참여 목표 달성</b> — 활동 중인 팀원 모두 ' + t.goalPerMember + '문항을 끝까지 풀었어요.</p>'
+      : '<p id="team-status"><b>도전 중</b> · 내 이번 주 <b id="team-mine">' + t.myCount + '</b> / ' + t.goalPerMember + '문항</p>';
+    var others = t.achievedTeams.length
+      ? '<p class="sub" id="team-achieved">이번 주 참여 목표 달성 팀: ' + t.achievedTeams.map(esc).join(" · ") + '</p>' : "";
+    return '<div class="card team-card" id="team-card" data-state="' + (t.teamOff ? "off" : t.achieved ? "achieved" : "trying") + '">' +
+      '<div class="plan-row"><h3 id="team-name">' + esc(t.name) + '</h3>' + (t.fake ? '<span class="tag">가짜 팀원(개발용)</span>' : "") + '</div>' +
+      '<p class="team-mates" id="team-mates">' + names + '</p>' +
+      '<div class="plan-row"><span>이번 주 팀 참여 목표 <span class="sub">(팀원 모두 ' + t.goalPerMember + '문항)</span></span><span id="team-progress">' + t.progress + ' / ' + t.goal + '</span></div>' +
+      '<div class="progress"><i style="width:' + pct + '%"></i></div>' + status + others +
+      '<p class="sub">팀 합계만 보여요. 팀원 개인 기록은 서로 보이지 않아요. 경험치를 받은 풀이만 세요(같은 문제 다시 풀기 제외).</p>' +
+      (t.teamOff ? '<button class="linkbtn" data-act="team-on">팀 활동 다시 하기</button>'
+        : S.teamConfirm ? offBtn : '<button class="linkbtn" data-act="team-off">팀 활동 쉬기</button>') + '</div>';
   }
 
   function hintPanel() {
@@ -395,6 +443,13 @@
       case "diag-resume": return guard(startDiag);
       case "diag-finish": return guard(finishDiag);
 
+      case "team-off": S.teamConfirm = true; return render();
+      case "team-off-no": S.teamConfirm = false; return render();
+      case "team-off-yes":
+      case "team-on":
+        return guard(function () {
+          return STORE.setTeamOff(a === "team-off-yes").then(function (t) { S.team = t; S.teamConfirm = false; render(); });
+        });
       case "home": return guard(goHome);
       case "retry": S.err = ""; render(); return guard(boot);
       case "start": return guard(function () { return startRun(false); });
