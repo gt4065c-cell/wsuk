@@ -16,8 +16,12 @@ window.LU_CONFIG = {
   SUPABASE_URL: "",
   SUPABASE_ANON_KEY: "",
 
-  // 교수님이 열어 둔 강의: 이 번호 강까지만 연습 문제로 나옴 (가짜 기수 기준)
-  OPEN_UP_TO_LECTURE: 15,
+  // 교수님이 열어 둔 강의: 이 번호 강까지만 연습 문제로 나옴 (캡틴 체험용으로 30강 전부 열어 둠)
+  OPEN_UP_TO_LECTURE: 30,
+
+  // [로컬 모드 전용 · 개발용] 교수 검토 전 힌트도 '검토 전' 표시를 달고 보여 줌 (캡틴이 힌트를 직접 보며 검토하도록)
+  // Supabase 모드에서는 이 설정과 상관없이 검토 끝난 힌트만 나옴 (DB 규칙 hints_reviewed)
+  SHOW_DRAFT_HINTS: true,
 
   // [로컬 모드 전용 · 개발용] 가짜 참가자 코드. 실제 학생 코드가 아닙니다.
   // (Supabase 모드에서는 코드 목록이 Supabase 안에만 있고 이 줄은 쓰이지 않음)

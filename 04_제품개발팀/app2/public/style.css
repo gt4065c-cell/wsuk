@@ -278,3 +278,5 @@ svg{flex:none}
 .xp-pop{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:var(--correct-bg);color:var(--correct);font-weight:800}
 .concept{padding:12px 14px;border-radius:12px;background:var(--note-bg);border-left:4px solid var(--note)}
 .lect{display:flex;gap:8px;flex-wrap:wrap}
+/* '정답 보고 이해'는 벌점이 아니므로 빨강 대신 차분한 노랑 (설계 X5) */
+.verdict.calm{background:var(--note-bg);border-color:var(--note);color:var(--note)}

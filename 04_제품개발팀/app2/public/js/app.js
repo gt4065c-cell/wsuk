@@ -94,7 +94,7 @@
       S.item = {
         qid: qid, q: q, mode: mode, hints: r[1], thought: "", concept: concept, result: null, triedWrong: [], msg: "",
         order: q.type === "mcq" ? shuffle(range(q.choices.length)) : range(q.choices.length),
-        st: LU.newItemState(mode), selected: null
+        st: LU.newItemState(mode, LU.maxSubmitsFor(q)), selected: null
       };
       go("item");
     }).catch(fail);
@@ -232,7 +232,7 @@
     var ladder = '<div class="ladder" aria-label="힌트 ' + st.level + ' / 4단계">' + [1, 2, 3, 4].map(function (k) { return '<i class="' + (k <= st.level ? "on" : "") + '"></i>'; }).join("") + '</div>';
     if (st.closed) return st.level ? '<div class="hints">' + ladder + shown + '</div>' : "";
     var needThought = st.level + 1 >= 3 && st.level + 1 <= 4 && !!it.hints;
-    return '<div class="hints" id="hints"><div class="h-label">막히면 힌트를 한 단계씩 열어요' + (it.hints && it.hints.fake ? ' <span class="tag">시험용 힌트</span>' : "") + '</div>' +
+    return '<div class="hints" id="hints"><div class="h-label">막히면 힌트를 한 단계씩 열어요' + (it.hints && it.hints.fake ? ' <span class="tag">시험용 힌트</span>' : "") + (it.hints && it.hints.draft ? ' <span class="tag" id="draft-tag">검토 전 힌트(개발용)</span>' : "") + '</div>' +
       ladder + shown +
       (needThought ? '<div class="field"><label for="thought">내 생각 한 줄 (꼭 써야 다음 힌트가 열려요)</label><textarea id="thought" rows="2" maxlength="200">' + esc(it.thought) + '</textarea></div>' : "") +
       '<button class="btn btn-secondary" id="hint-btn" data-act="hint"></button></div>';
@@ -255,7 +255,7 @@
     var concept = it.concept && !it.result ? '<div class="concept" id="concept"><b>이 개념을 한 번 정리하고 갈게요</b><br>' + esc(q.source_section) + ' 부분을 떠올리며 천천히 풀어 봐요.</div>' : "";
     var qcard = '<div class="card qcard"><p class="qtext" id="qid" data-id="' + esc(q.id) + '">' + esc(q.question) + '</p></div>';
     if (!st.closed || !it.result) {
-      var left = LU.C.MAX_SUBMITS - st.submits.length;
+      var left = st.maxSubmits - st.submits.length;
       return '<div class="content">' + head + concept + qcard +
         choiceBtns(q, it.order, { selected: it.selected, tried: it.triedWrong }) +
         (it.msg ? '<p class="tried" id="msg">' + esc(it.msg) + '</p>' : "") +
@@ -266,7 +266,7 @@
     // 마감 → 해설 (L4)
     var res = it.result, oc = st.outcome;
     var good = oc !== O.SHOWN;
-    var verdict = '<div class="verdict ' + (good ? "ok" : "no") + '" id="verdict"><div class="v-body"><b id="outcome">' + esc(oc) + '</b><br>' +
+    var verdict = '<div class="verdict ' + (good ? "ok" : "calm") + '" id="verdict"><div class="v-body"><b id="outcome">' + esc(oc) + '</b><br>' +
       (good ? "잘했어요!" : "괜찮아요. 해설을 읽고 이해하면 그것도 공부예요.") + '</div></div>';
     var note = "";
     if (res.reviewNote === "again") note = it.mode === "REVIEW" ? "한 번 더 만나요. 내일 복습에 다시 나와요." : "이 문제는 복습 때 다시 만나요. 그때 혼자 맞히면 +5 XP를 더 받아요.";

@@ -86,6 +86,7 @@
       .reduce(function (t, a) { return t + (a.xp || 0); }, 0);
   }
 
+  var picks = [];
   var LocalStore = {
     mode: "local",
     devLabel: "로컬 모드(개발용) · 기록은 이 브라우저에만 저장돼요",
@@ -114,7 +115,11 @@
 
     practiceQuestions: function () { return Promise.resolve(PRACTICE); },
     question: function (qid) { return Promise.resolve(QBY[qid] || null); },
-    hints: function (qid) { return Promise.resolve(HINTS[qid] ? { L1: HINTS[qid].L1, L2: HINTS[qid].L2, L3: HINTS[qid].L3, fake: HINTS_FAKE } : null); },
+    hints: function (qid) {
+      var h = HINTS[qid];
+      if (!h || (!h.reviewed && !CFG.SHOW_DRAFT_HINTS)) return Promise.resolve(null);   // 학생용 기준: 검토 끝난 것만
+      return Promise.resolve({ L1: h.L1, L2: h.L2, L3: h.L3, fake: HINTS_FAKE, draft: !h.reviewed });
+    },
 
     diagnostic: function () {
       var db = loadDb(), s = current(db); if (!s) return needLogin();
@@ -181,6 +186,7 @@
         today: day, openUpTo: CFG.OPEN_UP_TO_LECTURE || 99,
         recent: recent || [], exclude: exclude || []
       });
+      if (r) picks.push({ qid: r.qid, P: r.P, rule: r.rule, theta: s.theta });   // [개발용] 테스트 확인용 메모(저장 안 함)
       // 화면에는 문항 번호와 '개념 정리 카드' 여부만 (P값은 숨김)
       return Promise.resolve(r ? { qid: r.qid, conceptCard: r.conceptCard } : null);
     },
@@ -222,7 +228,7 @@
     /* [개발용] 자동 테스트가 속을 들여다보는 문. 화면 코드는 쓰지 않음. Supabase 모드에는 없음 */
     _debug: function () {
       var db = loadDb(), s = current(db);
-      return { db: db, me: s, today: today() };
+      return { db: db, me: s, today: today(), picks: picks.slice() };
     },
     _resetAll: function () { lsDel(DB_KEY); lsDel(SESSION_KEY); }
   };

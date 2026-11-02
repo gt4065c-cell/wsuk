@@ -28,7 +28,8 @@ ROOT = os.path.dirname(os.path.dirname(APP))
 BANK = os.path.join(ROOT, "03_교육기획팀", "문항은행")
 OUT = os.path.join(APP, "public", "data")
 
-Q_FILES = ["questions_part1-3.json", "questions_part4-6.json"]
+Q_FILES = ["questions_part1-3.json", "questions_part4-6.json", "questions_easy.json"]   # easy = 아주 쉬운 확인 문항(difficulty 0)
+SECRET_FILES = ["questions_weekly.json"]   # 주간 팀 점검(평가) — 앱 파일에 절대 넣지 않음, 새는지 검사만
 H_FILES = ["hints_part1-3.json", "hints_part4-6.json"]
 
 PRACTICE_FIELDS = ["id", "part", "lecture", "difficulty", "type", "question", "choices",
@@ -64,15 +65,17 @@ def write_js(name, var, data, header):
 
 
 def norm_hints(raw):
-    """힌트 파일 모양 두 가지를 모두 받음: [{id, L1, L2, L3, hint_status}] 또는 {id: {...}}"""
+    """힌트 파일 모양 두 가지를 모두 받음: [{id, L1, L2, L3, hint_status}] 또는 {id: {...}}
+    검토 상태(reviewed: true/false)를 함께 넣고, 보여 줄지는 앱이 정함
+    (학생용 = 검토 끝난 것만 / 로컬 개발 모드 = 검토 전도 '검토 전' 표시와 함께)"""
     items = raw.items() if isinstance(raw, dict) else [(h.get("id"), h) for h in raw]
     out = {}
     for qid, h in items:
         if not qid or not isinstance(h, dict):
             continue
         lv = [h.get("L1") or h.get("l1"), h.get("L2") or h.get("l2"), h.get("L3") or h.get("l3")]
-        if h.get("hint_status") == "reviewed" and all(isinstance(x, str) and x.strip() for x in lv):
-            out[qid] = {"L1": lv[0], "L2": lv[1], "L3": lv[2]}
+        if all(isinstance(x, str) and x.strip() for x in lv):
+            out[qid] = {"L1": lv[0], "L2": lv[1], "L3": lv[2], "reviewed": h.get("hint_status") == "reviewed"}
     return out
 
 
@@ -113,6 +116,10 @@ def main():
             if k in d:
                 errors.append("진단 학생용 파일에 비밀 칸이 들어감: " + d["id"] + "." + k)
     eval_ids = {q["id"] for q in qs if q.get("pool") == "assessment"}
+    for fn in SECRET_FILES:
+        p = os.path.join(BANK, fn)
+        if os.path.exists(p):
+            eval_ids |= {q["id"] for q in load(p)}
     leaked = [q["id"] for q in practice + diag if q["id"] in eval_ids]
     if leaked:
         errors.append("평가 문항이 들어감: " + ", ".join(leaked))
@@ -125,7 +132,7 @@ def main():
     practice_ids = {q["id"] for q in practice}
     hints = {k: v for k, v in hints.items() if k in practice_ids}   # 연습 문항 힌트만
     if not found:
-        hints, fake = dict(FAKE_HINTS), True
+        hints, fake = {k: dict(v, reviewed=True) for k, v in FAKE_HINTS.items()}, True
 
     if errors:
         print("[빌드 실패] 파일을 만들지 않았습니다:")
@@ -139,13 +146,14 @@ def main():
     write_js("diagnostic.js", "LU_DIAG", {"set_id": "DIAG", "questions": diag},
              "진단 12문항 — 정답·해설 칸 없음.")
     write_js("hints.js", "LU_HINTS", {"fake": fake, "hints": hints},
-             ("시험용 가짜 힌트 3개 (원본 힌트 파일이 아직 없음)." if fake else "교수 검토 끝난 힌트만."))
+             ("시험용 가짜 힌트 3개 (원본 힌트 파일이 아직 없음)." if fake else "reviewed=false 는 교수 검토 전 — 학생에게는 안 보임."))
     write_js("dev_diag_key.js", "LU_DEV_DIAG_KEY", key,
              "[개발용] 로컬 모드 전용 진단 정답. 배포·Supabase 모드에서는 사용하지 않음.")
     if draft_n:
         print("  ! 경고: 연습 %d문항 중 %d문항이 아직 draft(교수 검토 전) — 연습용이라 사용" % (len(practice), draft_n))
-    print("[빌드 성공] 연습 %d · 진단 %d · 힌트 %d%s · 평가 0" %
-          (len(practice), len(diag), len(hints), " (시험용 가짜)" if fake else ""))
+    reviewed_n = sum(1 for h in hints.values() if h["reviewed"])
+    print("[빌드 성공] 연습 %d · 진단 %d · 힌트 %d (검토 끝 %d)%s · 평가 0" %
+          (len(practice), len(diag), len(hints), reviewed_n, " (시험용 가짜)" if fake else ""))
 
 
 if __name__ == "__main__":

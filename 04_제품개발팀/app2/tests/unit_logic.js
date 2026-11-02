@@ -26,6 +26,12 @@ t('U-03', '난이도 매핑 1→−1, 2→0, 3→+1 / 찍기 확률 1÷보기 �
   ok(LU.initialB(mcq('a', 1, 1)) === -1 && LU.initialB(mcq('a', 1, 2)) === 0 && LU.initialB(mcq('a', 1, 3)) === 1, 'b');
   ok(LU.guessRate(mcq('a', 1, 1)) === 0.25 && LU.guessRate(ox('a', 1, 1)) === 0.5, 'c');
 });
+t('U-03b', '아주 쉬운 확인 문항(difficulty 0) → b = −2: θ ≥ −1.3 학생부터 맞힐 확률 0.75 이상', () => {
+  ok(LU.initialB(mcq('e', 1, 0)) === -2, 'b');
+  const p13 = LU.pCorrect(-1.3, -2, 0.25), p15 = LU.pCorrect(-1.5, -2, 0.25);
+  ok(p13 >= 0.75 && p15 < 0.75, `P(−1.3)=${p13} P(−1.5)=${p15}`);
+  return `P(θ−1.3)=${p13.toFixed(3)}, P(θ−1.5)=${p15.toFixed(3)} — θ −1.5 아래는 여전히 0.75 미만`;
+});
 t('U-04', 'K = 0.8/(1+0.05×n): n=0 → 0.8, n=20 → 0.4', () => {
   ok(near(LU.kLearner(0), 0.8) && near(LU.kLearner(20), 0.4), 'K');
 });
@@ -102,7 +108,7 @@ t('U-17', '후보 0개면 null (화면: "새 문제를 다 풀었어요")', () =
 });
 
 // 가짜 학생 시뮬레이션: PRD F3 완료 기준 "배정 문항의 예측 P가 0.75~0.90 안 95% 이상"
-// (가) 규칙 자체 확인: 가짜 문항 120개(강마다 쉬움3·보통3·어려움2) / (나) 실제 연습 31문항 — 하루 5문항 × 5일
+// (가) 규칙 자체 확인: 가짜 문항 120개(강마다 쉬움3·보통3·어려움2) / (나) 실제 연습 문항 — 하루 5문항 × 5일
 const REAL = require(path.join(__dirname, 'load_practice.js'))();
 function seeded(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }  // mulberry32
 function bigBank() { const qs = []; let i = 0; for (let L = 1; L <= 15; L++) for (const d of [1, 1, 1, 2, 2, 2, 3, 3]) qs.push(mcq('X' + (i++), L, d)); return qs; }
@@ -113,7 +119,7 @@ function simulate(bank, trueTheta, seed) {
   for (let d = 0; d < 5; d++) {
     const today = LU.addDays('2026-12-01', d), recent = [], seen = [];
     for (let k = 0; k < 5; k++) {
-      const p = LU.pickNext({ theta: st.theta, questions: bank, items, history, reviewIds: [...reviewIds], today, openUpTo: 15, recent, exclude: seen, rand });
+      const p = LU.pickNext({ theta: st.theta, questions: bank, items, history, reviewIds: [...reviewIds], today, openUpTo: 30, recent, exclude: seen, rand });
       if (!p) break;
       const q = bank.find(x => x.id === p.qid); seen.push(q.id);
       const it = items[q.id] || { b: LU.initialB(q), n: 0 };
@@ -146,10 +152,10 @@ t('U-18', '가짜 학생 40명×5구간 시뮬레이션 (가) 문항이 충분�
   ok(SIM.big['θ≥0.3 합계'] >= 95, JSON.stringify(SIM.big));
   return Object.entries(SIM.big).map(([k, v]) => `${k} ${v}%`).join(' / ');
 });
-t('U-18b', '(나) [참고·판정 안 함] 실제 연습 31문항으로는 같은 비율이 얼마인가', () => {
+t('U-18b', `(나) [참고·판정 안 함] 실제 연습 ${REAL.length}문항(30강 전부 열림)으로는 같은 비율이 얼마인가`, () => {
   SIM.real = simGroups(REAL);
   fs.writeFileSync(path.join(__dirname, 'sim_result.json'), JSON.stringify(SIM, null, 1));
-  return Object.entries(SIM.real).map(([k, v]) => `${k} ${v}%`).join(' / ') + ' — 문항 수 부족(2~3일째 소진)·아주 쉬운 문항 없음';
+  return Object.entries(SIM.real).map(([k, v]) => `${k} ${v}%`).join(' / ') + ' — 30강이 모두 열린 학기 말 기준. 학기 초(열린 강이 적을 때)는 더 낮음. θ −1.5는 아주 쉬운 문항으로도 75% 미만(설계 한계 1)';
 });
 
 console.log('■ 힌트 사다리 · 제출');
@@ -180,6 +186,11 @@ t('U-22', '결과 이름 4가지 (설계 ③ 표)', () => {
   s = LU.newItemState('PRACTICE'); LU.submit(s, false); LU.submit(s, false); ok(s.closed && s.outcome === O.SHOWN, '2번 오답 = 정답 보고 이해');
   ok(LU.submit(s, true).ignored, '마감 뒤 제출은 무시');
   ok(LU.R_OF[O.SOLO] === 1 && LU.R_OF[O.HINT] === 0.5 && LU.R_OF[O.SECOND] === 0.5 && LU.R_OF[O.SHOWN] === 0, 'R값');
+});
+
+t('U-22b', '[개발자 제안] O/X는 1번 틀리면 바로 마감(두 번째 = 공짜 정답 방지), 4지선다는 2번', () => {
+  ok(LU.maxSubmitsFor(ox('a', 1, 1)) === 1 && LU.maxSubmitsFor(mcq('a', 1, 1)) === 2, 'max');
+  const s = LU.newItemState('PRACTICE', 1); LU.submit(s, false); ok(s.closed && s.outcome === O.SHOWN, 'OX 1번 오답 마감');
 });
 
 console.log('■ 경험치 (결재2 확정: 문항 완료 10, 복습 혼자 맞힘 +5)');

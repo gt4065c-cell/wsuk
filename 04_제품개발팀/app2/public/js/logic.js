@@ -15,7 +15,7 @@
   var C = {
     THETA_MIN: -3, THETA_MAX: 3,
     B_MIN: -2.5, B_MAX: 2.5,
-    B_FROM_DIFFICULTY: { 1: -1, 2: 0, 3: 1 },
+    B_FROM_DIFFICULTY: { 0: -2, 1: -1, 2: 0, 3: 1 },   // 0 = 아주 쉬운 확인 문항(결재2 ④ⓐ)
     ITEM_FIXED_UNTIL: 10,          // 문항 난이도는 응답 10개 전까지 고정
     P_LOW: 0.75, P_HIGH: 0.90, P_TARGET: 0.82,
     RECENT_DAYS: 7,                // 최근 7일 안에 푼 문항은 빼기
@@ -24,6 +24,7 @@
     REVIEW_GAP_DAYS: { 1: 1, 2: 3, 3: 7, 4: 14 },
     HINT_WAIT_MS: 10000,
     MAX_SUBMITS: 2,
+    MAX_SUBMITS_OX: 1,             // [개발자 제안·설계 확인 필요] O/X는 1번 틀리면 남은 답이 정답뿐이라 두 번째 제출 = 공짜 정답
     XP_COMPLETE: 10,               // 문항을 끝까지 풀면 결과와 상관없이 10
     XP_REVIEW_SOLO_BONUS: 5,       // 복습에서 혼자 맞히면 +5
     XP_DAILY_CAP: 200,             // 연습·복습 XP 하루 상한
@@ -170,7 +171,10 @@
 
   /* ---------- 6. 힌트 사다리 + 제출 ---------- */
   /* 문항 하나의 상태: {mode, level(본 힌트 단계 0~4), lastOpenAt, submits:[bool], closed, outcome, thought} */
-  function newItemState(mode) { return { mode: mode, level: 0, lastOpenAt: 0, submits: [], closed: false, outcome: null }; }
+  function newItemState(mode, maxSubmits) {
+    return { mode: mode, level: 0, lastOpenAt: 0, submits: [], closed: false, outcome: null, maxSubmits: maxSubmits || C.MAX_SUBMITS };
+  }
+  function maxSubmitsFor(q) { return q && q.type === "ox" ? C.MAX_SUBMITS_OX : C.MAX_SUBMITS; }
   /* 다음 힌트를 열 수 있나? → {ok, reason, waitMs} */
   function canOpenHint(st, now, thought, hasHints) {
     if (st.mode !== "PRACTICE" && st.mode !== "REVIEW") return { ok: false, reason: "off" };
@@ -198,7 +202,7 @@
     if (st.closed) return { closed: true, correct: correct, ignored: true };
     st.submits.push(!!correct);
     if (correct) { st.closed = true; st.outcome = outcomeOf(st); }
-    else if (st.submits.length >= C.MAX_SUBMITS) { st.closed = true; st.outcome = OUTCOME.SHOWN; }
+    else if (st.submits.length >= (st.maxSubmits || C.MAX_SUBMITS)) { st.closed = true; st.outcome = OUTCOME.SHOWN; }
     return { closed: st.closed, correct: correct };
   }
   function outcomeOf(st) {
@@ -273,7 +277,7 @@
     scoreDiagnostic: scoreDiagnostic,
     dayKey: dayKey, addDays: addDays, daysBetween: daysBetween, weekKey: weekKey,
     pickNext: pickNext,
-    newItemState: newItemState, canOpenHint: canOpenHint, openHint: openHint, submit: submit, outcomeOf: outcomeOf,
+    newItemState: newItemState, maxSubmitsFor: maxSubmitsFor, canOpenHint: canOpenHint, openHint: openHint, submit: submit, outcomeOf: outcomeOf,
     xpFor: xpFor,
     reviewAfterPractice: reviewAfterPractice, reviewAfterReview: reviewAfterReview, pickReviews: pickReviews,
     streak: streak
