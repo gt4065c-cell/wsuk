@@ -252,7 +252,7 @@ begin
     where d.student_id = me.id order by q.diag_order
   loop
     v_r := case when r.choice is not null and r.choice = r.answer_index then 1 else 0 end;
-    v_p := lu_p(v_theta, case r.difficulty when 1 then -1 when 2 then 0 else 1 end, 1.0 / r.nc);
+    v_p := lu_p(v_theta, case r.difficulty when 0 then -2 when 1 then -1 when 2 then 0 else 1 end, 1.0 / r.nc);
     v_theta := lu_clamp(v_theta + lu_k(v_n) * (v_r - v_p), -3, 3);
     v_n := v_n + 1;
   end loop;
@@ -319,11 +319,18 @@ declare
   v_r double precision; v_p double precision; v_xp int; v_xp_today int; v_first boolean; rb review_box; v_note text;
 begin
   if p_mode not in ('PRACTICE', 'REVIEW') then raise exception 'BAD_MODE'; end if;
+  -- QA 4번: 같은 학생의 요청을 한 줄로 세움(하루 상한 200 동시 요청으로 뚫기 방지). 잠근 뒤 최신 값을 다시 읽음
+  select * into me from students where id = me.id for update;
   select * into q from questions where id = p_qid and pool = 'practice';
   if not found then raise exception 'PRACTICE_ONLY'; end if;
   select * into k from question_keys where question_id = p_qid;
   v_max := case when q.type = 'ox' then 1 else 2 end;
   if ns > v_max or p_level not between 0 and 4 then raise exception 'BAD_SUBMITS'; end if;
+  -- QA 3번: 보기 번호는 0 ~ (보기 수-1)만, 같은 답 두 번 금지
+  for i in 1 .. ns loop
+    if p_submits[i] is null or p_submits[i] < 0 or p_submits[i] >= jsonb_array_length(q.choices) then raise exception 'BAD_SUBMITS'; end if;
+  end loop;
+  if ns = 2 and p_submits[1] = p_submits[2] then raise exception 'BAD_SUBMITS'; end if;
   -- 마지막 제출 전 답은 모두 오답이어야 함(정답이면 그때 마감됐어야 함)
   for i in 1 .. greatest(ns - 1, 0) loop
     if p_submits[i] = k.answer_index then raise exception 'BAD_SUBMITS'; end if;
@@ -345,6 +352,8 @@ begin
   if p_mode = 'PRACTICE' then
     v_p := lu_p(me.theta, q.b, 1.0 / jsonb_array_length(q.choices));
     v_first := not exists (select 1 from attempts where student_id = me.id and question_id = q.id);
+    -- QA 3번 / 팀게임 설계: 복습 일정 밖에서 같은 문항을 다시 풀면 XP 없음
+    if not v_first then v_xp := 0; end if;
     update students set theta = lu_clamp(theta + lu_k(n_answers) * (v_r - v_p), -3, 3), n_answers = n_answers + 1
       where id = me.id;
     if v_first then
