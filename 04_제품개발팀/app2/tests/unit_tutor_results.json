@@ -1,0 +1,236 @@
+[
+ {
+  "id": "A-01",
+  "name": "모델·길이: claude-haiku-5-5, max_tokens 300, 질문 300자",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-02",
+  "name": "질문 글: 빈 글 거절 · 301자 거절 · 300자 통과 · 앞뒤 빈칸 정리",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-03",
+  "name": "질문 글의 이메일·전화번호·참가자 코드 모양은 가림 (SELECT 같은 낱말은 그대로)",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-04",
+  "name": "지시문: 정답 말하지 않기 · 질문으로 끝내기 · 범위 밖 표시 · 지시 무시 요청 따르지 않기",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-05",
+  "name": "아직 답을 안 냈으면 '어느 보기가 맞거나 틀린지 암시 금지', 오답을 냈으면 그 오답 설명만 허용",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-06",
+  "name": "O/X 문항 지시문: 맞다/틀리다 판정 금지",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-07",
+  "name": "정답 노출 ①: 정답 보기 문장 8글자 이상이 그대로 → 차단",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-08",
+  "name": "정답 노출 ①-예외: 문제·다른 보기에도 있는 글은 정답을 알려 주지 않으므로 통과",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-09",
+  "name": "정답 노출 ②: '정답은 …' 같은 말 → 차단",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-10",
+  "name": "정답 노출 ③: 답을 내기 전에는 짧은 정답 보기(2~7글자)가 통째로 나와도 차단, 오답 낸 뒤엔 허용",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-11",
+  "name": "정답 노출 ④: O/X 판정('이 문장은 맞아요', 'O예요') → 차단, 개념 설명은 통과",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-12",
+  "name": "범위 밖 표시 [범위밖] 알아보기 + 표시 떼고 보여 주기",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "A-13",
+  "name": "요청 모양: 문항 번호·힌트 단계·오답 목록 검사",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-01",
+  "name": "정상: 로그인 확인 → tutor_begin → Anthropic → tutor_finish('ok', 토큰 수) → 답 + 남은 횟수",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-02",
+  "name": "Anthropic 요청: 주소·헤더(x-api-key, anthropic-version 2023-06-01)·모델·max_tokens",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-03",
+  "name": "개인정보: Anthropic 에 학생 토큰·계정 번호·코드·별명을 보내지 않음, 질문 글은 보냄",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-04",
+  "name": "DB 함수는 서버 열쇠(service_role)로, 학생 확인은 공개 열쇠 + 학생 토큰으로",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-05",
+  "name": "새 모양 서버 열쇠(sb_secret_)면 apikey 헤더만 (Authorization 없음)",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-06",
+  "name": "정답 노출 차단: AI 답에 정답 보기 문장 → 버리고 안전 문구, tutor_finish('blocked'), 횟수 돌려줌",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-07",
+  "name": "강의 범위 밖: [범위밖] 답 → 표시 떼고 정중히 거절, tutor_finish('refused'), 횟수 안 줄어듦",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-08",
+  "name": "진단·평가 문항: DB가 NOT_PRACTICE → Anthropic 호출 0번, 쉬운 안내",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-09",
+  "name": "상한·스위치: DB가 OFF → Anthropic 호출 0번, \"쉬고 있어요\" 안내 + 남은 횟수 0",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-10",
+  "name": "상한·스위치: DB가 DAY_LIMIT → Anthropic 호출 0번, \"내일 다시\" 안내 + 남은 횟수 0",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-11",
+  "name": "상한·스위치: DB가 MONTH_LIMIT → Anthropic 호출 0번, \"이번 달\" 안내 + 남은 횟수 0",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-12",
+  "name": "상한·스위치: DB가 APP_DAILY → Anthropic 호출 0번, \"잠시 쉬어요\" 안내 + 남은 횟수 0",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-13",
+  "name": "상한·스위치: DB가 BUDGET → Anthropic 호출 0번, \"사용량이 다 찼어요\" 안내 + 남은 횟수 0",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-14",
+  "name": "상한·스위치: DB가 NOT_YET → Anthropic 호출 0번, \"3단계\" 안내 + 남은 횟수 0",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-15",
+  "name": "API 키가 Secrets 에 없으면: DB 예약도 Anthropic 호출도 안 함 → '쉬고 있어요'",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-16",
+  "name": "Anthropic 오류(429 등): tutor_finish('error') → '횟수는 줄지 않았어요', 로그에 키 없음",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-17",
+  "name": "로그인 없음·가짜 토큰 → 401, DB·AI 호출 0번",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-18",
+  "name": "질문 301자 → 400 TOO_LONG, DB·AI 호출 0번",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-19",
+  "name": "응답 어디에도 API 키·서버 열쇠가 없음",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-20",
+  "name": "OPTIONS(브라우저 사전 확인) 200 + CORS, GET 은 405",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "B-21",
+  "name": "O/X 문항: AI가 '이 문장은 맞아요'라고 하면 차단",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "C-01",
+  "name": "Edge Function 코드: 키는 Deno.env.get('ANTHROPIC_API_KEY')로만, 파일에 키 모양 없음",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "C-02",
+  "name": "화면 파일(public/)·SQL·README 어디에도 Anthropic 키 모양 없음",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "C-03",
+  "name": "화면 코드는 Anthropic 에 직접 접속하지 않음 (api.anthropic.com 은 Edge Function 에만)",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "D-01",
+  "name": "AI 튜터 버튼 보이는 때: 연습·복습만, 힌트 있으면 L3 뒤, 없으면 답 1번 낸 뒤, 끝난 문항·진단·평가는 안 보임",
+  "status": "pass",
+  "note": ""
+ },
+ {
+  "id": "D-02",
+  "name": "화면 안내 글·상한 숫자 = 서버(guard.mjs) 글·숫자 (한쪽만 고치면 실패)",
+  "status": "pass",
+  "note": ""
+ }
+]

@@ -18,6 +18,8 @@
      closeItem(rec)         문항 마감 기록 → 경험치·복습 상자·Elo 반영
      myTeam()               [M2] 내 팀 요약 (팀원 별명·이번 주 팀 합계·참여 목표 달성 여부. 팀원 개인 숫자 없음)
      setTeamOff(off)        [M2] 팀 활동 쉬기 / 다시 하기 → 바뀐 팀 요약
+     tutorStatus()          [M2 2차] AI 튜터 켜짐 여부 + 오늘 남은 횟수
+     askTutor(rq)           [M2 2차] AI 튜터에게 질문 {qid, level, tried, question} → {ok, kind, reply, state} (로컬 모드는 가짜 응답)
 
    두 가지 창구가 같은 모양으로 들어 있습니다.
      A. LocalStore    : 로컬 모드(개발용). 이 브라우저에만 저장
@@ -108,6 +110,24 @@
       activeMembers: w.activeMembers, progress: w.progress, goal: w.goal, achieved: w.achieved,
       myCount: Math.min(mine, g), achievedTeams: achievedTeams, fake: true
     };
+  }
+
+  /* [M2 2차] 로컬 모드 AI 튜터 = 가짜 응답 (실제 AI에 묻지 않음, 인터넷 안 씀, 질문 글은 저장하지 않음)
+     하루 5번을 이 브라우저에서 셈. [개발용] 흉내 스위치(F12 → Console):
+       localStorage.setItem('lu2_dev_tutor_off', 'OFF')        // 꺼짐 흉내 (BUDGET·APP_DAILY 등 이유 이름도 됨)
+       localStorage.setItem('lu2_dev_tutor_kind', 'blocked')   // 다음 답을 '정답 노출 차단'(blocked)·'범위 밖'(refused)·'오류'(error)로 */
+  var TUTOR_KEY = "lu2_local_tutor";
+  function localTutorState(code) {
+    var t = {}; try { t = JSON.parse(lsGet(TUTOR_KEY) || "{}") || {}; } catch (e) { t = {}; }
+    var used = (t[code] && t[code].day === today()) ? t[code].n : 0;
+    var lim = LU.TUTOR.DAY_LIMIT, off = lsGet("lu2_dev_tutor_off");
+    var reason = off ? (LU.TUTOR.TEXT[off] ? off : "OFF") : used >= lim ? "DAY_LIMIT" : null;
+    return { enabled: !reason, reason: reason, left: Math.max(0, lim - used), dayLeft: Math.max(0, lim - used), monthLeft: 60, dayLimit: lim, fake: true };
+  }
+  function localTutorUse(code) {
+    var t = {}; try { t = JSON.parse(lsGet(TUTOR_KEY) || "{}") || {}; } catch (e) { t = {}; }
+    if (!t[code] || t[code].day !== today()) t[code] = { day: today(), n: 0 };
+    t[code].n++; lsSet(TUTOR_KEY, JSON.stringify(t));
   }
 
   var picks = [];
@@ -265,6 +285,31 @@
       var db = loadDb(), s = current(db); if (!s) return needLogin();
       s.teamOff = !!off; saveDb(db);
       return Promise.resolve(localTeam(db, s));
+    },
+
+    /* [M2 2차] AI 튜터 — 로컬 모드는 가짜 응답. 화면에 돌려주는 모양은 Supabase 모드(Edge Function ai-tutor)와 같음 */
+    tutorStatus: function () {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      return Promise.resolve(localTutorState(s.code));
+    },
+    askTutor: function (rq) {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      var q = QBY[rq.qid], text = String(rq.question || "").trim();
+      if (!q) return Promise.resolve({ ok: false, error: "NOT_PRACTICE", message: "AI 튜터는 연습 문제에서만 쓸 수 있어요." });
+      if (!text) return Promise.resolve({ ok: false, error: "EMPTY", message: "궁금한 점을 한 줄 이상 써 주세요." });
+      if (text.length > LU.TUTOR.MAX_CHARS) return Promise.resolve({ ok: false, error: "TOO_LONG", message: "질문은 300자 안으로 줄여 주세요." });
+      var st = localTutorState(s.code);
+      if (!st.enabled) return Promise.resolve({ ok: false, error: st.reason, message: LU.TUTOR.TEXT[st.reason], state: st });
+      var kind = lsGet("lu2_dev_tutor_kind") || "ok"; lsDel("lu2_dev_tutor_kind");
+      if (kind === "error") return Promise.resolve({ ok: false, error: "AI_ERROR", message: "AI 튜터가 지금 답하지 못했어요. 횟수는 줄지 않았어요. 잠시 뒤 다시 해 주세요.", state: st });
+      var reply = kind === "refused" ? "이 내용은 우리 강의 범위 밖이에요. " + q.lecture + "강 '" + (q.source_section || "") + "' 부분으로 돌아가 볼까요?"
+        : kind === "blocked" ? "AI 답에 정답이 그대로 들어 있어서 보여 드리지 않았어요. 이번 질문은 횟수에서 빼 드렸어요. 힌트를 다시 읽고, 문제에서 묻는 핵심 낱말이 무엇인지 먼저 떠올려 볼까요?"
+        : "(가짜 AI 응답 · 개발용 — 실제 AI에 묻지 않았어요) 좋은 질문이에요. 이 문제는 " + q.lecture + "강 '" + (q.source_section || "") +
+          "' 부분의 핵심 낱말을 묻고 있어요. 그 낱말이 무슨 일을 하는지 한 문장으로 말해 볼까요?";
+      if (kind === "ok") localTutorUse(s.code);
+      return new Promise(function (ok) { setTimeout(ok, 150); }).then(function () {   // AI가 생각하는 시간 흉내
+        return { ok: true, kind: kind, reply: reply, state: localTutorState(s.code) };
+      });
     },
 
     /* [개발용] 자동 테스트가 속을 들여다보는 문. 화면 코드는 쓰지 않음. Supabase 모드에는 없음 */
@@ -437,6 +482,20 @@
     };
   }
 
+  /* [M2 2차] AI 튜터 상태·답 → 화면 모양 (모르는 칸은 버림) */
+  function normTutor(t) {
+    t = t || {};
+    return { enabled: !!t.enabled, reason: t.reason || null, left: Number(t.left) || 0, dayLeft: Number(t.dayLeft) || 0,
+             monthLeft: Number(t.monthLeft) || 0, dayLimit: Number(t.dayLimit) || LU.TUTOR.DAY_LIMIT, fake: false };
+  }
+  function normAsk(a) {
+    a = a || {};
+    // state: 바뀐 남은 횟수(서버가 보냈을 때만). 질문이 너무 길다 같은 거절에는 없음 → 화면은 전 상태 그대로
+    return { ok: !!a.ok, kind: a.kind || null, reply: a.ok ? String(a.reply || "") : "",
+             error: a.error || null, message: a.message ? String(a.message) : "",
+             state: a.enabled === undefined ? null : normTutor(a) };
+  }
+
   var SupabaseStore = {
     mode: "supabase", devLabel: "", hintsAreFake: false,
     now: function () { return Date.now(); },
@@ -546,6 +605,24 @@
     },
     setTeamOff: function (off) {
       return rpc("set_team_off", { p_off: !!off }).then(normTeam).catch(function (e) { throw friendly(e); });
+    },
+    /* [M2 2차] AI 튜터 — 남은 횟수는 rpc tutor_status(), 질문은 Edge Function ai-tutor (50_ai_tutor.sql · supabase/functions/ai-tutor)
+       화면은 Anthropic 에 직접 닿지 않고 키도 모릅니다. 보내는 것: 문항 번호·본 힌트 단계·낸 오답 번호·질문 글 (코드·별명 없음) */
+    tutorStatus: function () {
+      return rpc("tutor_status").then(normTutor).catch(function (e) { throw friendly(e); });
+    },
+    askTutor: function (rq) {
+      var body = { qid: String(rq.qid), level: Number(rq.level) || 0, tried: (rq.tried || []).map(Number), question: String(rq.question || "") };
+      return sb().then(function (c) { return c.functions.invoke("ai-tutor", { body: body }); }).then(function (r) {
+        if (!r.error) return normAsk(r.data);
+        // 200 이 아닌 답(로그인 풀림·질문 너무 김 등): 함수가 보낸 쉬운 안내를 꺼내 씀
+        var ctxRes = r.error.context;
+        return (ctxRes && typeof ctxRes.json === "function" ? ctxRes.json().catch(function () { return null; }) : Promise.resolve(null))
+          .then(function (j) {
+            if (j && j.message) return normAsk(j);
+            throw r.error;
+          });
+      }).catch(function (e) { throw friendly(e); });
     },
     closeItem: function (rec) {
       return rpc("close_item", { p_qid: rec.qid, p_mode: rec.mode, p_level: Number(rec.level) || 0,

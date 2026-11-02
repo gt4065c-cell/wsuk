@@ -299,8 +299,32 @@
     return (attempts || []).filter(function (a) { return a.day >= w && a.day < end && (a.xp || 0) > 0; }).length;
   }
 
+  /* ---------- 9. [M2 2차] AI 튜터 버튼이 보이는 때 ----------
+     연습·복습 문항이 아직 안 끝났고 → 미리 만든 힌트가 있으면 L3까지 본 뒤, 없으면 답을 한 번 낸 뒤
+     (진단·평가에는 절대 안 보임. 서버 tutor_begin 도 같은 조건을 다시 확인 — 50_ai_tutor.sql) */
+  function tutorEligible(st, hasHints) {
+    if (!st || (st.mode !== "PRACTICE" && st.mode !== "REVIEW")) return false;
+    if (st.closed || st.level >= 4) return false;
+    return hasHints ? st.level >= 3 : st.submits.length >= 1;
+  }
+  var TUTOR = {
+    MAX_CHARS: 300,     // 질문 글 상한 (설계 A5) — supabase/functions/ai-tutor/guard.mjs 와 같아야 함
+    DAY_LIMIT: 5,       // 1인 하루 (결재2) — 서버 app_settings.tutor_day_limit 기본값과 같음
+    // 꺼진 이유 → 학생에게 보일 한 줄 (guard.mjs MESSAGES 와 같은 글. 자동 시험 D-02가 비교)
+    TEXT: {
+      OFF: "AI 튜터는 지금 쉬고 있어요. 미리 만든 힌트와 해설은 계속 볼 수 있어요.",
+      NOT_CONFIGURED: "AI 튜터는 지금 쉬고 있어요. 미리 만든 힌트와 해설은 계속 볼 수 있어요.",
+      BUDGET: "이번 달 AI 튜터 사용량이 다 찼어요. 미리 만든 해설은 계속 볼 수 있어요.",
+      APP_DAILY: "오늘은 AI 튜터를 찾는 사람이 많아 잠시 쉬어요. 내일 다시 열려요.",
+      MONTH_LIMIT: "이번 달 AI 질문을 다 썼어요. 미리 만든 힌트와 해설을 다시 봐요.",
+      DAY_LIMIT: "오늘 AI 질문을 다 썼어요. 내일 다시 열려요. 팀원에게 물어보는 것도 좋아요.",
+      CALL_CAP: "오늘은 AI 튜터를 너무 여러 번 불렀어요. 내일 다시 열려요."
+    }
+  };
+
   var api = {
     C: C, OUTCOME: OUTCOME, R_OF: R_OF,
+    tutorEligible: tutorEligible, TUTOR: TUTOR,
     normalizeCode: normalizeCode, isValidCodeShape: isValidCodeShape,
     guessRate: guessRate, initialB: initialB, pCorrect: pCorrect, kLearner: kLearner,
     updateTheta: updateTheta, updateB: updateB, applyElo: applyElo,

@@ -9,6 +9,8 @@
      __MOCK_DATA.team = {name, goalPerMember, mates:[{nickname,count,resting}], achievedOthers:[팀 이름]} (없으면 팀 없음)
      __MOCK_DATA.adminUsers = [교수 화면에 로그인할 수 있는(등록된) 이메일], adminEmails = [admins 표 이메일]
      __MOCK_DATA.adminStats / adminTeams = 교수 함수가 돌려줄 가짜 값
+   - [M2 2차] AI 튜터: rpc tutor_status + functions.invoke('ai-tutor') 흉내. __MOCK_DATA.tutor 가 없으면 서버에 AI 튜터가 없는 것처럼(함수 없음)
+     __MOCK_DATA.tutor = {enabled, reason, dayLimit, used, reply, kind, error}  (부른 내용은 mock_log 에 t:'invoke')
    ========================================================= */
 (function () {
   "use strict";
@@ -54,7 +56,18 @@
     return (D.adminEmails || []).map(function (y) { return y.toLowerCase(); }).indexOf(e) >= 0 ? e : null;
   }
 
+  /* [M2 2차] AI 튜터 상태 (오늘 쓴 횟수는 mock_db.tutorUsed 에) */
+  function tutorState() {
+    var T = D.tutor, x = db(), lim = T.dayLimit || 5, used = (T.used || 0) + (x.tutorUsed || 0);
+    var reason = T.reason || (T.enabled === false ? "OFF" : used >= lim ? "DAY_LIMIT" : null);
+    return { enabled: !reason, reason: reason, dayLimit: lim, dayLeft: Math.max(0, lim - used), monthLeft: 60, left: Math.max(0, lim - used) };
+  }
   var RPC = {
+    tutor_status: function () {
+      if (!D.tutor) return err("Could not find the function public.tutor_status");
+      if (!meCode()) return err("NOT_LINKED");
+      return ok(tutorState());
+    },
     claim_code: function (a) {
       var s = session(); if (!s) return err("NO_AUTH");
       var x = db(); x.tries[s.uid] = (x.tries[s.uid] || 0) + 1; save(x);
@@ -231,7 +244,22 @@
           if (dl) return new Promise(function (r) { setTimeout(r, dl); }).then(function () { use(); return RPC[name](args || {}); });
           return RPC[name](args || {});
         },
-        from: function (t) { use(); return from(t); }
+        from: function (t) { use(); return from(t); },
+        functions: {
+          invoke: function (name, o) {
+            use(); var body = (o && o.body) || {};
+            log({ t: "invoke", name: name, body: JSON.parse(JSON.stringify(body)) });
+            var T = D.tutor;
+            if (!T || name !== "ai-tutor") return Promise.resolve({ data: null, error: { name: "FunctionsHttpError", message: "Edge Function returned a non-2xx status code", context: null } });
+            if (!meCode()) return ok({ ok: false, error: "NO_AUTH", message: "로그인이 풀렸어요. 새로고침한 뒤 코드를 다시 넣어 주세요." });
+            var st = tutorState();
+            if (T.error) return ok({ ok: false, error: T.error, message: T.message || "가짜 거절" });   // 진짜 함수처럼: 문항 거절에는 남은 횟수 칸 없음
+            if (!st.enabled) return ok(Object.assign({ ok: false, error: st.reason, message: "가짜 서버: " + st.reason }, st));
+            var kind = T.kind || "ok";
+            if (kind === "ok") { var x = db(); x.tutorUsed = (x.tutorUsed || 0) + 1; save(x); }
+            return ok(Object.assign({ ok: true, kind: kind, reply: T.reply || "가짜 서버 AI 답이에요. 어떤 낱말이 헷갈리나요?" }, tutorState()));
+          }
+        }
       };
     }
   };

@@ -176,3 +176,60 @@ bash supabase/local_test/run_m2_local.sh   # [M2 1차] SQL만 따로 시험 (임
 | `admin_assign_teams` · `admin_move_student` | SQL 편집기만 | 팀 짜기·옮기기 |
 - 새 표 `teams`: RLS 켬, 학생·익명 권한 0. 새 함수 11개 모두 anon에서 회수, 로그인한 사람에게는 위 5개만 허용.
 - `next_practice`·`close_item` 등 M1 함수는 건드리지 않았습니다(자동 시험 M-66·N-29가 확인).
+
+---
+
+## 7. M2 2차 — 실시간 AI 튜터 (2026-11-02, DB 적용·함수 배포 전)
+
+> **한 줄 요약**: 연습 문제에서 미리 만든 힌트를 3단계까지 보고도 막히면(힌트가 없는 문제는 답을 한 번 낸 뒤) **[AI 튜터에게 물어보기]**가 나타납니다. 하루 5번, 정답은 알려 주지 않고 한 단계씩 되묻습니다. 진단·평가에는 절대 안 나옵니다. **지금은 꺼져 있고**, 캡틴이 API 키를 넣고 켜야 동작합니다.
+
+### 7-1. 규칙 (결재2 확정값 그대로)
+| 항목 | 규칙 |
+|---|---|
+| 모델 | Claude Haiku 5.5 (`claude-haiku-5-5`), 답 최대 300토큰, 질문 300자 안 |
+| 버튼이 보이는 때 | 연습·복습 문항, 아직 안 끝났고 → 힌트 있으면 L3 본 뒤 / 힌트 없으면 오답 1번 낸 뒤. 진단·평가·끝난 문항은 안 보임 (서버도 다시 확인) |
+| 4겹 상한 | 1인 하루 5 · 1인 한 달 60 · 앱 전체 하루 300 · Anthropic 콘솔 월 $7(캡틴이 콘솔에서) |
+| 자동 꺼짐 | 이번 달 추정 비용 **$6.40(약 ₩9,000)** 도달 → 모든 학생 꺼짐, 다음 달 1일 저절로 다시 켜짐 |
+| 횟수 세기 | 답을 잘 받았을 때만 1번. 강의 범위 밖 거절·정답 노출로 버린 답·AI 오류는 안 셈. 두 기기로 동시에 눌러도 6번째는 거절 |
+| 남용 방지 (개발자 추가) | 1인 하루 **모든 호출 15번**까지(안 세는 호출을 반복해 비용 쓰기 방지) |
+| 정답 노출 막기 | ① 지시문으로 금지 ② 서버가 답에 정답 보기 문장이 **8글자 이상 그대로** 있거나 "정답은…" 같은 말이 있으면 버리고 안전 문구 + 힌트 2단계 다시 보기 ③ 아직 답을 안 낸 학생에게는 "어느 보기가 맞는지 암시 금지" ④ O/X는 "맞아요/틀려요" 판정 차단 |
+| AI에 보내는 것 | 문항·보기·정답·해설 요지·흔한 착각·이미 낸 오답·질문 글뿐. **코드·별명·학생 번호는 안 보냄.** 질문 속 이메일·전화번호·코드 모양은 가림 |
+| 저장하는 것 | **숫자만**(누가·어느 문항·날짜·토큰 수·추정 금액·결과 종류). 질문 글·답 글은 어디에도 저장 안 함 |
+
+### 7-2. 파일
+| 파일 | 하는 일 |
+|---|---|
+| `supabase/50_ai_tutor.sql` | 사용 기록 표 `tutor_usage`(RLS 켬, 학생 권한 0) · 스위치 `app_settings.tutor_enabled`(기본 꺼짐) · 상한 칸 · 함수 `tutor_status`(학생: 내 남은 횟수) · `tutor_begin`/`tutor_finish`(Edge Function 전용, service_role만) · `admin_tutor_usage`(교수만) |
+| `supabase/functions/ai-tutor/index.ts` | Edge Function 입구(Deno). 키는 `Deno.env.get("ANTHROPIC_API_KEY")`로만 읽음 |
+| `supabase/functions/ai-tutor/handler.mjs` | 처리 순서: 로그인 확인 → `tutor_begin` → Anthropic → 범위 밖·정답 노출 검사 → `tutor_finish` |
+| `supabase/functions/ai-tutor/guard.mjs` | 검사 규칙(지시문·정답 노출·질문 정리) — node로 시험 가능 |
+| `public/js/store.js` · `app.js` · `logic.js` | 화면: 버튼·남은 횟수·꺼짐 안내. 로컬 모드는 **가짜 응답**(인터넷 안 씀) |
+
+### 7-3. 로컬 모드에서 보기 (1-2-3)
+1. 1장처럼 임시 서버를 켜고 `http://127.0.0.1:8010` → `TEST23`으로 들어가 진단을 끝냅니다.
+2. 오늘의 학습에서 힌트를 3단계까지 열면 아래에 **"아직 막혔다면 AI 튜터에게 물어보기 · 오늘 5번 남음"** 칸이 나옵니다. 질문을 쓰고 누르면 **가짜 답**(개발용 표시)이 옵니다.
+3. [개발용] 다른 경우 흉내 (F12 → Console): `localStorage.setItem('lu2_dev_tutor_off','BUDGET')`(예산 꺼짐) · `localStorage.setItem('lu2_dev_tutor_kind','blocked')`(다음 답을 정답 노출 차단으로, `refused`·`error`도 됨). 되돌리기: `localStorage.removeItem('lu2_dev_tutor_off')`
+
+### 7-4. AI 튜터 켜는 법 — 캡틴이 할 일 (돈이 드는 일이라 캡틴만)
+1. **API 키 만들기**: https://console.anthropic.com → 결제 수단 등록 → **Limits(사용 한도)에서 월 $7** 설정 → API Keys → [Create Key] (이름 예: `levelup-ai-tutor`). 키(`sk-ant-…`)는 **한 번만** 보이니 바로 2번으로.
+2. **Supabase에 키 넣기**: Supabase 관리 화면 → 프로젝트 edu-gamify → **Edge Functions → Secrets** → [Add new secret] → 이름 `ANTHROPIC_API_KEY`, 값에 키 붙여 넣기 → 저장.
+   - ⛔ 키를 **채팅·메모장·저장소·이메일·외부 AI에 붙여 넣지 마세요.** 비서실장·개발자도 키를 볼 필요가 없습니다.
+   - 키가 새어 나간 것 같으면 Anthropic 콘솔에서 그 키를 [Delete] 하고 새로 만들어 2번을 다시 하면 됩니다.
+3. **켜기**: 비서실장에게 "AI 튜터 켜 줘"라고 말하면 `update app_settings set tutor_enabled = true where id = 1;`을 실행합니다(끄기는 `false`). 켠 뒤 시험용 코드로 1번 물어보고 교수 화면용 `select admin_tutor_usage();`로 금액이 쌓이는지 확인합니다.
+
+### 7-5. 비서실장이 할 일 (캡틴 결재 후)
+1. SQL 적용: `supabase/50_ai_tutor.sql` (schema → 30 → 40 다음). 적용 전에도 앱은 그대로 동작합니다(버튼만 안 보임).
+2. Edge Function 배포: `supabase/functions/ai-tutor/` 세 파일을 함수 이름 **`ai-tutor`**로 배포. **로그인 토큰 검사(Verify JWT)는 켠 채로.**
+3. 점검: SQL 파일 끝의 점검 쿼리 3개(RLS 꺼진 표 0 · `tutor_usage` 학생 권한 0 · 학생이 `tutor_begin` 실행 불가).
+
+### 7-6. 확인 필요 (공식 문서로 아직 검증 못 함)
+- Anthropic Messages API 사양(주소 `https://api.anthropic.com/v1/messages`, 머리말 `x-api-key`·`anthropic-version: 2023-06-01`, 모델 이름 `claude-haiku-5-5`, 응답의 `content[].text`·`usage.input_tokens/output_tokens`)은 **지시받은 사양대로** 구현했고 최신 문서와 대조하지 않았습니다(확인 필요). 실제 키로 1번 호출해 보면 바로 확인됩니다.
+- Edge Function에 자동으로 들어오는 서버 열쇠 이름(`SUPABASE_SERVICE_ROLE_KEY`)과, 새 열쇠(`sb_secret_…`)일 때 `apikey` 머리말만 보내는 방식(확인 필요).
+- 가격 $0.10 / $0.50(100만 토큰당)은 `lu_tutor_cost` 한 곳에만 있습니다. 바뀌면 그 두 숫자만 고칩니다.
+
+### 7-7. 자동 시험
+```
+node tests/unit_tutor.mjs                       # Edge Function 규칙·처리 순서 (가짜 Anthropic·가짜 DB) 39개
+node tests/run_e2e_tutor.js                     # 화면 (로컬·가짜 서버·진짜 라이브러리+가짜 HTTP) 18개
+bash supabase/local_test/run_tutor_local.sh     # SQL (임시 PostgreSQL, 동시 누르기 포함) 63개
+```

@@ -18,7 +18,8 @@
     team: null, teamErr: "", teamConfirm: false,   // [M2] 홈 팀 카드
     busy: false,  // 서버(저장소)에 묻는 중이면 true → 그동안 버튼 잠금 (QA 1·2번: 연타로 문제 건너뜀 방지)
     run: null,    // {reviews:[qid], newLeft, extra, xpStart, recent:[{qid,lecture,R}], seen:[qid], log:[{qid,mode,outcome,xp}]}
-    item: null    // {qid, q, mode, order, st, selected, hints, thought, concept, result, triedWrong:[orig], msg}
+    item: null    // {qid, q, mode, order, st, selected, hints, thought, concept, result, triedWrong:[orig], msg, tutor}
+                  // tutor = [M2 2차] AI 튜터 {loading, hidden, status, draft, msg, replies:[{q, kind, reply}]} — 질문 글은 이 문제 화면 안(메모리)에만
   };
 
   /* ---------- 도우미 ---------- */
@@ -155,7 +156,7 @@
                home: vHome, item: vItem, done: vDone })[S.screen]();
     var err = S.err ? '<div class="note" role="alert" id="err"><div class="note-title">문제가 생겼어요</div>' + esc(S.err) + '</div>' : "";
     app.innerHTML = '<section class="screen" data-screen="' + S.screen + '">' + h.replace("<!--ERR-->", err) + '</section>';
-    if (S.screen === "item") startTick();
+    if (S.screen === "item") { startTick(); maybeLoadTutor(); }
   }
   function vLoading() {
     // 시작하다 막히면(인터넷 끊김 등) 오류 문장 + 다시 시도 버튼
@@ -312,12 +313,58 @@
     }
     var noHints = !it.hints ? '<p class="sub" id="no-hints">이 문제는 미리 만든 힌트를 준비 중이에요. 답을 한 번 낸 뒤에는 정답과 해설을 볼 수 있어요.</p>' : "";
     var ladder = '<div class="ladder" aria-label="힌트 ' + st.level + ' / 4단계">' + [1, 2, 3, 4].map(function (k) { return '<i class="' + (k <= st.level ? "on" : "") + '"></i>'; }).join("") + '</div>';
-    if (st.closed) return st.level ? '<div class="hints">' + ladder + shown + '</div>' : "";
+    if (st.closed) return st.level || tutorHistory() ? '<div class="hints">' + (st.level ? ladder + shown : "") + tutorHistory() + '</div>' : "";
     var needThought = st.level + 1 >= 3 && st.level + 1 <= 4 && !!it.hints;
     return '<div class="hints" id="hints"><div class="h-label">' + (it.hints ? "막히면 힌트를 한 단계씩 열어요" : "정답과 해설") + (it.hints && it.hints.fake ? ' <span class="tag">시험용 힌트</span>' : "") + (it.hints && it.hints.draft ? ' <span class="tag" id="draft-tag">검토 전 힌트(개발용)</span>' : "") + '</div>' +
       ladder + shown + noHints +
       (needThought ? '<div class="field"><label for="thought">내 생각 한 줄 (꼭 써야 다음 힌트가 열려요)</label><textarea id="thought" rows="2" maxlength="200">' + esc(it.thought) + '</textarea></div>' : "") +
-      '<button class="btn btn-secondary" id="hint-btn" data-act="hint"></button></div>';
+      '<button class="btn btn-secondary" id="hint-btn" data-act="hint"></button>' + tutorPanel() + '</div>';
+  }
+
+  /* ---------- [M2 2차] AI 튜터 ----------
+     보이는 때: LU.tutorEligible (힌트 3단계를 본 뒤 / 미리 만든 힌트가 없으면 답을 한 번 낸 뒤, 연습·복습만)
+     남은 횟수는 처음 보일 때 한 번 STORE.tutorStatus()로 받고, 질문할 때마다 서버가 준 값으로 바꿈 */
+  function tutorHistory() {
+    var t = S.item.tutor; if (!t || !t.replies.length) return "";
+    return t.replies.map(function (x, i) {
+      var l2 = x.kind === "blocked" && S.item.hints ? '<div class="hint-step" data-level="2"><span class="h-lv">힌트 2단계 다시 보기</span>' + esc(S.item.hints.L2) + '</div>' : "";
+      return '<div class="tutor-q" data-n="' + i + '"><b>내 질문</b> ' + esc(x.q) + '</div>' +
+        '<div class="tutor-a" data-kind="' + esc(x.kind) + '"><span class="h-lv">AI 튜터' + (S.item.tutor.status && S.item.tutor.status.fake ? " (가짜 응답 · 개발용)" : "") + '</span>' + esc(x.reply) +
+        (x.kind === "refused" ? '<br><span class="sub">(이번 질문은 횟수에서 빼지 않았어요)</span>' : "") + '</div>' + l2;
+    }).join("") + '<p class="sub">AI 답은 틀릴 수 있어요. 미리 만든 해설과 함께 확인해요.</p>';
+  }
+  function tutorPanel() {
+    var it = S.item, t = it.tutor;
+    if (!STORE.tutorStatus || !LU.tutorEligible(it.st, !!it.hints)) return tutorHistory();
+    if (!t || t.loading) return '<div class="tutor" id="tutor" data-state="loading"><p class="sub">AI 튜터를 확인하는 중…</p></div>';
+    if (t.hidden) return tutorHistory();   // 서버에 AI 튜터가 아직 없음(SQL 적용 전) → 조용히 숨김
+    var s = t.status, n = (t.draft || "").length;
+    var head = '<div class="tutor-head"><span>아직 막혔다면 AI 튜터에게 물어보기</span>' +
+      (s.enabled ? '<span class="tutor-left" id="tutor-left">오늘 ' + s.left + '번 남음</span>' : '') + '</div>';
+    if (!s.enabled) {
+      return '<div class="tutor" id="tutor" data-state="off" data-reason="' + esc(s.reason) + '">' + head + tutorHistory() +
+        '<p class="tutor-off" id="tutor-off">' + esc(LU.TUTOR.TEXT[s.reason] || LU.TUTOR.TEXT.OFF) + '</p>' +
+        (t.msg && t.msg !== LU.TUTOR.TEXT[s.reason] ? '<p class="tutor-msg" id="tutor-msg" role="alert">' + esc(t.msg) + '</p>' : "") +
+        '<button class="btn btn-secondary" id="tutor-btn" disabled>AI 튜터에게 물어보기</button></div>';
+    }
+    return '<div class="tutor" id="tutor" data-state="on">' + head + tutorHistory() +
+      '<div class="field"><label for="tutor-q">무엇이 헷갈리나요? (' + LU.TUTOR.MAX_CHARS + '자 안, 이름·연락처는 쓰지 마세요)</label>' +
+      '<textarea id="tutor-q" rows="2" maxlength="' + LU.TUTOR.MAX_CHARS + '">' + esc(t.draft) + '</textarea>' +
+      '<p class="tutor-count" id="tutor-count">' + n + ' / ' + LU.TUTOR.MAX_CHARS + '</p></div>' +
+      (t.msg ? '<p class="tutor-msg" id="tutor-msg" role="alert">' + esc(t.msg) + '</p>' : "") +
+      '<button class="btn btn-secondary" id="tutor-btn" data-act="ask-tutor"' + (String(t.draft || "").trim() && !t.asking ? "" : " disabled") + '>' +
+      (t.asking ? "AI 튜터가 생각하는 중…" : "AI 튜터에게 물어보기") + '</button>' +
+      '<p class="sub">AI는 정답을 바로 알려 주지 않고, 스스로 풀 수 있게 한 단계씩 도와요.</p></div>';
+  }
+  function maybeLoadTutor() {
+    var it = S.item;
+    if (!it || it.tutor || !STORE.tutorStatus || !LU.tutorEligible(it.st, !!it.hints)) return;
+    it.tutor = { loading: true, replies: [], draft: "", msg: "" };
+    STORE.tutorStatus().then(function (s) { it.tutor.loading = false; it.tutor.status = s; },
+      function (e) {
+        it.tutor.loading = false; it.tutor.hidden = true;
+        if (window.console) console.warn("[레벨업] AI 튜터 상태를 불러오지 못해 버튼을 숨겼어요:", (e && e.message) || e);
+      }).then(function () { if (S.item === it && S.screen === "item") render(); });
   }
   function hintBtnState() {
     var it = S.item, st = it.st, next = st.level + 1;
@@ -398,6 +445,11 @@
   /* ---------- 버튼 동작 ---------- */
   app.addEventListener("input", function (e) {
     if (e.target.id === "thought" && S.item) { S.item.thought = e.target.value; updateHintBtn(); }
+    if (e.target.id === "tutor-q" && S.item && S.item.tutor) {
+      var tt = S.item.tutor; tt.draft = e.target.value;
+      var cnt = document.getElementById("tutor-count"); if (cnt) cnt.textContent = tt.draft.length + " / " + LU.TUTOR.MAX_CHARS;
+      var tb = document.getElementById("tutor-btn"); if (tb && tb.dataset.act) tb.disabled = !tt.draft.trim() || !!tt.asking || S.busy;
+    }
     if (e.target.id === "code" || e.target.id === "nick") S.draft = e.target.value;
   });
   app.addEventListener("keydown", function (e) {
@@ -472,6 +524,19 @@
           return closeIfNeeded();
         });
       case "retry-close": S.err = ""; return guard(closeIfNeeded);
+      case "ask-tutor":
+        var tu = it && it.tutor, qtext = tu ? String(tu.draft || "").trim() : "";
+        if (!tu || !qtext || !LU.tutorEligible(it.st, !!it.hints)) return;
+        tu.asking = true; tu.msg = ""; render();   // "AI 튜터가 생각하는 중…" 표시
+        return guard(function () {
+          return STORE.askTutor({ qid: it.qid, level: it.st.level, tried: it.triedWrong.slice(), question: qtext }).then(function (r) {
+            tu.asking = false;
+            if (r.state) tu.status = r.state;
+            if (r.ok) { tu.replies.push({ q: qtext, kind: r.kind, reply: r.reply }); tu.draft = ""; }
+            else tu.msg = r.message || "AI 튜터가 지금 답하지 못했어요. 잠시 뒤 다시 해 주세요.";
+            render();
+          }, function (e) { tu.asking = false; tu.msg = (e && e.message) || "AI 튜터가 지금 답하지 못했어요."; render(); });
+        });
       case "next": return guard(nextItem);
     }
   }
