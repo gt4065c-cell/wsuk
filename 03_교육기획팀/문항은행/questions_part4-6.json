@@ -19,7 +19,7 @@
     "source_lectures": [16],
     "source_section": "16강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -43,7 +43,7 @@
     "source_lectures": [16],
     "source_section": "16강 화면 실습 3",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -65,7 +65,7 @@
     "source_lectures": [16],
     "source_section": "16강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -89,7 +89,7 @@
     "source_lectures": [16],
     "source_section": "16강 화면 실습 3",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -113,7 +113,7 @@
     "source_lectures": [17],
     "source_section": "17강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -137,7 +137,7 @@
     "source_lectures": [17],
     "source_section": "17강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -161,7 +161,7 @@
     "source_lectures": [17],
     "source_section": "17강 작동 확인",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -185,7 +185,7 @@
     "source_lectures": [17],
     "source_section": "17강 화면 실습 2·작동 확인",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -209,7 +209,7 @@
     "source_lectures": [18],
     "source_section": "18강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -231,7 +231,7 @@
     "source_lectures": [18],
     "source_section": "18강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -255,7 +255,7 @@
     "source_lectures": [18],
     "source_section": "18강 화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -279,7 +279,7 @@
     "source_lectures": [18],
     "source_section": "18강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -303,7 +303,7 @@
     "source_lectures": [19],
     "source_section": "19강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -327,7 +327,7 @@
     "source_lectures": [19],
     "source_section": "19강 화면 실습 1",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -351,7 +351,7 @@
     "source_lectures": [19],
     "source_section": "19강 화면 실습 3",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -375,7 +375,7 @@
     "source_lectures": [19],
     "source_section": "19강 화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -399,7 +399,7 @@
     "source_lectures": [20],
     "source_section": "20강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -421,7 +421,7 @@
     "source_lectures": [20],
     "source_section": "20강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -445,7 +445,7 @@
     "source_lectures": [20],
     "source_section": "20강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -469,7 +469,7 @@
     "source_lectures": [20],
     "source_section": "20강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -493,7 +493,7 @@
     "source_lectures": [21],
     "source_section": "21강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -517,7 +517,7 @@
     "source_lectures": [21],
     "source_section": "21강 화면 실습 1",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -539,7 +539,7 @@
     "source_lectures": [21],
     "source_section": "21강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -563,7 +563,7 @@
     "source_lectures": [21],
     "source_section": "21강 화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -587,7 +587,7 @@
     "source_lectures": [22],
     "source_section": "22강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -611,7 +611,7 @@
     "source_lectures": [22],
     "source_section": "22강 화면 실습 1·2",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -635,7 +635,7 @@
     "source_lectures": [22],
     "source_section": "22강 화면 실습 1",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -659,7 +659,7 @@
     "source_lectures": [22],
     "source_section": "22강 화면 실습 3·4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -683,7 +683,7 @@
     "source_lectures": [23],
     "source_section": "23강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -707,7 +707,7 @@
     "source_lectures": [23],
     "source_section": "23강 핵심 개념·화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -729,7 +729,7 @@
     "source_lectures": [23],
     "source_section": "23강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -753,7 +753,7 @@
     "source_lectures": [23],
     "source_section": "23강 작동 확인",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -777,7 +777,7 @@
     "source_lectures": [24],
     "source_section": "24강 실습 요청문",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -801,7 +801,7 @@
     "source_lectures": [24],
     "source_section": "24강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -825,7 +825,7 @@
     "source_lectures": [24],
     "source_section": "24강 화면 실습 1·4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -849,7 +849,7 @@
     "source_lectures": [24],
     "source_section": "24강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -873,7 +873,7 @@
     "source_lectures": [25],
     "source_section": "25강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -895,7 +895,7 @@
     "source_lectures": [25],
     "source_section": "25강 핵심 개념·작동 확인",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -919,7 +919,7 @@
     "source_lectures": [25],
     "source_section": "25강 화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -943,7 +943,7 @@
     "source_lectures": [25],
     "source_section": "25강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -967,7 +967,7 @@
     "source_lectures": [26],
     "source_section": "26강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -991,7 +991,7 @@
     "source_lectures": [26],
     "source_section": "26강 화면 실습 1",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1013,7 +1013,7 @@
     "source_lectures": [26],
     "source_section": "26강 화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1037,7 +1037,7 @@
     "source_lectures": [26],
     "source_section": "26강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -1061,7 +1061,7 @@
     "source_lectures": [27],
     "source_section": "27강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1083,7 +1083,7 @@
     "source_lectures": [27],
     "source_section": "27강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1107,7 +1107,7 @@
     "source_lectures": [27],
     "source_section": "27강 화면 실습 3",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1131,7 +1131,7 @@
     "source_lectures": [27],
     "source_section": "27강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -1155,7 +1155,7 @@
     "source_lectures": [28],
     "source_section": "28강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1179,7 +1179,7 @@
     "source_lectures": [28],
     "source_section": "28강 화면 실습 1",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1201,7 +1201,7 @@
     "source_lectures": [28],
     "source_section": "28강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1225,7 +1225,7 @@
     "source_lectures": [28],
     "source_section": "28강 화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -1249,7 +1249,7 @@
     "source_lectures": [29],
     "source_section": "29강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1273,7 +1273,7 @@
     "source_lectures": [29],
     "source_section": "29강 화면 실습 1",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -1297,7 +1297,7 @@
     "source_lectures": [29],
     "source_section": "29강 화면 실습 2",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1321,7 +1321,7 @@
     "source_lectures": [29],
     "source_section": "29강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1345,7 +1345,7 @@
     "source_lectures": [30],
     "source_section": "30강 핵심 개념",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1367,7 +1367,7 @@
     "source_lectures": [30],
     "source_section": "30강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   },
@@ -1391,7 +1391,7 @@
     "source_lectures": [30],
     "source_section": "30강 작동 확인",
     "status": "draft",
-    "pool": null,
+    "pool": "assessment",
     "set": null,
     "slot": null
   },
@@ -1415,7 +1415,7 @@
     "source_lectures": [30],
     "source_section": "30강 화면 실습 4",
     "status": "draft",
-    "pool": null,
+    "pool": "practice",
     "set": null,
     "slot": null
   }
