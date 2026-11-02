@@ -426,7 +426,7 @@ begin
   while i < p_n loop
     v := '';
     for j in 1 .. 6 loop
-      v := v || substr(chars, 1 + (get_byte(gen_random_bytes(1), 0) % 32), 1);   -- 256은 32로 나눠떨어져 치우침 없음
+      v := v || substr(chars, 1 + (get_byte(extensions.gen_random_bytes(1), 0) % 32), 1);   -- 256은 32로 나눠떨어져 치우침 없음
     end loop;
     begin
       insert into students (code, cohort) values (v, p_cohort);

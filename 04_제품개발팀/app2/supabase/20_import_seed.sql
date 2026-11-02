@@ -1,0 +1,10 @@
+-- 문항 가져오기 (2026-11-02 적용 완료: 문항 221 · 정답 221 · 힌트 31, 원본과 합계 대조 일치)
+-- 방법: 잠깐 pg_net을 켜서 Supabase가 GitHub(공개 저장소)의 seed/seed.json을 직접 받음 → md5 확인 → 넣기 → pg_net 끄기
+-- 다시 넣을 때: python3 tools/build_seed.py → 커밋·푸시 → 아래 URL의 커밋 번호와 md5를 새 값으로 바꿔 실행
+--   1) create extension if not exists pg_net with schema extensions;
+--   2) select net.http_get('https://raw.githubusercontent.com/gt4065c-cell/wsuk/<커밋>/04_%EC%A0%9C%ED%92%88%EA%B0%9C%EB%B0%9C%ED%8C%80/app2/supabase/seed/seed.json');
+--   3) select status_code, md5(content) from net._http_response where id = <번호>;   -- md5sum seed/seed.json 과 같아야 함
+--   4) questions / question_keys / hints 에 jsonb_array_elements 로 upsert (b·n_resp 는 덮어쓰지 않음 — 학습된 난이도 보존)
+--   5) drop extension pg_net;
+-- 힌트는 모두 'draft'로 들어갑니다. 교수님 검토 후 'reviewed'로 바꿔야 학생에게 보입니다:
+--   update hints set hint_status = 'reviewed' where question_id in ('L01-Q1', ...);
