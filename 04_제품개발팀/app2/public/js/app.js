@@ -335,7 +335,13 @@
   }
   function tutorPanel() {
     var it = S.item, t = it.tutor;
-    if (!STORE.tutorStatus || !LU.tutorEligible(it.st, !!it.hints)) return tutorHistory();
+    if (!STORE.tutorStatus || !LU.tutorEligible(it.st, !!it.hints)) {
+      // 캡틴 결정(2026-11-03 ①): 아직 열리기 전이면 "언제 열리는지" 한 줄 안내 (4지선다·연습/복습·아직 안 끝난 문항만)
+      var st = it.st, pre = st && (st.mode === "PRACTICE" || st.mode === "REVIEW") && !st.closed && st.level < 4 &&
+        it.q && it.q.type !== "ox" && !(it.tutor && it.tutor.hidden);
+      return tutorHistory() + (pre ? '<p class="sub tutor-pre" id="tutor-pre">💬 ' +
+        (it.hints ? "힌트 3단계까지 보고도 막히면 AI 튜터에게 물어볼 수 있어요." : "틀린 답을 한 번 고르면 AI 튜터에게 물어볼 수 있어요.") + '</p>' : "");
+    }
     if (!t || t.loading) return '<div class="tutor" id="tutor" data-state="loading"><p class="sub">AI 튜터를 확인하는 중…</p></div>';
     if (t.hidden) return tutorHistory();   // 서버에 AI 튜터가 아직 없음(SQL 적용 전) → 조용히 숨김
     var s = t.status, n = (t.draft || "").length;
