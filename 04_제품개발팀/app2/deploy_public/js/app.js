@@ -349,9 +349,11 @@
     }
     return '<div class="tutor" id="tutor" data-state="on">' + head + tutorHistory() +
       '<div class="field"><label for="tutor-q">무엇이 헷갈리나요? (' + LU.TUTOR.MAX_CHARS + '자 안, 이름·연락처는 쓰지 마세요)</label>' +
-      '<textarea id="tutor-q" rows="2" maxlength="' + LU.TUTOR.MAX_CHARS + '">' + esc(t.draft) + '</textarea>' +
+      '<textarea id="tutor-q" rows="2" maxlength="' + LU.TUTOR.MAX_CHARS + '" placeholder="예: 제가 고른 답이 왜 틀렸는지 모르겠어요">' + esc(t.draft) + '</textarea>' +
       '<p class="tutor-count" id="tutor-count">' + n + ' / ' + LU.TUTOR.MAX_CHARS + '</p></div>' +
       (t.msg ? '<p class="tutor-msg" id="tutor-msg" role="alert">' + esc(t.msg) + '</p>' : "") +
+      // 빈 칸이면 버튼이 꺼진 이유를 버튼 바로 위에 보여 줌(고장처럼 보이지 않게). 누르면 질문 칸으로 이동(label)
+      '<label for="tutor-q" class="tutor-empty" id="tutor-empty"' + (String(t.draft || "").trim() || t.asking ? " hidden" : "") + '>궁금한 점을 한 줄 쓰면 버튼이 켜져요</label>' +
       '<button class="btn btn-secondary" id="tutor-btn" data-act="ask-tutor"' + (String(t.draft || "").trim() && !t.asking ? "" : " disabled") + '>' +
       (t.asking ? "AI 튜터가 생각하는 중…" : "AI 튜터에게 물어보기") + '</button>' +
       '<p class="sub">AI는 정답을 바로 알려 주지 않고, 스스로 풀 수 있게 한 단계씩 도와요.</p></div>';
@@ -449,6 +451,7 @@
       var tt = S.item.tutor; tt.draft = e.target.value;
       var cnt = document.getElementById("tutor-count"); if (cnt) cnt.textContent = tt.draft.length + " / " + LU.TUTOR.MAX_CHARS;
       var tb = document.getElementById("tutor-btn"); if (tb && tb.dataset.act) tb.disabled = !tt.draft.trim() || !!tt.asking || S.busy;
+      var te = document.getElementById("tutor-empty"); if (te) te.hidden = !!tt.draft.trim() || !!tt.asking;
     }
     if (e.target.id === "code" || e.target.id === "nick") S.draft = e.target.value;
   });

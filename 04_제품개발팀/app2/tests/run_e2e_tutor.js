@@ -115,6 +115,28 @@ async function ask(p, text) {
       await shot(p, '390_30_AI튜터_L3뒤');
       return withHint;
     });
+    await test('U-13', '빈 질문 칸: 버튼 위 "궁금한 점을 한 줄 쓰면 버튼이 켜져요" 안내 + 예시 placeholder → 글 쓰면 안내 사라지고 버튼 켜짐 (360·390px)', async () => {
+      ok(await p.isVisible('#tutor-empty'), '빈 칸인데 안내가 안 보임');
+      ok((await p.textContent('#tutor-empty')).includes('궁금한 점을 한 줄 쓰면 버튼이 켜져요'));
+      ok(await p.$eval('#tutor-q', t => t.placeholder) === '예: 제가 고른 답이 왜 틀렸는지 모르겠어요', 'placeholder');
+      ok(await p.$eval('#tutor-btn', b => b.disabled), '빈 칸인데 버튼이 켜짐');
+      ok(await p.evaluate(() => { const e = document.querySelector('#tutor-empty'), b = document.querySelector('#tutor-btn'); return e.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING; }), '안내가 버튼 위에 있지 않음');
+      for (const w of [360, 390]) {
+        await p.setViewportSize({ width: w, height: 800 });
+        await p.click('#tutor-empty');   // 안내를 누르면 질문 칸으로 이동
+        ok(await p.evaluate(() => document.activeElement && document.activeElement.id === 'tutor-q'), w + 'px: 안내 눌러도 칸으로 안 감');
+        const box = await p.evaluate(() => { const r = document.querySelector('#tutor-q').getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, vw: innerWidth, vh: innerHeight }; });
+        ok(box.l >= 0 && box.r <= box.vw && box.t >= 0 && box.b <= box.vh, w + 'px: 질문 칸이 화면 밖 ' + JSON.stringify(box));
+        await shot(p, w + '_31_AI튜터_빈칸안내');
+      }
+      await p.setViewportSize({ width: 390, height: 844 });
+      await p.fill('#tutor-q', '왜 틀렸는지 궁금해요');
+      await p.waitForFunction(() => !document.querySelector('#tutor-btn').disabled);
+      ok(!(await p.isVisible('#tutor-empty')), '글을 썼는데 안내가 남음');
+      await p.fill('#tutor-q', '   ');
+      ok(await p.isVisible('#tutor-empty') && await p.$eval('#tutor-btn', b => b.disabled), '다시 비우면 안내·회색이 돌아와야 함');
+      await p.fill('#tutor-q', '');
+    });
     await test('U-03', '질문 → 가짜 AI 답 + "오늘 4번 남음", 질문 글은 브라우저 저장소에 남지 않음', async () => {
       const Q = '권한이 정확히 무슨 뜻인지 헷갈려요 zq7';
       await ask(p, Q);
