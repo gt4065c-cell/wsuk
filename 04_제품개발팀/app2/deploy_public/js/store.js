@@ -10,6 +10,7 @@
      setNickname(name)      별명 정하기 (처음 1번)
      practiceQuestions()    연습 문항 목록 (정답 포함 — 연습은 공개해도 되는 문항)
      hints(qid)             미리 만든 힌트 L1~L3 (검토 끝난 것만)
+     conceptCard(lecture)   강별 개념 정리 카드 {title, lines:[3줄]} (검토 끝난 것만, 없으면 null) — E4 개념 정리 카드
      diagnostic()           진단 12문항 (정답 없음) + 지금까지 고른 답 수
      answerDiagnostic(qid, choice)   진단 답 저장 (정오답 알려 주지 않음)
      finishDiagnostic()     진단 채점 → 출발 실력 + 해설
@@ -68,6 +69,12 @@
   var DIAG = (window.LU_DIAG && window.LU_DIAG.questions) || [];
   var HINTS = (window.LU_HINTS && window.LU_HINTS.hints) || {};
   var HINTS_FAKE = !!(window.LU_HINTS && window.LU_HINTS.fake);
+  var CARDS = (window.LU_CONCEPTS && window.LU_CONCEPTS.cards) || {};   // 강 번호 → {title, lines} (build_data.py, 검토 끝난 것만)
+  function normCard(c) {
+    if (!c || !Array.isArray(c.lines)) return null;
+    var lines = c.lines.map(function (x) { return String(x == null ? "" : x).trim(); }).filter(Boolean).slice(0, 5);
+    return lines.length ? { title: String(c.title || ""), lines: lines } : null;
+  }
 
   function publicStudent(s, db) {
     // 화면에 넘기는 학생 정보 (θ 없음)
@@ -218,6 +225,8 @@
       if (!h || (!h.reviewed && !CFG.SHOW_DRAFT_HINTS)) return Promise.resolve(null);   // 학생용 기준: 검토 끝난 것만
       return Promise.resolve({ L1: h.L1, L2: h.L2, L3: h.L3, fake: HINTS_FAKE, draft: !h.reviewed });
     },
+
+    conceptCard: function (lecture) { return Promise.resolve(normCard(CARDS[String(Number(lecture))])); },
 
     diagnostic: function () {
       var db = loadDb(), s = current(db); if (!s) return needLogin();
@@ -549,7 +558,7 @@
 
   /* 문항은 한 번 받아 두고 다시 씀 (연습 + 정답·해설, 진단(정답 없음), 검토 끝난 힌트) */
   var QCOLS = "id,part,lecture,difficulty,type,question,choices,source_section";
-  var cache = { practice: null, diag: null, hints: null };
+  var cache = { practice: null, diag: null, hints: null, cards: null };
   function asChoices(c) { if (typeof c === "string") { try { return JSON.parse(c); } catch (e) { return []; } } return c || []; }
   function loadPractice() {
     if (!cache.practice) cache.practice = sb().then(function (c) {
@@ -592,6 +601,14 @@
       .then(function (r) { var m = {}; (unwrap(r) || []).forEach(function (h) { m[h.question_id] = h; }); return m; })
       .catch(function (e) { cache.hints = null; throw e; });
     return cache.hints;
+  }
+
+  function loadCards() {
+    // DB 규칙(cards_reviewed)이 검토 끝난 카드만 돌려줌. 표가 아직 없으면(70번 SQL 적용 전) 빈 목록 → 화면은 예전처럼
+    if (!cache.cards) cache.cards = sb().then(function (c) { return c.from("concept_cards").select("lecture,title,lines"); })
+      .then(function (r) { var m = {}; (unwrap(r) || []).forEach(function (x) { m[String(x.lecture)] = { title: x.title, lines: asChoices(x.lines) }; }); return m; },
+            function () { return {}; });
+    return cache.cards;
   }
 
   /* 내 학생 정보 (θ 칸은 DB에서 아예 못 읽음). 코드와 연결 안 된 기기면 null */
@@ -711,6 +728,10 @@
         var h = m[qid];
         return h ? { L1: h.l1, L2: h.l2, L3: h.l3, fake: false, draft: false } : null;
       }).catch(function (e) { throw friendly(e); });
+    },
+
+    conceptCard: function (lecture) {
+      return loadCards().then(function (m) { return normCard(m[String(Number(lecture))]); }, function () { return null; });
     },
 
     diagnostic: function () {

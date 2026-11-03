@@ -20,6 +20,7 @@
 --   #10 진단 먼저 (맞춤학습 설계 D4·D5, 팀게임 설계 2-1 "1주차 진단 → 기준 점검", 1일차 "진단 후 공통 평가")
 --       진단 10문항 전(진단 끝내기 전)에는 공통 점검(상태 NEED_DIAG, 문항 받기·제출 NEED_DIAG)과
 --       해설 당번(카드 needDiag, 당번으로 뽑히지 않음, 쓰기 NEED_DIAG)이 닫힘
+--   [추가] concept_cards 표(강별 개념 정리 카드 3줄): RLS 켬, 학생은 reviewed 카드의 lecture·title·lines 만 읽음
 --   #11ⓑ 공통 점검: 일요일에 시작해 월요일 0시가 지나 제출하면
 --       월요일 03:00(한국 시간) 전까지는 지난주 점검으로 받아 줌(유예 3시간). 그 뒤면 WEEK_CHANGED(답이 지난주 것이라는 쉬운 안내)
 -- 바뀌지 않는 것: 상한(하루 200 XP·튜터 4겹), 복습 상자 규칙, next_practice, 팀·교수 함수, 점수 비공개 원칙
@@ -468,7 +469,28 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------
--- 10. 실행 권한 — 새 도우미 2개는 아무도 직접 못 부름. 다시 만든 함수는 원래 권한 그대로(create or replace 는 권한을 지키지만,
+-- 10. (비서실장 추가 지시) 강별 개념 정리 카드 — E4 규칙(2문항 연속 오답) 때 다음 문제 위에 3줄 보여 줌
+--     원본: 03_교육기획팀/문항은행/concept_cards.json (30장, 캡틴 승인). 데이터 넣기는 비서실장이 seed.json "cards" 로
+--     학생은 검토 끝난(reviewed) 카드의 강 번호·제목·3줄만 읽음. 쓰기 권한 없음
+-- ---------------------------------------------------------------------
+create table if not exists concept_cards (
+  lecture  int primary key check (lecture between 1 and 30),
+  title    text not null check (char_length(title) between 1 and 40),
+  lines    jsonb not null check (jsonb_typeof(lines) = 'array' and jsonb_array_length(lines) between 1 and 5),
+  status   text not null default 'draft' check (status in ('draft', 'reviewed'))
+);
+alter table concept_cards enable row level security;
+revoke all on concept_cards from public, anon, authenticated;
+grant select (lecture, title, lines) on concept_cards to authenticated;
+drop policy if exists cards_reviewed on concept_cards;
+create policy cards_reviewed on concept_cards for select to authenticated using (status = 'reviewed');
+-- 넣기 예 (비서실장, SQL 편집기 — seed.json 의 cards 를 받은 뒤):
+--   insert into concept_cards (lecture, title, lines, status)
+--     select (c->>'lecture')::int, c->>'title', c->'lines', c->>'status' from jsonb_array_elements(<seed>->'cards') c
+--     on conflict (lecture) do update set title = excluded.title, lines = excluded.lines, status = excluded.status;
+
+-- ---------------------------------------------------------------------
+-- 11. 실행 권한 — 새 도우미 2개는 아무도 직접 못 부름. 다시 만든 함수는 원래 권한 그대로(create or replace 는 권한을 지키지만,
 --     처음 만드는 DB를 위해 한 번 더 적음)
 -- ---------------------------------------------------------------------
 revoke execute on function lu_diag_ready(uuid), lu_kst_now() from public, anon, authenticated;
@@ -496,3 +518,4 @@ end $$;
 --   select has_function_privilege('authenticated', 'lu_diag_ready(uuid)', 'execute');   -- false
 --   select has_function_privilege('authenticated', 'tutor_begin(uuid,text,int,int[])', 'execute');   -- false
 --   select tablename from pg_tables where schemaname = 'public' and not rowsecurity;    -- 0줄
+--   select count(*) from concept_cards where status = 'reviewed';                       -- 30 (seed 넣은 뒤)

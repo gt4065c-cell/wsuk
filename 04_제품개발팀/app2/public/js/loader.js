@@ -8,7 +8,7 @@
 (function () {
   "use strict";
   var local = (window.LU_CONFIG || {}).MODE !== "supabase";
-  var files = (local ? ["data/practice.js", "data/diagnostic.js", "data/hints.js"] : [])
+  var files = (local ? ["data/practice.js", "data/diagnostic.js", "data/hints.js", "data/concepts.js"] : [])
     .concat(["js/logic.js", "js/store.js", "js/app.js"]);
   files.forEach(function (f) {
     var s = document.createElement("script");

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Supabase에 넣을 문항·정답·힌트를 한 파일(supabase/seed/seed.json)로 모읍니다.
 실행: python3 04_제품개발팀/app2/tools/build_seed.py
-가져오기: supabase/20_import_seed.sql (Supabase가 GitHub에서 이 파일을 직접 받아 넣음)
+가져오기: supabase/20_import_seed.sql (Supabase가 GitHub에서 이 파일을 직접 받아 넣음). "cards" = 개념 정리 카드(70번 concept_cards)
 ※ 저장소는 공개(캡틴 결정)라 이 파일도 공개 상태입니다. 학생 개인정보는 없습니다."""
 import json, os, re
 APP = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,9 +36,17 @@ for fn in H_FILES:
         assert h["id"] in seen, h["id"]
         hints.append({"question_id": h["id"], "l1": h["L1"], "l2": h["L2"], "l3": h["L3"],
                       "hint_status": "reviewed" if h.get("hint_status") == "reviewed" else "draft"})
+# 강별 개념 정리 카드 (E4 개념 정리 카드 — 70_qa_fixes.sql concept_cards)
+cards = []
+if os.path.exists(os.path.join(BANK, "concept_cards.json")):
+    for c in load("concept_cards.json"):
+        assert 1 <= c["lecture"] <= 30 and isinstance(c["lines"], list) and 1 <= len(c["lines"]) <= 5, c
+        cards.append({"lecture": c["lecture"], "title": c["title"], "lines": c["lines"],
+                      "status": "reviewed" if c.get("status") == "reviewed" else "draft"})
+    assert len({c["lecture"] for c in cards}) == len(cards), "같은 강 카드가 둘"
 assert len([q for q in qs if q["diag_order"]]) == len(diag_ids) == 12
 out = os.path.join(APP, "supabase", "seed"); os.makedirs(out, exist_ok=True)
 with open(os.path.join(out, "seed.json"), "w", encoding="utf-8") as f:
-    json.dump({"questions": qs, "keys": keys, "hints": hints}, f, ensure_ascii=False, separators=(",", ":"))
+    json.dump({"questions": qs, "keys": keys, "hints": hints, "cards": cards}, f, ensure_ascii=False, separators=(",", ":"))
 from collections import Counter
-print("문항", len(qs), dict(Counter(q["pool"] for q in qs)), "힌트", len(hints))
+print("문항", len(qs), dict(Counter(q["pool"] for q in qs)), "힌트", len(hints), "개념 카드", len(cards))

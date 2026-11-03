@@ -8,6 +8,7 @@
     public/data/practice.js      연습 문항 (정답·해설 포함 — 연습은 보여 줘도 되는 문항)
     public/data/diagnostic.js    진단 12문항 (정답·해설 '없음' — 학생 화면용)
     public/data/hints.js         미리 만든 힌트 L1~L3 (검토 끝난 것만)
+    public/data/concepts.js      강별 개념 정리 카드 3줄 (검토 끝난 것만 — E4 "개념 정리 카드")
     public/data/dev_diag_key.js  [개발용] 진단 정답·해설 — 로컬 모드에서만 읽음.
                                  Supabase 모드에서는 이 파일을 쓰지 않고, 서버가 채점합니다.
                                  인터넷에 올릴 때는 이 파일을 빼야 합니다(README 5장, tools/make_deploy.py).
@@ -134,6 +135,18 @@ def main():
     if not found:
         hints, fake = {k: dict(v, reviewed=True) for k, v in FAKE_HINTS.items()}, True
 
+    # 강별 개념 정리 카드: 검토 끝난(reviewed) 것만 학생 파일에
+    cards = {}
+    cp = os.path.join(BANK, "concept_cards.json")
+    if os.path.exists(cp):
+        for c in load(cp):
+            if c.get("status") != "reviewed":
+                continue
+            if not (isinstance(c.get("lecture"), int) and isinstance(c.get("lines"), list) and c["lines"]):
+                errors.append("개념 카드 모양이 이상함: " + str(c.get("lecture")))
+                continue
+            cards[str(c["lecture"])] = {"title": c.get("title") or "", "lines": [str(x) for x in c["lines"]]}
+
     if errors:
         print("[빌드 실패] 파일을 만들지 않았습니다:")
         for e in errors:
@@ -147,13 +160,15 @@ def main():
              "진단 12문항 — 정답·해설 칸 없음.")
     write_js("hints.js", "LU_HINTS", {"fake": fake, "hints": hints},
              ("시험용 가짜 힌트 3개 (원본 힌트 파일이 아직 없음)." if fake else "reviewed=false 는 교수 검토 전 — 학생에게는 안 보임."))
+    write_js("concepts.js", "LU_CONCEPTS", {"cards": cards},
+             "강별 개념 정리 카드(검토 끝난 것만). 키 = 강 번호.")
     write_js("dev_diag_key.js", "LU_DEV_DIAG_KEY", key,
              "[개발용] 로컬 모드 전용 진단 정답. 배포·Supabase 모드에서는 사용하지 않음.")
     if draft_n:
         print("  ! 경고: 연습 %d문항 중 %d문항이 아직 draft(교수 검토 전) — 연습용이라 사용" % (len(practice), draft_n))
     reviewed_n = sum(1 for h in hints.values() if h["reviewed"])
-    print("[빌드 성공] 연습 %d · 진단 %d · 힌트 %d (검토 끝 %d)%s · 평가 0" %
-          (len(practice), len(diag), len(hints), reviewed_n, " (시험용 가짜)" if fake else ""))
+    print("[빌드 성공] 연습 %d · 진단 %d · 힌트 %d (검토 끝 %d)%s · 개념 카드 %d · 평가 0" %
+          (len(practice), len(diag), len(hints), reviewed_n, " (시험용 가짜)" if fake else "", len(cards)))
 
 
 if __name__ == "__main__":

@@ -180,7 +180,7 @@
       var c = meCode(); if (!c) return err("NOT_LINKED");
       var x = db(); var done = {}; x.attempts.forEach(function (t) { if (t.code === c) done[t.qid] = 1; });
       var ex = a.p_exclude || [];
-      var forced = ls("mock_next"); if (forced) { localStorage.removeItem("mock_next"); return ok({ qid: forced, conceptCard: false }); }   // 시험용: 다음 문항 지정
+      var forced = ls("mock_next"); if (forced) { localStorage.removeItem("mock_next"); return ok(typeof forced === "object" ? forced : { qid: forced, conceptCard: false }); }   // {qid, conceptCard} 도 됨   // 시험용: 다음 문항 지정
       var cand = D.practice.filter(function (q) { return ex.indexOf(q.id) < 0 && !done[q.id]; });
       // schema.sql 과 같게 E7: 이번 판(p_exclude)에 O/X가 2개 이상이면, O/X 아닌 후보가 있을 때 O/X 빼기
       // (E0 고르기용 c 0.25·Elo 구간은 흉내 내지 않음 — 이 가짜 서버엔 θ가 없어 예전처럼 문항 순서대로 고름)
@@ -250,6 +250,7 @@
       return { question_id: q.id, answer_index: q.answer_index, explanation: q.explanation, common_wrong_index: q.common_wrong_index, common_wrong_reason: q.common_wrong_reason };
     });
     if (table === "hints") return Object.keys(D.reviewedHints || {}).map(function (k) { var h = D.reviewedHints[k]; return { question_id: k, l1: h.l1, l2: h.l2, l3: h.l3 }; });
+    if (table === "concept_cards") { if (!D.cards) return null; return D.cards.filter(function (k) { return k.status === "reviewed"; }).map(function (k) { return { lecture: k.lecture, title: k.title, lines: k.lines }; }); }   // 학생 규칙: reviewed 만
     if (table === "students") return c ? [x.students[c]] : [];
     if (table === "diag_answers") return c ? Object.keys(x.diag[c] || {}).map(function (k) { return { question_id: k, choice: x.diag[c][k] }; }) : [];
     return null;

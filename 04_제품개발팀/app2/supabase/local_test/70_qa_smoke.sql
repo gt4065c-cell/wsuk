@@ -234,6 +234,23 @@ do $$ begin execute current_setting('zz.def1'); execute current_setting('zz.def2
 select zz_check(lu_today() = (now() at time zone 'Asia/Seoul')::date, 'Q-59 시각 흉내를 원래대로 되돌림');
 
 -- =====================================================================
+-- F2. (추가 지시) 개념 정리 카드 표 concept_cards
+-- =====================================================================
+insert into concept_cards (lecture, title, lines, status) values
+  (1, '01강 핵심 정리', '["한 줄","두 줄","세 줄"]', 'reviewed'),
+  (2, '02강 핵심 정리', '["검토 전 1","검토 전 2","검토 전 3"]', 'draft');
+set role authenticated;
+select set_config('test.uid', :'ua', false);
+select zz_check((select count(*) from (select lecture, title, lines from concept_cards) z) = 1
+            and (select jsonb_array_length(lines) from concept_cards where lecture = 1) = 3, 'Q-70 학생은 검토 끝난(reviewed) 카드만 읽음(1장 · 3줄), 검토 전 카드는 0줄');
+select zz_expect_error($$select status from concept_cards$$, 'permission denied', 'Q-71 학생은 status 칸을 못 읽음(앱이 쓰는 lecture·title·lines 만)');
+select zz_expect_error($$insert into concept_cards values (3, 'x', '["a"]', 'reviewed')$$, 'permission denied', 'Q-72 학생은 카드를 못 씀');
+reset role;
+select zz_check(not has_table_privilege('anon', 'concept_cards', 'select') and (select relrowsecurity from pg_class where relname = 'concept_cards'),
+  'Q-73 concept_cards: RLS 켜짐 · 로그인 전(anon) 권한 없음');
+select zz_expect_error($$insert into concept_cards values (4, 'x', '"한 줄"', 'reviewed')$$, 'check', 'Q-74 lines 가 목록(배열)이 아니면 표가 거절');
+
+-- =====================================================================
 -- G. 권한
 -- =====================================================================
 select zz_check(not has_function_privilege('authenticated', 'lu_diag_ready(uuid)', 'execute')

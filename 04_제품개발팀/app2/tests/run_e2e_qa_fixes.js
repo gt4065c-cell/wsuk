@@ -89,10 +89,11 @@ function daysToSunday() { const d = new Date(Date.now() + 9 * 3600e3); return (7
   await test('F-03', '일요일 판정: 그 주(월~일) 마지막 날만 true', async () => {
     ok(LU.isWeekLastDay('2026-11-08') && !LU.isWeekLastDay('2026-11-09') && !LU.isWeekLastDay('2026-11-07') && LU.isWeekLastDay('2027-03-07'), '판정');
   });
-  await test('F-04', '70번 SQL: drop·truncate 없음 · delete 는 원래 close_item 의 복습 졸업 1줄뿐 · 비밀 열쇠 없음 · questions 칸 허용 = store.js 가 읽는 칸 + pool · b·n_resp·week 는 허용 안 함', async () => {
+  await test('F-04', '70번 SQL: 표·데이터 drop·truncate 없음(규칙 다시 만들기 1줄만) · delete 는 원래 close_item 의 복습 졸업 1줄뿐 · 비밀 열쇠 없음 · questions 칸 허용 = store.js 가 읽는 칸 + pool · b·n_resp·week 는 허용 안 함', async () => {
     const code = SQL70.split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
     const dels = code.match(/\bdelete\s+from\s+[^;]+/gi) || [];
-    ok(!/\b(drop|truncate)\b/i.test(code), 'drop·truncate 문장');
+    const drops = code.match(/\bdrop\b[^;]*/gi) || [];
+    ok(!/\btruncate\b/i.test(code) && drops.length === 1 && drops[0].trim() === 'drop policy if exists cards_reviewed on concept_cards', 'drop·truncate 문장(다시 실행용 규칙 지우고 만들기 1줄만 허용): ' + drops.join(' | '));
     ok(dels.length === 1 && /^delete from review_box where student_id = me\.id and question_id = q\.id$/.test(dels[0].trim()), '지우기 문장(원래 close_item 의 복습 졸업 1줄만 허용): ' + dels.join(' | '));
     ok(!/sk-ant-|sb_secret_|eyJhbGci/.test(SQL70), '비밀 열쇠');
     const g = /grant select \(([^)]+)\) on questions to authenticated/.exec(code); ok(g, '칸 허용 줄 없음');
@@ -101,6 +102,18 @@ function daysToSunday() { const d = new Date(Date.now() + 9 * 3600e3); return (7
     ok(JSON.stringify(cols) === JSON.stringify(q), cols.join() + ' / ' + q.join());
     ok(!cols.includes('b') && !cols.includes('n_resp') && !cols.includes('week'), '숨길 칸');
     return cols.length + '칸';
+  });
+
+  const CARDS_SRC = JSON.parse(fs.readFileSync(path.resolve(APP, '../../03_교육기획팀/문항은행/concept_cards.json'), 'utf8'));
+  await test('F-15', '개념 카드: 로컬 파일 concepts.js = 원본의 검토 끝난 카드(강 번호·제목·3줄) · seed.json "cards" = 원본 30장 · 70번 SQL 에 표·RLS·reviewed 읽기 규칙', async () => {
+    const C = load('concepts.js', 'LU_CONCEPTS').cards;
+    const rev = CARDS_SRC.filter(c => c.status === 'reviewed');
+    ok(Object.keys(C).length === rev.length && rev.every(c => JSON.stringify(C[String(c.lecture)]) === JSON.stringify({ title: c.title, lines: c.lines })), 'concepts.js 내용');
+    const seed = JSON.parse(fs.readFileSync(path.join(APP, 'supabase/seed/seed.json'), 'utf8'));
+    ok(Array.isArray(seed.cards) && seed.cards.length === CARDS_SRC.length && seed.cards.every((c, i) => c.lecture === CARDS_SRC[i].lecture && JSON.stringify(c.lines) === JSON.stringify(CARDS_SRC[i].lines) && c.status === CARDS_SRC[i].status), 'seed cards');
+    ok(/create table if not exists concept_cards/.test(SQL70) && /alter table concept_cards enable row level security/.test(SQL70) &&
+       /grant select \(lecture, title, lines\) on concept_cards to authenticated/.test(SQL70) && /using \(status = 'reviewed'\)/.test(SQL70), 'SQL');
+    return '카드 ' + Object.keys(C).length + '장';
   });
 
   const server = await startServer(PUBLIC, PORT);
@@ -259,6 +272,74 @@ function daysToSunday() { const d = new Date(Date.now() + 9 * 3600e3); return (7
       const m = await mp.evaluate(() => ['NICK_PRIVATE', 'NICK_LENGTH', 'BAD_CHOICE', 'NOT_OPEN', 'WEEK_CHANGED'].map(k => window.STORE.explainError({ message: k })));
       ok(!m.some(x => x.startsWith('서버에서 문제가 생겼어요')), m.join(' | '));
       await M.ctx.close();
+    });
+
+    console.log('■ 개념 정리 카드 (E4: 2문항 연속 오답 뒤 다음 문제)');
+    const card = CARDS_SRC.find(c => c.lecture === MCQ[5].lecture);
+    async function mockConcept(data, qid) {
+      const M = await newPage({ mock: data, preDb: PRE_DB }); const mp = M.page;
+      await mp.goto(BASE + 'index.html?mode=supabase'); await mp.waitForSelector(settled);
+      await mp.fill('#code', 'TEST23'); await mp.click('[data-act=login]'); await mp.waitForSelector('[data-screen=home]');
+      await mp.evaluate(q => localStorage.setItem('mock_next', JSON.stringify({ qid: q, conceptCard: true })), qid);
+      await mp.click('[data-act=start]'); await mp.waitForSelector('[data-screen=item] #concept');
+      return M;
+    }
+    await test('F-16', 'Supabase 모드: E4 카드 자리에 그 강 카드 — 제목 "NN강 핵심 정리" + 3줄 (concept_cards 에서 lecture·title·lines 만 읽음)', async () => {
+      const M = await mockConcept({ practice: MCQ, diag: DIAG, codes: ['TEST23'], reviewedHints: {}, cards: CARDS_SRC }, MCQ[5].id); const mp = M.page;
+      const nn = (card.lecture < 10 ? '0' : '') + card.lecture;
+      ok((await txt(mp, '#concept-title')) === nn + '강 핵심 정리', await txt(mp, '#concept-title'));
+      const lines = await mp.$$eval('#concept .concept-lines li', e => e.map(x => x.textContent));
+      ok(JSON.stringify(lines) === JSON.stringify(card.lines), lines.join(' / '));
+      const log = await mp.evaluate(() => JSON.parse(localStorage.getItem('mock_log') || '[]'));
+      const f = log.filter(x => x.t === 'from' && x.table === 'concept_cards');
+      ok(f.length === 1 && f[0].cols === 'lecture,title,lines', JSON.stringify(f));
+      await shot(mp, '390_55_개념정리카드');
+      ok(mp._errors.length === 0, mp._errors.join(' | '));
+      await M.ctx.close();
+      return nn + '강';
+    });
+    await test('F-17', '카드가 없으면 예전처럼(강 이름 한 줄): 그 강 카드가 검토 전 / 서버에 표가 아직 없음(70번 적용 전) — 오류 띠 없음', async () => {
+      const draft = CARDS_SRC.map(c => c.lecture === card.lecture ? Object.assign({}, c, { status: 'draft' }) : c);
+      for (const d of [{ cards: draft }, {}]) {
+        const M = await mockConcept(Object.assign({ practice: MCQ, diag: DIAG, codes: ['TEST23'], reviewedHints: {} }, d), MCQ[5].id); const mp = M.page;
+        const t = await txt(mp, '#concept');
+        ok(t.includes('이 개념을 한 번 정리하고 갈게요') && !(await mp.$('#concept-title')), t);
+        ok(!(await mp.$('#err')) && mp._errors.length === 0, '오류 띠/JS 오류');
+        await M.ctx.close();
+      }
+    });
+    await test('F-18', '로컬 모드: 2문항 연속 틀림(정답 보고 이해) → 다음 문제 위에 그 강 카드 3줄', async () => {
+      const L2 = await newPage(); const p2 = L2.page;
+      await p2.goto(BASE + 'index.html'); await p2.waitForSelector('#app ' + settled);
+      await p2.fill('#code', 'TEST23'); await p2.click('[data-act=login]');
+      await p2.waitForSelector('[data-screen=nickname]'); await p2.fill('#nick', '하늘별'); await p2.click('[data-act=save-nick]');
+      await p2.waitForSelector('[data-screen=diag]');
+      for (let i = 0; i < 12; i++) {
+        const id = await p2.getAttribute('#qid', 'data-id'); await p2.click('[data-act=diag-unknown]');
+        if (i < 11) await p2.waitForFunction(p => document.querySelector('#qid') && document.querySelector('#qid').dataset.id !== p, id);
+      }
+      await p2.waitForSelector('[data-screen=diagResult]'); await p2.click('[data-act=home]');
+      await p2.click('[data-act=start]');
+      for (let k = 0; k < 2; k++) {
+        await p2.waitForSelector('[data-screen=item] .choice');
+        const id = await p2.getAttribute('#qid', 'data-id');
+        const q = await p2.evaluate(id => { const x = window.LU_PRACTICE.questions.find(z => z.id === id); return { a: x.answer_index, n: x.choices.length, type: x.type }; }, id);
+        const tries = q.type === 'ox' ? 1 : 2;
+        for (let j = 1; j <= tries; j++) {
+          await p2.click(`.choice[data-orig="${(q.a + j) % q.n}"]`); await p2.click('[data-act=submit]');
+          if (j < tries) await p2.waitForSelector('#msg');
+        }
+        await p2.waitForSelector('[data-act=next]'); await p2.click('[data-act=next]');
+      }
+      await p2.waitForSelector('[data-screen=item] #concept');
+      const lec = await p2.evaluate(() => { const id = document.querySelector('#qid').dataset.id; return window.LU_PRACTICE.questions.find(z => z.id === id).lecture; });
+      const want = CARDS_SRC.find(c => c.lecture === lec);
+      const lines = await p2.$$eval('#concept .concept-lines li', e => e.map(x => x.textContent));
+      ok(want && JSON.stringify(lines) === JSON.stringify(want.lines), lec + '강: ' + lines.join(' / '));
+      ok(p2._errors.length === 0, p2._errors.join(' | '));
+      await shot(p2, '390_56_개념정리카드_로컬');
+      await L2.ctx.close();
+      return lec + '강 카드';
     });
 
     console.log('■ 임시 PostgreSQL');

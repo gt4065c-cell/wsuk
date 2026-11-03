@@ -141,10 +141,14 @@
   }
   function openItem(qid, mode, concept) {
     return Promise.all([STORE.question(qid), STORE.hints(qid)]).then(function (r) {
+      // E4 개념 정리 카드: 그 강의 카드(검토 끝난 3줄)를 받아 둠. 없거나 못 받으면 예전처럼 강 이름만
+      if (!concept || !r[0] || !STORE.conceptCard) return r;
+      return STORE.conceptCard(r[0].lecture).then(function (c) { r[2] = c; return r; }, function () { return r; });
+    }).then(function (r) {
       var q = r[0];
       S.run.seen.push(qid);
       S.item = {
-        qid: qid, q: q, mode: mode, hints: r[1], thought: "", concept: concept, result: null, triedWrong: [], msg: "",
+        qid: qid, q: q, mode: mode, hints: r[1], thought: "", concept: concept, card: r[2] || null, result: null, triedWrong: [], msg: "",
         order: q.type === "mcq" ? shuffle(range(q.choices.length)) : range(q.choices.length),
         st: LU.newItemState(mode, LU.maxSubmitsFor(q)), selected: null
       };
@@ -532,7 +536,11 @@
     var n = run.log.length + (it.result ? 0 : 1);
     var head = '<div class="qhead"><div class="qhead-row"><span class="count" id="count">' +
       (it.mode === "REVIEW" ? "복습" : "새 문제") + ' · 오늘 ' + n + '번째</span><span class="tag">' + esc(lecName(q.lecture)) + '</span></div></div>';
-    var concept = it.concept && !it.result ? '<div class="concept" id="concept"><b>이 개념을 한 번 정리하고 갈게요</b><br>' + esc(q.source_section) + ' 부분을 떠올리며 천천히 풀어 봐요.</div>' : "";
+    var concept = !it.concept || it.result ? ""
+      : it.card ? '<div class="concept" id="concept" data-card="' + q.lecture + '"><b id="concept-title">' + esc(lecName(q.lecture)) + ' 핵심 정리</b>' +
+          '<ul class="concept-lines">' + it.card.lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join("") + '</ul>' +
+          '<p class="sub">이 세 줄을 떠올리며 천천히 풀어 봐요.</p></div>'
+      : '<div class="concept" id="concept"><b>이 개념을 한 번 정리하고 갈게요</b><br>' + esc(q.source_section) + ' 부분을 떠올리며 천천히 풀어 봐요.</div>';
     var qcard = '<div class="card qcard"><p class="qtext" id="qid" data-id="' + esc(q.id) + '">' + esc(q.question) + '</p></div>';
     if (!st.closed || !it.result) {
       var left = st.maxSubmits - st.submits.length;

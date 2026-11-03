@@ -282,3 +282,17 @@ bash supabase/local_test/run_tutor_local.sh     # SQL (임시 PostgreSQL, 동시
 node tests/run_e2e_m2_3.js                       # 화면·창구·배포 폴더·SQL 파일 검사 27개 (PostgreSQL 있으면 아래도)
 bash supabase/local_test/run_weekly_local.sh     # SQL (임시 PostgreSQL, 동시 제출 포함) 72개
 ```
+
+## 9. 결재3 전 QA "낮음" 정리 (2026-11-03, `supabase/70_qa_fixes.sql`)
+- 보고서: `04_제품개발팀/테스트보고서/2026-11-03_app2_QA낮음_수정.md`
+- 비서실장이 할 일: `supabase/70_qa_fixes.sql` 을 60번 **다음에** SQL 편집기로 실행(여러 번 실행해도 안전) → 파일 끝 점검 쿼리 5개.
+- 바뀌는 것: 학생은 문항 난이도 b·응답 수를 못 읽음 · 별명 2~12글자·전화번호/이메일/숫자 7개 이상 거절 · 진단 보기 번호 범위 확인 ·
+  열린 강 밖 문항 마감/AI 튜터 거절 · 같은 문항 다시 마감하면 θ 그대로 · 진단 10문항 전에는 공통 점검·해설 당번 닫힘 ·
+  일요일에 시작한 점검은 월요일 03:00 전까지 지난주 것으로 받음 ·
+  **개념 정리 카드**: 2문항 연속 틀리면(E4) 다음 문제 위에 "NN강 핵심 정리" 3줄 (표 `concept_cards`, 원본 `03_교육기획팀/문항은행/concept_cards.json`)
+- 카드 데이터: `python3 tools/build_seed.py` → `supabase/seed/seed.json` 의 `"cards"`(30장)를 비서실장이 `concept_cards` 에 넣음(70번 파일 10장 예시 SQL).
+  로컬 모드용은 `python3 tools/build_data.py` → `public/data/concepts.js`. 카드가 없으면 화면은 예전처럼 강 이름 한 줄
+```
+node tests/run_e2e_qa_fixes.js                      # 화면·창구·SQL 파일 검사 18개 (PostgreSQL 있으면 아래도)
+bash supabase/local_test/run_qa_fixes_local.sh      # SQL (임시 PostgreSQL) 71개
+```
