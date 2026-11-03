@@ -68,7 +68,7 @@ export function buildPrompt(ctx, questionText) {
   const rules = [
     "당신은 대학생 대상 온라인 강의(전체 30강)의 연습 문제를 돕는 AI 튜터입니다. 학생은 미리 만든 힌트를 보고도 막혀 있습니다.",
     "규칙:",
-    "1. 정답을 직접 말하지 마세요. 정답 보기의 문장을 그대로 옮기지 말고, 보기의 번호나 위치(첫 번째, ②, 2번 등)도 말하지 마세요. '정답'이라는 낱말도 쓰지 마세요.",
+    "1. 정답을 직접 말하지 마세요. 정답 보기의 문장을 그대로 옮기지 말고, 보기의 번호나 위치(첫 번째, ②, 2번 등)도 말하지 마세요. 정답 보기에만 나오는 연도·숫자·이름·용어도 말하지 마세요. '정답'이라는 낱말도 쓰지 마세요.",
     "2. 한 번에 한 단계만 안내하고, 학생이 스스로 생각하도록 마지막 문장은 질문으로 끝내세요.",
     answered
       ? "3. 학생은 이미 오답을 냈습니다. 학생이 고른 오답이 왜 헷갈릴 수 있는지는 설명해도 되지만, 남은 보기 중 어느 것이 맞는지는 말하지 마세요."
@@ -147,6 +147,11 @@ export function findLeak(reply, ctx) {
       if (!shared(w) && r.includes(w)) return "answer-text";
     }
   }
+  // ⑤ 정답 보기에만 나오는 단서(연도·숫자 2자리 이상, 영어 낱말 3자 이상)가 답에 있으면 막음 (2026-11-03 실제 시험에서 '1956년의 어떤 모임' 노출)
+  const otherText = norm(ctx.question) + " " + others.join(" ");
+  const clues = (String(choices[ctx.answerIndex] || "").match(/\d{2,}|[A-Za-z][A-Za-z0-9._-]{2,}/g) || [])
+    .map((t) => t.toLowerCase()).filter((t) => !otherText.includes(norm(t)));
+  if (clues.some((t) => raw.toLowerCase().includes(t))) return "answer-clue";
   if (/정답\s*(은|는|이에요|이예요|입니다|이다|:|=)/.test(raw) || /답은\s*(바로|곧|['"“‘(]|[①②③④⑤]|[1-5]\s*번)/.test(raw)) return "answer-phrase";
   if (ctx.type !== "ox" && tried.length === 0 && ans.length >= 2 && ans.length < LEAK_WINDOW && !shared(ans) && r.includes(ans)) return "short-answer";
   if (ctx.type === "ox") {

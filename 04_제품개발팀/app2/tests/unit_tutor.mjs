@@ -111,8 +111,17 @@ await test("A-09", "정답 노출 ②: '정답은 …' 같은 말 → 차단", (
 });
 await test("A-10", "정답 노출 ③: 답을 내기 전에는 짧은 정답 보기(2~7글자)가 통째로 나와도 차단, 오답 낸 뒤엔 허용", () => {
   const c = Object.assign({}, CTX, { choices: ["RLS 켜기", "공개", "비밀번호", "없음"], question: "무엇을 해야 할까?" });
-  ok(G.findLeak("RLS 켜기를 생각해 보세요", c) === "short-answer");
-  ok(G.findLeak("RLS 켜기를 생각해 보세요", Object.assign({}, c, { tried: [1] })) === null);
+  ok(G.findLeak("RLS 켜기를 생각해 보세요", c) === "answer-clue");
+  // 2026-11-03 규칙 ⑤: 정답 보기에만 있는 영어 낱말(RLS)은 오답을 낸 뒤에도 차단, 그 단서가 없는 짧은 정답 낱말은 오답 뒤 허용
+  ok(G.findLeak("RLS 켜기를 생각해 보세요", Object.assign({}, c, { tried: [1] })) === "answer-clue");
+  const c2 = Object.assign({}, CTX, { choices: ["켜기", "공개", "비밀번호", "없음"], question: "무엇을 해야 할까?" });
+  ok(G.findLeak("켜기를 생각해 보세요", c2) === "short-answer");
+  ok(G.findLeak("켜기를 생각해 보세요", Object.assign({}, c2, { tried: [1] })) === null);
+});
+await test("A-10b", "정답 노출 ⑤: 정답 보기에만 있는 연도·숫자·영어 이름 → 차단 (실제 시험 '1956년의 어떤 모임')", () => {
+  const c = { question: "01강에서 AI 역사의 중요한 출발점으로 소개한 사건은 무엇인가요?", choices: ["1956년 다트머스 연구 모임", "1991년 파이썬 공개", "1995년 자바스크립트 등장", "생성형 AI의 등장"], answerIndex: 0, tried: [1], type: "mcq" };
+  ok(G.findLeak("그 사건이 1956년의 어떤 모임과 관련이 있었는지 떠올려 보실래요?", c) === "answer-clue");
+  ok(G.findLeak("1991년 파이썬 공개는 언어 이야기라 헷갈릴 수 있어요. 무엇이 먼저였을까요?", c) === null);
 });
 await test("A-11", "정답 노출 ④: O/X 판정('이 문장은 맞아요', 'O예요') → 차단, 개념 설명은 통과", () => {
   ok(G.findLeak("이 문장은 맞아요.", OX) === "ox-verdict");

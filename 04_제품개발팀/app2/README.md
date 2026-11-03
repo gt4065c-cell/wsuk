@@ -211,8 +211,8 @@ bash supabase/local_test/run_m2_local.sh   # [M2 1차] SQL만 따로 시험 (임
 3. [개발용] 다른 경우 흉내 (F12 → Console): `localStorage.setItem('lu2_dev_tutor_off','BUDGET')`(예산 꺼짐) · `localStorage.setItem('lu2_dev_tutor_kind','blocked')`(다음 답을 정답 노출 차단으로, `refused`·`error`도 됨). 되돌리기: `localStorage.removeItem('lu2_dev_tutor_off')`
 
 ### 7-4. AI 튜터 켜는 법 — 캡틴이 할 일 (돈이 드는 일이라 캡틴만)
-1. **API 키 만들기**: https://console.anthropic.com → 결제 수단 등록 → **Limits(사용 한도)에서 월 $7** 설정 → API Keys → [Create Key] (이름 예: `levelup-ai-tutor`). 키(`sk-ant-…`)는 **한 번만** 보이니 바로 2번으로.
-2. **Supabase에 키 넣기**: Supabase 관리 화면 → 프로젝트 edu-gamify → **Edge Functions → Secrets** → [Add new secret] → 이름 `ANTHROPIC_API_KEY`, 값에 키 붙여 넣기 → 저장.
+1. **API 키 만들기**: https://console.anthropic.com → 결제 수단 등록 → **Limits(사용 한도)에서 월 $7** 설정 → API Keys → [Create Key] (이 이름은 메모용이라 **아무거나 OK** — Supabase에 넣는 이름과 다름). 키(`sk-ant-…`)는 **한 번만** 보이니 바로 2번으로.
+2. **Supabase에 키 넣기**: Supabase 관리 화면 → 프로젝트 edu-gamify → **Edge Functions → Secrets** → [Add new secret] → Name 칸에 **정확히** `ANTHROPIC_API_KEY`(한 글자도 바꾸지 않기), Value 칸에 키 붙여 넣기 → 저장.
    - ⛔ 키를 **채팅·메모장·저장소·이메일·외부 AI에 붙여 넣지 마세요.** 비서실장·개발자도 키를 볼 필요가 없습니다.
    - 키가 새어 나간 것 같으면 Anthropic 콘솔에서 그 키를 [Delete] 하고 새로 만들어 2번을 다시 하면 됩니다.
 3. **켜기**: 비서실장에게 "AI 튜터 켜 줘"라고 말하면 `update app_settings set tutor_enabled = true where id = 1;`을 실행합니다(끄기는 `false`). 켠 뒤 시험용 코드로 1번 물어보고 교수 화면용 `select admin_tutor_usage();`로 금액이 쌓이는지 확인합니다.
