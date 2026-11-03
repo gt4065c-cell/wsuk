@@ -310,3 +310,14 @@ select.sel{min-height:44px;padding:8px 10px;border-radius:var(--r-btn);border:1p
 .tbl td:nth-child(2),.tbl td:nth-child(3),.tbl .tag{white-space:nowrap}
 .row-flex .btn{width:auto;flex:0 0 auto;padding-left:16px;padding-right:16px}
 .team-card .plan-row span:last-child{white-space:nowrap}
+
+/* [M2 2차] AI 튜터 (연습 문항의 힌트 3단계 뒤) */
+.tutor{display:flex;flex-direction:column;gap:10px;margin-top:4px;padding:14px;border-radius:12px;border:1px dashed var(--border);background:var(--surface)}
+.tutor-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800}
+.tutor-left{font-size:.875rem;font-weight:700;color:var(--text-2)}
+.tutor-q{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:.9375rem}
+.tutor-a{padding:12px 14px;border-radius:12px;background:var(--note-bg);border-left:4px solid var(--note);line-height:1.6}
+.tutor-a .h-lv{display:block;font-size:.8125rem;font-weight:800;color:var(--note);margin-bottom:2px}
+.tutor-off{font-size:.9375rem;color:var(--text-2)}
+.tutor-msg{font-size:.9375rem;font-weight:700;color:var(--wrong)}
+.tutor-count{font-size:.8125rem;color:var(--text-2);text-align:right}
