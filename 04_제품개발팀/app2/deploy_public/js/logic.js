@@ -322,9 +322,39 @@
     }
   };
 
+  /* ---------- 10. [M2 3차] 주간 공통 점검 · 팀 해설 당번 (서버 60_m2_weekly_explainer.sql 과 같은 규칙) ---------- */
+  var WEEKLY = {
+    EXPLAIN_MIN: 10,    // 해설 최소 글자 (write_team_explainer TOO_SHORT)
+    EXPLAIN_MAX: 200    // 해설 최대 글자 (team_explainers.body · TOO_LONG)
+  };
+  // 공통 점검 몇 주차인지: 기수 시작 월요일 기준 1주차 = 시작일~+6일. 시작일이 없거나 시작 전이면 null (서버 lu_check_week)
+  function checkWeek(cohortStart, today) {
+    if (!cohortStart || !today || today < cohortStart) return null;
+    return Math.floor(daysBetween(cohortStart, today) / 7) + 1;
+  }
+  // 해설 글 검사: 앞뒤 빈칸·\r 정리 후 10~200자, 이메일·전화번호 모양 금지. 통과하면 null, 아니면 서버와 같은 오류 이름
+  function cleanExplain(s) { return String(s == null ? "" : s).replace(/\r/g, "").trim(); }
+  function checkExplain(s) {
+    var b = cleanExplain(s);
+    if (b.length < WEEKLY.EXPLAIN_MIN) return "TOO_SHORT";
+    if (b.length > WEEKLY.EXPLAIN_MAX) return "TOO_LONG";
+    if (/[^\s@]+@[^\s@]+\.[A-Za-z]{2,}/.test(b) || /01[016789][-. ]?\d{3,4}[-. ]?\d{4}/.test(b)) return "PRIVATE_INFO";
+    return null;
+  }
+  // 다시 볼 강: 틀렸거나 "아직 모르겠어요"(null)인 문항의 강 번호(겹침 없이, 작은 순). 점수는 만들지 않음
+  function reviewLectures(items, answers, keyOf) {
+    var seen = {}, out = [];
+    items.forEach(function (q) {
+      var c = answers[q.id], ok = c !== null && c !== undefined && c === keyOf(q.id);
+      if (!ok && !seen[q.lecture]) { seen[q.lecture] = 1; out.push(q.lecture); }
+    });
+    return out.sort(function (a, b) { return a - b; });
+  }
+
   var api = {
     C: C, OUTCOME: OUTCOME, R_OF: R_OF,
     tutorEligible: tutorEligible, TUTOR: TUTOR,
+    WEEKLY: WEEKLY, checkWeek: checkWeek, cleanExplain: cleanExplain, checkExplain: checkExplain, reviewLectures: reviewLectures,
     normalizeCode: normalizeCode, isValidCodeShape: isValidCodeShape,
     guessRate: guessRate, initialB: initialB, pCorrect: pCorrect, kLearner: kLearner,
     updateTheta: updateTheta, updateB: updateB, applyElo: applyElo,

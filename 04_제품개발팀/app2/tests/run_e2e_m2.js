@@ -421,8 +421,9 @@ const PRE_DB = { students: { TEST23: { code: 'TEST23', nickname: '하늘별', xp
       await p.fill('#otp', '123456'); await p.click('[data-act=verify]'); await p.waitForSelector('[data-screen=dash]');
       const ver = seen.find(x => x.path === '/auth/v1/verify'); const vb = JSON.parse(ver.body);
       ok(vb.email === 'prof@example.com' && vb.token === '123456' && vb.type === 'email', ver.body);
+      // [M2 3차] 교수 화면이 ④·⑤(admin_tutor_usage·admin_weekly_stats)도 부름 → 처음 3개가 있고 모두 같은 교수 토큰인지
       const calls = seen.filter(x => x.path.startsWith('/rest/v1/rpc/admin_'));
-      ok(calls.length === 3 && calls.every(x => x.auth === 'Bearer ' + jwt), calls.map(x => x.path + ' ' + (x.auth || '').slice(0, 20)).join(' | '));
+      ok(['admin_whoami', 'admin_item_stats', 'admin_team_week'].every(n => calls.some(x => x.path.endsWith(n))) && calls.every(x => x.auth === 'Bearer ' + jwt), calls.map(x => x.path + ' ' + (x.auth || '').slice(0, 20)).join(' | '));
       ok(JSON.parse(calls.find(x => x.path.endsWith('admin_item_stats')).body).p_limit === 10, '인자');
       const keys = await p.evaluate(() => Object.keys(localStorage));
       ok(keys.includes('lu2_sb_admin') && !keys.includes('lu2_sb_auth'), keys.join());

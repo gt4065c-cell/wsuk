@@ -5,6 +5,9 @@
      ① 반 전체 많이 틀린 문항 TOP 10 (오답률·응답 수·가장 많이 고른 오답·정답)
      ② 강별 첫 시도 정답률
      ③ 팀별 이번 주(또는 지난주) 참여 목표 달성
+     ④ [M2 3차] AI 튜터 사용량 (오늘·이번 달 호출 수, 추정 금액 / 예산) — 서버 admin_tutor_usage()
+     ⑤ [M2 3차] 주간 공통 점검 문항별 정답률(응시 3명 이상일 때만) + 팀별 응시 인원 — 서버 admin_weekly_stats()
+        ④·⑤ 함수가 서버에 아직 없으면(SQL 적용 전) 그 칸만 "아직 설치 전"으로 보이고 나머지 화면은 그대로
    보여 주지 않는 것: 학생 코드, 개인 XP·숨은 실력값·정오답 (학생은 별명으로만)
 
    로그인
@@ -22,7 +25,7 @@
   var LOCAL = CFG.MODE !== "supabase";
   var root = document.getElementById("admin");
   var A = { screen: "loading", err: "", info: "", email: "", code: "", sent: false, who: null,
-            cohort: null, weekBack: 0, stats: null, teams: null, busy: false };
+            cohort: null, weekBack: 0, stats: null, teams: null, tutor: null, weekly: null, wkWeek: null, busy: false };
 
   /* ---------- 도우미 ---------- */
   function esc(s) {
@@ -122,6 +125,26 @@
           .sort(function (a, b) { return a.lecture - b.lecture; })
       });
     },
+    // [M2 3차] 가짜 AI 튜터 사용량 · 가짜 공통 점검 통계 (연습 문항 글을 빌려 씀 — 진짜 공통 점검 문항은 로컬 파일에 없음)
+    tutorUsage: function () {
+      return Promise.resolve({ enabled: false, budgetUsd: 6.4, todayCalls: 23, todayOk: 19, monthCalls: 412, monthStudents: 37,
+                               monthBlocked: 3, monthCostUsd: 0.4123, monthCostKrw: 577, fake: true });
+    },
+    weeklyStats: function (cohort, week) {
+      var cur = 3, w = week || cur, r = rng("weekly|" + cohort + "|" + w);
+      var P = ((window.LU_PRACTICE || {}).questions || []).filter(function (q) { return q.type === "mcq"; }).slice((w - 1) * 8, w * 8);
+      var takers = w > cur ? 0 : w === cur ? 2 + Math.floor(r() * 30) : 30 + Math.floor(r() * 15);
+      return Promise.resolve({
+        cohort: cohort, cohortStart: "2027-03-01", currentWeek: cur, maxWeek: 8, week: w, minN: 3, takers: takers, fake: true,
+        items: P.map(function (q, i) {
+          var n = w === cur && i === 7 ? 2 : takers, ok = Math.round(n * (0.35 + r() * 0.6));
+          return { qid: "W" + w + "-Q" + (i + 1), lecture: q.lecture, question: q.question, n: n,
+                   correctRate: n >= 3 ? Math.round(ok / n * 1000) / 1000 : null, unknown: n >= 3 ? Math.floor(r() * 4) : null,
+                   answerText: q.choices[q.answer_index] };
+        }),
+        teams: [1, 2, 3, 4, 5].map(function (k) { var a = k === 5 ? 3 : 4; return { name: k + "팀", active: a, taken: w > cur ? 0 : Math.min(a, Math.floor(r() * (a + 1))) }; })
+      });
+    },
     teamWeek: function (cohort, week) {
       var r = rng("teams|" + cohort + "|" + week), nums = [], k = 13, teams = [], idx = 0;
       for (var i = 1; i <= k; i++) nums.push(i);
@@ -196,7 +219,9 @@
     },
     whoami: function () { return rpc("admin_whoami"); },
     itemStats: function (cohort) { return rpc("admin_item_stats", { p_cohort: cohort || null, p_min_n: 3, p_limit: 10 }); },
-    teamWeek: function (cohort, week) { return rpc("admin_team_week", { p_cohort: cohort || null, p_week: week || null }); }
+    teamWeek: function (cohort, week) { return rpc("admin_team_week", { p_cohort: cohort || null, p_week: week || null }); },
+    tutorUsage: function () { return rpc("admin_tutor_usage"); },
+    weeklyStats: function (cohort, week) { return rpc("admin_weekly_stats", { p_cohort: cohort || null, p_week: week || null }); }
   };
 
   var ADM = LOCAL ? LocalAdmin : SupabaseAdmin;
@@ -236,9 +261,16 @@
     var base = (A.who && A.who.weekStart) ? String(A.who.weekStart).slice(0, 10) : mondayOf(kstToday());
     return addDays(base, -7 * A.weekBack);
   }
+  /* ④·⑤는 실패해도 대시보드는 열림: 그 칸에만 이유 한 줄 (NOT_ADMIN 은 그대로 오류로) */
+  function soft(p) {
+    return p.then(function (x) { return x || {}; }, function (e) {
+      if (/NOT_ADMIN/.test(String((e && e.message) || e))) throw e;
+      return { _missing: true, _why: explain(e) };
+    });
+  }
   function loadDash() {
-    return Promise.all([ADM.itemStats(A.cohort), ADM.teamWeek(A.cohort, weekStart())]).then(function (r) {
-      A.stats = r[0] || {}; A.teams = r[1] || {}; A.err = ""; go("dash");
+    return Promise.all([ADM.itemStats(A.cohort), ADM.teamWeek(A.cohort, weekStart()), soft(ADM.tutorUsage()), soft(ADM.weeklyStats(A.cohort, A.wkWeek))]).then(function (r) {
+      A.stats = r[0] || {}; A.teams = r[1] || {}; A.tutor = r[2]; A.weekly = r[3]; A.err = ""; go("dash");
     });
   }
 
@@ -319,8 +351,55 @@
       '<select id="week" class="sel"><option value="0"' + (A.weekBack === 0 ? " selected" : "") + '>이번 주</option><option value="1"' + (A.weekBack === 1 ? " selected" : "") + '>지난주</option></select></div>' +
       '<p class="sub" id="team-summary">' + esc(String(t.weekStart || weekStart()).slice(0, 10)) + ' 주 · 달성 <b>' + (t.achievedCount || 0) + '</b> / ' + teams.length + '팀 · 팀 없는 학생 ' + (t.unassigned || 0) + '명 · 팀 활동 쉼 ' + (t.resting || 0) + '명. ✔ = 그 주에 1문항 이상 학습. ' +
       '참여 목표 = 활동 중인 팀원 모두 그 주 N문항(경험치 받은 풀이만). "학습목표 달성"(주간 공통 점검)과는 다른 목표예요.</p>' + teamHtml + '</div>' +
-      '<div class="admin-section"><h2>④ AI 튜터 사용량</h2><p class="sub">AI 튜터는 다음 차수(M2 2차)에 붙어요.</p></div>' +
+      tutorSection() + weeklySection() +
       '<p class="sub">학생은 별명으로만 보여요. 학생 코드·개인 경험치·숨은 실력 숫자는 이 화면에도 나오지 않아요.</p></div>';
+  }
+
+  /* ---------- [M2 3차] ④ AI 튜터 사용량 ---------- */
+  function usd(x) { return "$" + (Number(x) || 0).toFixed(2); }
+  function tutorSection() {
+    var u = A.tutor || {};
+    var inner;
+    if (u._missing) inner = '<p class="sub" id="tutor-usage-missing">' + esc(/설치되지 않았어요/.test(u._why) ? "서버에 AI 튜터 사용량 기능이 아직 설치되지 않았어요(50_ai_tutor.sql 적용 전)." : u._why) + '</p>';
+    else {
+      var budget = Number(u.budgetUsd) || 0, cost = Number(u.monthCostUsd) || 0, p = budget ? Math.min(100, Math.round(cost / budget * 100)) : 0;
+      inner = '<p id="tutor-switch">스위치: <b>' + (u.enabled ? "켜짐" : "꺼짐") + '</b>' + (u.enabled ? "" : ' <span class="sub">(켜는 법: README 7-4)</span>') + '</p>' +
+        '<ul class="tutor-usage" id="tutor-usage">' +
+        '<li><b>' + (Number(u.todayCalls) || 0) + '</b><span>오늘 호출 (답 성공 ' + (Number(u.todayOk) || 0) + ')</span></li>' +
+        '<li><b>' + (Number(u.monthCalls) || 0) + '</b><span>이번 달 호출</span></li>' +
+        '<li><b>' + (Number(u.monthStudents) || 0) + '</b><span>이번 달 쓴 학생</span></li>' +
+        '<li><b>' + (Number(u.monthBlocked) || 0) + '</b><span>정답 노출로 버린 답</span></li></ul>' +
+        '<div class="row-flex"><span>이번 달 추정 비용 <b class="mono" id="tutor-cost">' + usd(cost) + '</b> <span class="sub">(약 ₩' + (Number(u.monthCostKrw) || 0).toLocaleString("ko-KR") + ')</span> / 자동 꺼짐 ' + usd(budget) + '</span>' +
+        '<div class="bar" style="flex:1"><i style="width:' + p + '%"></i></div><span class="mono">' + p + '%</span></div>' +
+        '<p class="sub">숫자만 저장해요(학생 질문 글·AI 답 글은 저장하지 않음). 추정 비용이 ' + usd(budget) + '에 닿으면 이번 달은 모든 학생에게 저절로 꺼져요.</p>';
+    }
+    return '<div class="admin-section" id="tutor-section"><h2>④ AI 튜터 사용량</h2>' + inner + '</div>';
+  }
+
+  /* ---------- [M2 3차] ⑤ 주간 공통 점검 문항별 정답률 ---------- */
+  function weeklySection() {
+    var w = A.weekly || {}, inner = "", sel = "";
+    if (w._missing) inner = '<p class="sub" id="weekly-missing">' + esc(/설치되지 않았어요/.test(w._why) ? "서버에 공통 점검 기능이 아직 설치되지 않았어요(60_m2_weekly_explainer.sql 적용 전)." : w._why) + '</p>';
+    else if (!w.cohortStart) inner = '<p class="sub" id="weekly-off">공통 점검이 꺼져 있어요. 기수 시작 월요일을 넣으면 켜져요: <span class="mono">update app_settings set cohort_start = \'2027-03-01\' where id = 1;</span> (README 8장)</p>';
+    else {
+      var max = Number(w.maxWeek) || 0, cur = w.currentWeek, wk = w.week;
+      sel = '<select id="wk-week" class="sel">' + Array.apply(null, Array(max)).map(function (_, i) {
+        var n = i + 1; return '<option value="' + n + '"' + (n === wk ? " selected" : "") + '>' + n + '주차' + (n === cur ? " (이번 주)" : "") + '</option>';
+      }).join("") + '</select>';
+      var items = w.items || [];
+      var tbl = items.length ? '<table class="tbl" id="weekly-items"><thead><tr><th>#</th><th>강</th><th>문항</th><th>정답률</th><th>응시</th><th class="hide-sm">모르겠어요</th><th class="hide-sm">정답</th></tr></thead><tbody>' +
+        items.map(function (x, i) {
+          var has = x.correctRate !== null && x.correctRate !== undefined;
+          return '<tr data-qid="' + esc(x.qid) + '"><td class="num">' + (i + 1) + '</td><td>' + esc(lec(x.lecture)) + '</td>' +
+            '<td class="qtxt">' + esc(x.question) + '<div class="sub mono">' + esc(x.qid) + '</div></td>' +
+            '<td class="num">' + (has ? '<b class="rate">' + pct(x.correctRate) + '</b><div class="bar"><i style="width:' + pct(x.correctRate) + '"></i></div>' : '<span class="sub">3명 미만</span>') + '</td>' +
+            '<td class="num">' + (Number(x.n) || 0) + '</td><td class="num hide-sm">' + (has ? (Number(x.unknown) || 0) : "—") + '</td><td class="hide-sm">' + esc(x.answerText || "—") + '</td></tr>';
+        }).join("") + '</tbody></table>' : '<p class="sub" id="weekly-items-empty">' + (wk ? wk + "주차 문항이 없어요." : "기수 시작 전이에요.") + '</p>';
+      var teams = (w.teams || []).length ? '<p class="sub" id="weekly-teams">팀별 응시: ' + w.teams.map(function (t) { return esc(t.name) + ' ' + t.taken + '/' + t.active + '명'; }).join(" · ") + '</p>' : "";
+      inner = '<p class="sub" id="weekly-summary">' + (wk ? wk + '주차' : '') + ' · 응시 <b>' + (Number(w.takers) || 0) + '</b>명 · 기수 시작 ' + esc(String(w.cohortStart).slice(0, 10)) +
+        '. 응시가 ' + (w.minN || 3) + '명보다 적은 문항은 정답률을 비워요(한 학생 답이 드러나지 않게). 학생 개인 점수는 학생에게도 보이지 않아요.</p>' + tbl + teams;
+    }
+    return '<div class="admin-section" id="weekly-section"><div class="row-flex"><h2>⑤ 주간 공통 점검 문항별 정답률</h2>' + sel + '</div>' + inner + '</div>';
   }
 
   /* ---------- 버튼 ---------- */
@@ -336,6 +415,7 @@
     if (A.busy) return;
     if (e.target.id === "cohort") { A.cohort = e.target.value; guard(loadDash); }
     if (e.target.id === "week") { A.weekBack = Number(e.target.value) || 0; guard(loadDash); }
+    if (e.target.id === "wk-week") { A.wkWeek = Number(e.target.value) || null; guard(loadDash); }
   });
   root.addEventListener("click", function (e) {
     var b = e.target.closest("[data-act]"); if (!b || b.disabled || A.busy) return;
@@ -364,7 +444,7 @@
       case "retry": A.err = ""; return guard(afterLogin);
       case "logout":
         return guard(function () {
-          return ADM.logout().then(function () { A.who = null; A.stats = null; A.teams = null; A.cohort = null; A.sent = false; A.err = ""; go("login"); });
+          return ADM.logout().then(function () { A.who = null; A.stats = null; A.teams = null; A.tutor = null; A.weekly = null; A.wkWeek = null; A.cohort = null; A.sent = false; A.err = ""; go("login"); });
         });
     }
   }

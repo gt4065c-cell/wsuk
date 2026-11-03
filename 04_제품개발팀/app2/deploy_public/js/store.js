@@ -20,6 +20,11 @@
      setTeamOff(off)        [M2] 팀 활동 쉬기 / 다시 하기 → 바뀐 팀 요약
      tutorStatus()          [M2 2차] AI 튜터 켜짐 여부 + 오늘 남은 횟수
      askTutor(rq)           [M2 2차] AI 튜터에게 질문 {qid, level, tried, question} → {ok, kind, reply, state} (로컬 모드는 가짜 응답)
+     weeklyStatus()         [M2 3차] 이번 주 공통 점검: 열림 여부·주차·응시 완료·다시 볼 강·팀원 n/m명 응시 (점수 없음)
+     weeklyItems()          [M2 3차] 이번 주 공통 점검 문항 (정답 없음)
+     submitWeekly(answers)  [M2 3차] {문항번호: 보기 번호 | null} 한꺼번에 제출 → {done, week, reviewLectures} (서버 채점, 점수 없음)
+     teamExplainer()        [M2 3차] 우리 팀 이번 주 해설 당번 (당번 별명·문항·올라온 해설 — 같은 팀만)
+     writeExplainer(qid, body)  [M2 3차] 당번이 해설 쓰기(200자 안)
 
    두 가지 창구가 같은 모양으로 들어 있습니다.
      A. LocalStore    : 로컬 모드(개발용). 이 브라우저에만 저장
@@ -128,6 +133,50 @@
     var t = {}; try { t = JSON.parse(lsGet(TUTOR_KEY) || "{}") || {}; } catch (e) { t = {}; }
     if (!t[code] || t[code].day !== today()) t[code] = { day: today(), n: 0 };
     t[code].n++; lsSet(TUTOR_KEY, JSON.stringify(t));
+  }
+
+  /* [M2 3차] 로컬 모드 주간 공통 점검 = 흉내
+     - 진짜 공통 점검 문항(평가 문항)은 로컬 파일에 없음(build_data.py 가 막음) → 연습 문항 8개로 흉내(개발용 표시)
+     - 주 번호 = 이 브라우저에서 코드를 처음 넣은 주를 1주차로 (개발용 날짜 앞당기기로 다음 주 흉내 가능)
+     - 가짜 팀원: 바다는 이미 응시, 소나무는 아직 → "팀원 n/m명 응시" */
+  var WEEKLY_N = 8;
+  function localWeekNo(s) { return LU.checkWeek(LU.weekKey(s.created || today()), today()) || 1; }
+  function localWeeklyItems(w) {
+    var mcq = PRACTICE.filter(function (q) { return q.type === "mcq"; });
+    var start = ((w - 1) * WEEKLY_N) % Math.max(1, mcq.length - WEEKLY_N);
+    return mcq.slice(start, start + WEEKLY_N);
+  }
+  function localWeekly(db, s) {
+    var w = localWeekNo(s), rec = ((db.weekly || {})[s.code] || {})[w] || null;
+    // 바다(응시) · 소나무(아직) · 나 — 팀 활동 쉼이면 나는 m·n 둘 다에서 빠짐 (서버 weekly_check_status 와 같음)
+    var active = 2 + (s.teamOff ? 0 : 1), taken = 1 + (rec && !s.teamOff ? 1 : 0);
+    return { open: true, reason: null, week: w, cohortStart: LU.weekKey(s.created || today()), nItems: WEEKLY_N, done: !!rec,
+             reviewLectures: rec ? rec.reviewLectures.slice() : null, team: { active: active, taken: taken }, fake: true };
+  }
+  /* [M2 3차] 로컬 모드 해설 당번 = 흉내. 기본은 내가 당번(쓰기 화면을 보려고).
+     [개발용] localStorage.setItem('lu2_dev_duty','mate') → 가짜 팀원 바다가 당번 + 가짜 해설(팀원 화면 보기) */
+  var FAKE_EXPLAIN = "(가짜 해설 · 개발용) 정답이 맞는 이유는 문제에서 묻는 핵심 낱말이 그 역할을 하기 때문이에요. 헷갈린 보기는 비슷한 이름이지만 하는 일이 달라요.";
+  function localExplainItem(db, s) {
+    var week = LU.weekKey(today()), wrong = {};
+    db.attempts.filter(function (a) { return a.code === s.code && a.day >= week; }).forEach(function (a) {
+      var q = QBY[a.qid]; if (!q) return;
+      if (!a.submits || !a.submits.length || a.submits[0] !== q.answer_index) wrong[a.qid] = (wrong[a.qid] || 0) + 1;
+    });
+    var ids = Object.keys(wrong).sort(function (a, b) { return wrong[b] - wrong[a] || (a < b ? -1 : 1); });
+    return ids.length ? QBY[ids[0]] : null;
+  }
+  function localExplainer(db, s) {
+    var week = LU.weekKey(today()), mate = lsGet("lu2_dev_duty") === "mate";
+    var store = ((db.explainer || {})[s.code] || {})[week] || null;
+    var q = store ? QBY[store.qid] : localExplainItem(db, s);
+    if (mate) q = q || PRACTICE[0];
+    var iAm = !mate && !s.teamOff;
+    return {
+      inTeam: true, weekStart: week, maxChars: LU.WEEKLY.EXPLAIN_MAX, hasDuty: true,
+      dutyNickname: iAm ? (s.nickname || "(별명 정하기 전)") : "바다", iAmDuty: iAm,
+      item: q ? { qid: q.id, lecture: q.lecture, question: q.question, sourceSection: q.source_section || "" } : null,
+      body: mate ? FAKE_EXPLAIN : store ? store.body : null, writtenAt: mate ? week : store ? store.at : null, fake: true
+    };
   }
 
   var picks = [];
@@ -312,6 +361,54 @@
       });
     },
 
+    /* [M2 3차] 주간 공통 점검 (로컬 = 연습 문항 8개로 흉내). 화면에 돌려주는 모양은 Supabase 모드와 같음 — 점수 없음 */
+    weeklyStatus: function () {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      return Promise.resolve(localWeekly(db, s));
+    },
+    weeklyItems: function () {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      var st = localWeekly(db, s);
+      if (st.done) return Promise.reject(new Error(ERR_TEXT.WEEKLY_DONE));
+      return Promise.resolve({ week: st.week, fake: true, items: localWeeklyItems(st.week).map(function (q) {
+        return { id: q.id, lecture: q.lecture, type: q.type, question: q.question, choices: q.choices.slice() };   // 정답 칸은 빼고
+      }) });
+    },
+    submitWeekly: function (answers) {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      var st = localWeekly(db, s); if (st.done) return Promise.reject(new Error(ERR_TEXT.WEEKLY_DONE));
+      var items = localWeeklyItems(st.week), a = answers || {};
+      // 서버 weekly_check_submit 과 같은 검사: 이번 주 문항 모두(빠짐·남는 것 없이), 보기 번호 범위 또는 null
+      var okShape = Object.keys(a).length === items.length && items.every(function (q) {
+        if (!has(a, q.id)) return false; var c = a[q.id];
+        return c === null || (typeof c === "number" && c === Math.floor(c) && c >= 0 && c < q.choices.length);
+      });
+      if (!okShape) return Promise.reject(new Error(ERR_TEXT.BAD_ANSWERS));
+      var rl = LU.reviewLectures(items, a, function (id) { return QBY[id].answer_index; });
+      db.weekly = db.weekly || {}; db.weekly[s.code] = db.weekly[s.code] || {};
+      db.weekly[s.code][st.week] = { answers: a, reviewLectures: rl, at: now() };   // 맞힌 수는 저장도 안 함(로컬)
+      saveDb(db);
+      return Promise.resolve({ done: true, week: st.week, reviewLectures: rl });
+    },
+    /* [M2 3차] 팀 해설 당번 (로컬 = 흉내) */
+    teamExplainer: function () {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      return Promise.resolve(localExplainer(db, s));
+    },
+    writeExplainer: function (qid, body) {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      var e = localExplainer(db, s);
+      if (!e.iAmDuty) return Promise.reject(new Error(ERR_TEXT.NOT_DUTY));
+      if (!e.item) return Promise.reject(new Error(ERR_TEXT.NO_ITEM));
+      if (qid !== e.item.qid) return Promise.reject(new Error(ERR_TEXT.ITEM_CHANGED));
+      var bad = LU.checkExplain(body); if (bad) return Promise.reject(new Error(ERR_TEXT[bad]));
+      var week = LU.weekKey(today());
+      db.explainer = db.explainer || {}; db.explainer[s.code] = db.explainer[s.code] || {};
+      db.explainer[s.code][week] = { qid: qid, body: LU.cleanExplain(body), at: new Date(now()).toISOString() };
+      saveDb(db);
+      return Promise.resolve(localExplainer(db, s));
+    },
+
     /* [개발용] 자동 테스트가 속을 들여다보는 문. 화면 코드는 쓰지 않음. Supabase 모드에는 없음 */
     _debug: function () {
       var db = loadDb(), s = current(db);
@@ -347,7 +444,18 @@
     BAD_SUBMITS: "답 기록이 서버 규칙과 맞지 않아 저장하지 못했어요. 새로고침해 주세요.",
     NOT_CLOSED: "아직 끝나지 않은 문제라 저장하지 못했어요. 새로고침해 주세요.",
     L4_BEFORE_SUBMIT: "정답 보기는 답을 한 번 낸 뒤에만 기록돼요.",
-    NOT_DUE: "이 복습 문제는 아직 복습할 날이 아니에요. 홈으로 가서 다시 시작해 주세요."
+    NOT_DUE: "이 복습 문제는 아직 복습할 날이 아니에요. 홈으로 가서 다시 시작해 주세요.",
+    // [M2 3차] 주간 공통 점검 · 해설 당번
+    WEEKLY_CLOSED: "이번 주 공통 점검이 지금은 열려 있지 않아요. 홈으로 돌아가 주세요.",
+    WEEKLY_DONE: "이번 주 공통 점검은 이미 응시했어요. 한 주에 한 번만 풀 수 있어요.",
+    BAD_ANSWERS: "답이 서버 규칙과 맞지 않아 제출하지 못했어요. 새로고침한 뒤 다시 풀어 주세요.",
+    NOT_DUTY: "이번 주 해설 당번이 아니라서 쓸 수 없어요.",
+    NO_ITEM: "아직 해설할 문항이 정해지지 않았어요. 팀이 연습 문제를 풀면 정해져요.",
+    ITEM_CHANGED: "그사이 팀 기록이 늘어 해설할 문항이 바뀌었어요. 새 문항을 확인해 주세요(쓴 글은 그대로 있어요).",
+    TOO_SHORT: "해설은 10글자 이상 써 주세요.",
+    TOO_LONG: "해설은 200글자 안으로 줄여 주세요.",
+    PRIVATE_INFO: "이메일·전화번호는 쓰지 마세요. 팀원에게 그대로 보여요.",
+    NO_TEAM: "아직 팀이 없어요."
   };
   function explainError(e) {
     var m = String((e && (e.message || e.error_description || e.msg)) || e || "");
@@ -496,6 +604,24 @@
              state: a.enabled === undefined ? null : normTutor(a) };
   }
 
+  /* [M2 3차] 공통 점검 상태 · 해설 당번 → 화면 모양 (모르는 칸은 버림: 혹시 서버가 점수를 보내도 화면에는 안 넘김) */
+  function normWeekly(w) {
+    w = w || {};
+    var team = w.team && typeof w.team === "object" ? { active: Number(w.team.active) || 0, taken: Number(w.team.taken) || 0 } : null;
+    return { open: !!w.open, reason: w.reason || null, week: w.week === null || w.week === undefined ? null : Number(w.week),
+             cohortStart: w.cohortStart ? String(w.cohortStart).slice(0, 10) : null, nItems: Number(w.nItems) || 0, done: !!w.done,
+             reviewLectures: Array.isArray(w.reviewLectures) ? w.reviewLectures.map(Number) : null, team: team, fake: false };
+  }
+  function normExplainer(e) {
+    e = e || {};
+    if (!e.inTeam) return { inTeam: false };
+    var it = e.item && e.item.qid ? { qid: String(e.item.qid), lecture: Number(e.item.lecture) || 0, question: String(e.item.question || ""),
+                                     sourceSection: String(e.item.sourceSection || "") } : null;
+    return { inTeam: true, weekStart: String(e.weekStart || "").slice(0, 10), maxChars: Number(e.maxChars) || LU.WEEKLY.EXPLAIN_MAX,
+             hasDuty: !!e.hasDuty, dutyNickname: e.dutyNickname ? String(e.dutyNickname) : "", iAmDuty: !!e.iAmDuty,
+             item: it, body: e.body ? String(e.body) : null, writtenAt: e.writtenAt || null, fake: false };
+  }
+
   var SupabaseStore = {
     mode: "supabase", devLabel: "", hintsAreFake: false,
     now: function () { return Date.now(); },
@@ -623,6 +749,32 @@
             throw r.error;
           });
       }).catch(function (e) { throw friendly(e); });
+    },
+    /* [M2 3차] 주간 공통 점검 — 60_m2_weekly_explainer.sql. 문항은 서버 함수로만(표로는 못 읽음), 채점도 서버가 */
+    weeklyStatus: function () {
+      return rpc("weekly_check_status").then(normWeekly).catch(function (e) { throw friendly(e); });
+    },
+    weeklyItems: function () {
+      return rpc("weekly_check_items").then(function (r) {
+        r = r || {};
+        return { week: Number(r.week) || null, fake: false, items: (r.items || []).map(function (q) {
+          return { id: String(q.id), lecture: Number(q.lecture) || 0, type: q.type === "ox" ? "ox" : "mcq", question: String(q.question || ""), choices: asChoices(q.choices) };
+        }) };
+      }).catch(function (e) { throw friendly(e); });
+    },
+    submitWeekly: function (answers) {
+      var a = {}; Object.keys(answers || {}).forEach(function (k) { var c = answers[k]; a[k] = c === null || c === undefined ? null : Number(c); });
+      return rpc("weekly_check_submit", { p_answers: a }).then(function (r) {
+        r = r || {};
+        return { done: !!r.done, week: Number(r.week) || null, reviewLectures: (r.reviewLectures || []).map(Number) };   // 점수 칸은 받지도 넘기지도 않음
+      }).catch(function (e) { throw friendly(e); });
+    },
+    /* [M2 3차] 팀 해설 당번 — 같은 팀 안에서만 (서버가 막음) */
+    teamExplainer: function () {
+      return rpc("my_team_explainer").then(normExplainer).catch(function (e) { throw friendly(e); });
+    },
+    writeExplainer: function (qid, body) {
+      return rpc("write_team_explainer", { p_qid: qid, p_body: String(body || "") }).then(normExplainer).catch(function (e) { throw friendly(e); });
     },
     closeItem: function (rec) {
       return rpc("close_item", { p_qid: rec.qid, p_mode: rec.mode, p_level: Number(rec.level) || 0,
