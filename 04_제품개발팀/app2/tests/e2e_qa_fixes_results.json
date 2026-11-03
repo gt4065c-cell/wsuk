@@ -32,35 +32,35 @@
   "name": "개념 카드: 로컬 파일 concepts.js = 원본의 검토 끝난 카드(강 번호·제목·3줄) · seed.json \"cards\" = 원본 30장 · 70번 SQL 에 표·RLS·reviewed 읽기 규칙",
   "status": "pass",
   "note": "카드 30장",
-  "ms": 5
+  "ms": 4
  },
  {
   "id": "F-05",
   "name": "별명 \"홍길동 010-1234\" → 칸 아래 안내(서버와 같은 말), 저장 안 됨 · \"  하늘   별 \" → \"하늘 별\"로 저장",
   "status": "pass",
   "note": "",
-  "ms": 534
+  "ms": 522
  },
  {
   "id": "F-06",
   "name": "진단 1문항 뒤 홈: 공통 점검 카드 \"진단을 10문항 이상 마치면…\"(시작 버튼 없음) · 해설 당번 카드 닫힘 · 창구로 불러도 NEED_DIAG · 진단 보기 99 → 거절",
   "status": "pass",
   "note": "",
-  "ms": 201
+  "ms": 199
  },
  {
   "id": "F-07",
   "name": "진단을 마치면 공통 점검 열림 · 해설 당번 카드 열림",
   "status": "pass",
   "note": "",
-  "ms": 899
+  "ms": 903
  },
  {
   "id": "F-08",
   "name": "일요일(개발용 날짜)에 점검 시작 → \"월요일 새벽 3시 전까지 제출\" 안내 · 월요일에는 안내 없음",
   "status": "pass",
   "note": "일요일까지 +5일",
-  "ms": 418
+  "ms": 484
  },
  {
   "id": "F-09",
@@ -74,55 +74,55 @@
   "name": "O/X 문제(검토 끝난 힌트 있음): 답 내기 전 \"힌트 3단계까지 보고도 막히면 AI 튜터…\" 안내 한 줄 / 힌트 없는 O/X 는 안내 없음",
   "status": "pass",
   "note": "",
-  "ms": 716
+  "ms": 718
  },
  {
   "id": "F-11",
   "name": "점검 8문항을 풀고 제출했는데 서버가 WEEK_CHANGED(자정 지남) → 홈으로 + \"고른 답은 제출되지 않았어요 · 이번 주 점검을 새로 시작\" 안내 · 시작 버튼 다시 보임",
   "status": "pass",
   "note": "",
-  "ms": 919
+  "ms": 940
  },
  {
   "id": "F-12",
   "name": "서버가 NEED_DIAG 를 보내면 점검 카드 \"진단을 10문항 이상…\"(시작 버튼 없음) · 오류 이름 NEED_DIAG → 쉬운 말",
   "status": "pass",
   "note": "",
-  "ms": 257
+  "ms": 264
  },
  {
   "id": "F-13",
   "name": "Supabase 창구: 별명은 정리해서 보냄(set_nickname p_name \"하늘 별\") · 서버 오류 이름 → 쉬운 말(NICK_PRIVATE·NICK_LENGTH·BAD_CHOICE·NOT_OPEN·WEEK_CHANGED)",
   "status": "pass",
   "note": "",
-  "ms": 461
+  "ms": 435
  },
  {
   "id": "F-16",
   "name": "Supabase 모드: E4 카드 자리에 그 강 카드 — 제목 \"NN강 핵심 정리\" + 3줄 (concept_cards 에서 lecture·title·lines 만 읽음)",
   "status": "pass",
   "note": "04강",
-  "ms": 396
+  "ms": 511
  },
  {
   "id": "F-17",
   "name": "카드가 없으면 예전처럼(강 이름 한 줄): 그 강 카드가 검토 전 / 서버에 표가 아직 없음(70번 적용 전) — 오류 띠 없음",
   "status": "pass",
   "note": "",
-  "ms": 679
+  "ms": 734
  },
  {
   "id": "F-18",
   "name": "로컬 모드: 2문항 연속 틀림(정답 보고 이해) → 다음 문제 위에 그 강 카드 3줄",
   "status": "pass",
   "note": "3강 카드",
-  "ms": 1680
+  "ms": 1712
  },
  {
   "id": "F-14",
   "name": "임시 PostgreSQL 시험(있으면): supabase/local_test/run_qa_fixes_local.sh 실패 0",
   "status": "pass",
   "note": "로컬 PostgreSQL 시험(QA 낮음 수정 SQL): 통과 71 · 실패 0   (임시 DB는 지웠어요)",
-  "ms": 1702
+  "ms": 1858
  }
 ]
