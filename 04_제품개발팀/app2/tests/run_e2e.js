@@ -230,8 +230,16 @@ function startServer() {
     const h = await newPage({ clock: true });
     await test('E-16', '힌트: L1 바로 → L2는 10초 뒤 → L3는 "내 생각 한 줄" → L4는 답 낸 뒤 → "정답 보고 이해"', async () => {
       const p = h.page; await open(p); await login(p, 'TEST45', '바다'); await diagAnswerAll(p);
+      // 검토 전(draft) 힌트 문항: 로컬 개발 모드(SHOW_DRAFT_HINTS)에서는 '검토 전 힌트(개발용)' 표시와 함께 보임
+      const draftId = await p.evaluate(() => { const H = window.LU_HINTS.hints; return window.LU_PRACTICE.questions.map(q => q.id).find(id => H[id] && !H[id].reviewed); });
+      if (draftId) {
+        await p.evaluate(id => window.__LU_APP.openItem(id, 'PRACTICE'), draftId); await p.waitForSelector('#hint-btn');
+        ok(!!(await p.$('#draft-tag')) && (await p.textContent('#hints')).includes('검토 전 힌트'), draftId + ' 검토 전 표시 없음');
+      }
+      // 검토 끝난(reviewed, 캡틴 승인) 힌트 문항 L01-Q1: '검토 전'·'시험용' 표시가 없어야 함
       await p.evaluate(() => window.__LU_APP.openItem('L01-Q1', 'PRACTICE')); await p.waitForSelector('#hint-btn');
-      const ht = await p.textContent('#hints'); ok(ht.includes('시험용 힌트') || ht.includes('검토 전 힌트'), '시험용/검토 전 표시');
+      ok(await p.evaluate(() => window.LU_HINTS.hints['L01-Q1'].reviewed === true), 'L01-Q1이 검토 끝난 힌트가 아님');
+      const ht = await p.textContent('#hints'); ok(!(await p.$('#draft-tag')) && !ht.includes('검토 전 힌트') && !ht.includes('시험용 힌트'), '검토 끝난 힌트에 검토 전/시험용 표시: ' + ht.slice(0, 60));
       await p.click('#hint-btn'); await p.waitForSelector('.hint-step[data-level="1"]');
       await p.waitForFunction(() => document.querySelector('#hint-btn').disabled);
       ok((await p.textContent('#hint-btn')).includes('초 뒤'), await p.textContent('#hint-btn'));
