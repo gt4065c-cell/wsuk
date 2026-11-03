@@ -11,6 +11,11 @@
      __MOCK_DATA.adminStats / adminTeams = 교수 함수가 돌려줄 가짜 값
    - [M2 2차] AI 튜터: rpc tutor_status + functions.invoke('ai-tutor') 흉내. __MOCK_DATA.tutor 가 없으면 서버에 AI 튜터가 없는 것처럼(함수 없음)
      __MOCK_DATA.tutor = {enabled, reason, dayLimit, used, reply, kind, error}  (부른 내용은 mock_log 에 t:'invoke')
+   - [M2 3차] 주간 공통 점검·해설 당번·교수 ④⑤ (60_m2_weekly_explainer.sql 과 같은 모양). 없으면 함수 없음(적용 전)처럼
+     __MOCK_DATA.weekly = {week, reason, cohortStart, items:[{id,lecture,type,question,choices,answer_index}], teamActive, teamTaken}
+       (채점은 이 가짜 서버가. 응시 기록은 mock_db.weekly[코드][주] — 맞힌 수는 화면에 돌려주지 않음)
+     __MOCK_DATA.explainer = {duty:'me'|별명, item:{qid,lecture,question,sourceSection}|null, body}
+     __MOCK_DATA.adminTutor / adminWeekly = 교수 함수가 돌려줄 가짜 값
    ========================================================= */
 (function () {
   "use strict";
@@ -62,7 +67,78 @@
     var reason = T.reason || (T.enabled === false ? "OFF" : used >= lim ? "DAY_LIMIT" : null);
     return { enabled: !reason, reason: reason, dayLimit: lim, dayLeft: Math.max(0, lim - used), monthLeft: 60, left: Math.max(0, lim - used) };
   }
+  /* [M2 3차] 공통 점검 상태 (서버 weekly_check_status 와 같은 모양) */
+  function weeklyState(c) {
+    var W = D.weekly, x = db(), rec = ((x.weekly || {})[c] || {})[W.week] || null;
+    var reason = W.reason !== undefined ? W.reason : null;
+    return { open: reason === null, reason: reason, week: reason === "OFF" || reason === "NOT_STARTED" ? null : W.week,
+             cohortStart: reason === "OFF" ? null : (W.cohortStart || "2027-03-01"), nItems: reason === null ? W.items.length : 0, done: !!rec,
+             reviewLectures: rec ? rec.reviewLectures : null,
+             team: D.team && W.teamActive ? { active: W.teamActive, taken: (W.teamTaken || 0) + (rec ? 1 : 0) } : null };
+  }
+  function explainerState(c) {
+    var E = D.explainer, x = db(), st = x.students[c], mine = E.duty === "me";
+    var saved = (x.explainer || {})[c];
+    return { inTeam: true, weekStart: weekStartOf(today()), maxChars: 200, hasDuty: !!E.duty,
+             dutyNickname: mine ? (st.nickname || "(별명 정하기 전)") : (E.duty || null), iAmDuty: mine,
+             item: E.item || null, body: saved ? saved.body : (E.body || null), writtenAt: saved ? saved.at : null };
+  }
   var RPC = {
+    weekly_check_status: function () {
+      if (!D.weekly) return err("Could not find the function public.weekly_check_status");
+      var c = meCode(); if (!c) return err("NOT_LINKED");
+      return ok(weeklyState(c));
+    },
+    weekly_check_items: function () {
+      if (!D.weekly) return err("Could not find the function public.weekly_check_items");
+      var c = meCode(); if (!c) return err("NOT_LINKED");
+      var w = weeklyState(c);
+      if (!w.open) return err("WEEKLY_CLOSED"); if (w.done) return err("WEEKLY_DONE");
+      return ok({ week: D.weekly.week, items: D.weekly.items.map(function (q) { return { id: q.id, lecture: q.lecture, type: q.type, question: q.question, choices: q.choices }; }) });
+    },
+    weekly_check_submit: function (a) {
+      if (!D.weekly) return err("Could not find the function public.weekly_check_submit");
+      var c = meCode(); if (!c) return err("NOT_LINKED");
+      var w = weeklyState(c); if (!w.open) return err("WEEKLY_CLOSED"); if (w.done) return err("WEEKLY_DONE");
+      var ans = a.p_answers, items = D.weekly.items;
+      if (!ans || typeof ans !== "object" || Array.isArray(ans) || Object.keys(ans).length !== items.length) return err("BAD_ANSWERS");
+      var bad = items.some(function (q) { var v = ans[q.id]; return !(q.id in ans) || !(v === null || (typeof v === "number" && v >= 0 && v < q.choices.length && v === Math.floor(v))); });
+      if (bad) return err("BAD_ANSWERS");
+      var lec = {}; items.forEach(function (q) { if (ans[q.id] !== q.answer_index) lec[q.lecture] = 1; });
+      var rl = Object.keys(lec).map(Number).sort(function (p, q) { return p - q; });
+      var x = db(); x.weekly = x.weekly || {}; x.weekly[c] = x.weekly[c] || {};
+      x.weekly[c][D.weekly.week] = { answers: ans, reviewLectures: rl, nCorrect: items.filter(function (q) { return ans[q.id] === q.answer_index; }).length };
+      save(x);
+      return ok({ done: true, week: D.weekly.week, reviewLectures: rl });
+    },
+    my_team_explainer: function () {
+      if (!D.explainer) return err("Could not find the function public.my_team_explainer");
+      var c = meCode(); if (!c) return err("NOT_LINKED");
+      if (!D.team) return ok({ inTeam: false, weekStart: weekStartOf(today()) });
+      return ok(explainerState(c));
+    },
+    write_team_explainer: function (a) {
+      if (!D.explainer) return err("Could not find the function public.write_team_explainer");
+      var c = meCode(); if (!c) return err("NOT_LINKED");
+      var e = explainerState(c);
+      if (!e.iAmDuty) return err("NOT_DUTY"); if (!e.item) return err("NO_ITEM");
+      if (a.p_qid !== e.item.qid) return err("ITEM_CHANGED");
+      var b = String(a.p_body || "").replace(/\r/g, "").trim();
+      if (b.length < 10) return err("TOO_SHORT"); if (b.length > 200) return err("TOO_LONG");
+      if (/[^\s@]+@[^\s@]+\.[A-Za-z]{2,}/.test(b) || /01[016789][-. ]?\d{3,4}[-. ]?\d{4}/.test(b)) return err("PRIVATE_INFO");
+      var x = db(); x.explainer = x.explainer || {}; x.explainer[c] = { body: b, at: new Date().toISOString() }; save(x);
+      return ok(explainerState(c));
+    },
+    admin_tutor_usage: function () {
+      if (!adminOf()) return err("NOT_ADMIN");
+      if (!D.adminTutor) return err("Could not find the function public.admin_tutor_usage");
+      return ok(D.adminTutor);
+    },
+    admin_weekly_stats: function (a) {
+      if (!adminOf()) return err("NOT_ADMIN");
+      if (!D.adminWeekly) return err("Could not find the function public.admin_weekly_stats");
+      return ok(Object.assign({}, D.adminWeekly, { cohort: a.p_cohort, week: a.p_week || D.adminWeekly.currentWeek }));
+    },
     tutor_status: function () {
       if (!D.tutor) return err("Could not find the function public.tutor_status");
       if (!meCode()) return err("NOT_LINKED");

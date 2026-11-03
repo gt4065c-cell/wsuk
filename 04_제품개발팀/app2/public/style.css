@@ -323,3 +323,16 @@ select.sel{min-height:44px;padding:8px 10px;border-radius:var(--r-btn);border:1p
 .tutor-count{font-size:.8125rem;color:var(--text-2);text-align:right}
 .tutor-empty{display:block;font-size:.9375rem;font-weight:700;color:var(--text-2);padding:8px 12px;border-radius:12px;background:var(--surface-2);cursor:pointer}
 .tutor-empty[hidden]{display:none}
+
+/* [M2 3차] 공통 점검 카드 · 해설 당번 카드 (학생 홈) · 교수 화면 AI 튜터 사용량 */
+.weekly-card,.expl-card{display:flex;flex-direction:column;gap:8px}
+.weekly-card .plan-row,.expl-card .plan-row{align-items:center;gap:8px}
+.weekly-card p,.expl-card p{margin:0}
+.expl-item{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:var(--surface-2)}
+.expl-item .qtext{font-weight:600;line-height:1.5}
+.expl-text{white-space:pre-wrap;line-height:1.6;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface)}
+.tutor-usage{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;list-style:none;margin:0;padding:0}
+.tutor-usage li{display:flex;flex-direction:column;gap:2px;padding:10px 8px;border-radius:12px;background:var(--surface);border:1px solid var(--border);text-align:center}
+.tutor-usage b{font-family:var(--mono);font-size:1.125rem}
+.tutor-usage span{font-size:.8125rem;color:var(--text-2);font-weight:600}
+@media (max-width:560px){.tutor-usage{grid-template-columns:repeat(2,1fr)}}

@@ -16,6 +16,8 @@
     screen: "loading", student: null, err: "", draft: "",
     diag: null, diagResult: null, today: null,
     team: null, teamErr: "", teamConfirm: false,   // [M2] 홈 팀 카드
+    weekly: null, wk: null, wkResult: null,        // [M2 3차] 공통 점검 상태 · 푸는 중 {week, items, idx, answers:{qid: 보기|null}, selected, fake} · 제출 결과
+    expl: null, explQ: null, explDraft: null, explMsg: "",   // [M2 3차] 해설 당번 (explDraft: null = 쓰는 중 아님)
     busy: false,  // 서버(저장소)에 묻는 중이면 true → 그동안 버튼 잠금 (QA 1·2번: 연타로 문제 건너뜀 방지)
     run: null,    // {reviews:[qid], newLeft, extra, xpStart, recent:[{qid,lecture,R}], seen:[qid], log:[{qid,mode,outcome,xp}]}
     item: null    // {qid, q, mode, order, st, selected, hints, thought, concept, result, triedWrong:[orig], msg, tutor}
@@ -88,7 +90,27 @@
 
   /* ---------- 홈 ---------- */
   function goHome() {
-    return Promise.all([refreshStudent(), STORE.today(), loadTeam()]).then(function (r) { S.today = r[1]; go("home"); }).catch(fail);
+    S.explMsg = ""; S.explDraft = null;
+    return Promise.all([refreshStudent(), STORE.today(), loadTeam(), loadWeekly(), loadExplainer()]).then(function (r) { S.today = r[1]; go("home"); }).catch(fail);
+  }
+  /* [M2 3차] 공통 점검 상태 · 해설 당번도 실패하면 카드만 숨김 (서버에 60번 SQL 적용 전이어도 홈은 열림) */
+  function loadWeekly() {
+    if (!STORE.weeklyStatus) { S.weekly = null; return Promise.resolve(); }
+    return STORE.weeklyStatus().then(function (w) { S.weekly = w; }, function (e) {
+      S.weekly = null;
+      if (window.console) console.warn("[레벨업] 공통 점검 정보를 불러오지 못했어요:", (e && e.message) || e);
+    });
+  }
+  function loadExplainer() {
+    if (!STORE.teamExplainer) { S.expl = null; return Promise.resolve(); }
+    return STORE.teamExplainer().then(function (e) {
+      S.expl = e; S.explQ = null;
+      // 당번에게는 정답 글도 보여 주려고 연습 문항(정답 포함 — 원래 공개되는 연습 문항)을 찾아 둠
+      if (e && e.inTeam && e.iAmDuty && e.item) return STORE.question(e.item.qid).then(function (q) { S.explQ = q; }, function () {});
+    }, function (e) {
+      S.expl = null;
+      if (window.console) console.warn("[레벨업] 해설 당번 정보를 불러오지 못했어요:", (e && e.message) || e);
+    });
   }
   /* [M2] 팀 요약은 실패해도 홈은 열림 (서버에 팀 함수가 아직 없거나 인터넷이 잠깐 끊겨도 오늘의 학습은 가능) */
   function loadTeam() {
@@ -153,7 +175,7 @@
     var who = document.getElementById("who");
     who.textContent = S.student && S.student.nickname ? S.student.nickname + " 님" : "";
     var h = ({ loading: vLoading, login: vLogin, nickname: vNickname, diag: vDiag, diagResult: vDiagResult,
-               home: vHome, item: vItem, done: vDone })[S.screen]();
+               home: vHome, item: vItem, done: vDone, weekly: vWeekly, weeklyDone: vWeeklyDone })[S.screen]();
     var err = S.err ? '<div class="note" role="alert" id="err"><div class="note-title">문제가 생겼어요</div>' + esc(S.err) + '</div>' : "";
     app.innerHTML = '<section class="screen" data-screen="' + S.screen + '">' + h.replace("<!--ERR-->", err) + '</section>';
     if (S.screen === "item") { startTick(); maybeLoadTutor(); }
@@ -256,7 +278,7 @@
       '<ul class="stats"><li><b id="xp-week">' + t.weekXp + '</b><span>이번 주 학습량 XP</span></li>' +
       '<li><b id="solved-week">' + t.weekSolved + '</b><span>이번 주 푼 문항</span></li>' +
       '<li><b id="xp-total">' + s.xp + '</b><span>모은 XP</span></li></ul>' +
-      teamCard() +
+      weeklyCard() + teamCard() + explainerCard() +
       '<p class="sub">경험치는 문제를 끝까지 풀면 10 XP, 복습에서 혼자 맞히면 +5 XP예요. 힌트를 써도 줄지 않아요. 이미 푼 문제는 복습 날에 다시 풀 때만 경험치가 있어요.</p>' +
       '<!--ERR--><button class="linkbtn" data-act="logout">다른 코드로 들어가기</button></div>' +
       '<div class="bottombar">' + (diagFirst
@@ -292,16 +314,122 @@
       : t.achieved
       ? '<p id="team-status" class="team-ok"><b>이번 주 팀 참여 목표 달성</b> — 활동 중인 팀원 모두 ' + t.goalPerMember + '문항을 끝까지 풀었어요.</p>'
       : '<p id="team-status"><b>도전 중</b> · 내 이번 주 <b id="team-mine">' + t.myCount + '</b> / ' + t.goalPerMember + '문항</p>';
+    var wk = S.weekly && S.weekly.open && S.weekly.team ? S.weekly.team : null;   // [M2 3차] 누가 응시했는지는 안 보임, 숫자만
+    var wkLine = wk ? '<p class="sub" id="team-weekly">이번 주 공통 점검: 팀원 <b>' + wk.taken + '/' + wk.active + '</b>명 응시</p>' : "";
     var others = t.achievedTeams.length
       ? '<p class="sub" id="team-achieved">이번 주 참여 목표 달성 팀: ' + t.achievedTeams.map(esc).join(" · ") + '</p>' : "";
     return '<div class="card team-card" id="team-card" data-state="' + (t.teamOff ? "off" : t.achieved ? "achieved" : "trying") + '">' +
       '<div class="plan-row"><h3 id="team-name">' + esc(t.name) + '</h3>' + (t.fake ? '<span class="tag">가짜 팀원(개발용)</span>' : "") + '</div>' +
       '<p class="team-mates" id="team-mates">' + names + '</p>' +
       '<div class="plan-row"><span>이번 주 팀 참여 목표 <span class="sub">(팀원 모두 ' + t.goalPerMember + '문항)</span></span><span id="team-progress">' + t.progress + ' / ' + t.goal + '</span></div>' +
-      '<div class="progress"><i style="width:' + pct + '%"></i></div>' + status + others +
+      '<div class="progress"><i style="width:' + pct + '%"></i></div>' + status + wkLine + others +
       '<p class="sub">팀 합계만 보여요. 팀원 개인 기록은 서로 보이지 않아요. 경험치를 받은 풀이만 세요(같은 문제 다시 풀기 제외).</p>' +
       (t.teamOff ? '<button class="linkbtn" data-act="team-on">팀 활동 다시 하기</button>'
         : S.teamConfirm ? offBtn : '<button class="linkbtn" data-act="team-off">팀 활동 쉬기</button>') + '</div>';
+  }
+
+  /* ---------- [M2 3차] 홈 공통 점검 카드 ----------
+     결재2 ⑤: 점수는 본인에게도 숨김 → "응시 완료"와 다시 볼 개념(강 번호)만. 꺼져 있으면(OFF) 카드 없음 */
+  var WEEKLY_CLOSED_TEXT = {
+    NOT_STARTED: "공통 점검은 기수가 시작되면 매주 열려요.",
+    ENDED: "이번 기수 공통 점검이 모두 끝났어요. 수고했어요.",
+    NO_ITEMS: "이번 주 공통 점검 문항이 아직 준비되지 않았어요."
+  };
+  function reviewLine(arr) {
+    return arr && arr.length
+      ? '<p id="weekly-review">다시 볼 개념: ' + arr.map(function (n) { return '<span class="tag">' + esc(lecName(n)) + '</span>'; }).join(" ") + '</p>' +
+        '<p class="sub">이 강의를 한 번 더 보고, 오늘의 학습에서 연습해요.</p>'
+      : '<p id="weekly-review">이번 점검에서 따로 표시된 개념은 없어요. 지금처럼 복습을 이어 가요.</p>';
+  }
+  function weeklyCard() {
+    var w = S.weekly;
+    if (!w || w.reason === "OFF") return "";
+    var head = '<div class="plan-row"><h3 id="weekly-title">' + (w.week ? w.week + "주차 " : "") + '공통 점검</h3>' +
+      (w.fake ? '<span class="tag">연습 문항으로 흉내(개발용)</span>' : "") + '</div>';
+    var body = !w.open
+      ? '<p id="weekly-status">' + esc(WEEKLY_CLOSED_TEXT[w.reason] || "이번 주 공통 점검이 아직 열리지 않았어요.") +
+        (w.reason === "NOT_STARTED" && w.cohortStart ? ' <span class="sub">(시작 ' + esc(w.cohortStart) + ')</span>' : "") + '</p>'
+      : w.done
+      ? '<p id="weekly-status" class="team-ok"><b>응시 완료</b></p>' + reviewLine(w.reviewLectures)
+      : '<p id="weekly-status">이번 주 ' + w.nItems + '문항 · 혼자 풀어요(힌트·AI 튜터 없음) · 한 주에 한 번만</p>' +
+        '<p class="sub">점수는 나에게도 보여 주지 않아요. 끝나면 다시 볼 개념만 알려 드려요.</p>' +
+        '<button class="btn btn-secondary" data-act="weekly-start">공통 점검 시작</button>';
+    return '<div class="card weekly-card" id="weekly-card" data-state="' + (!w.open ? "closed" : w.done ? "done" : "open") + '">' + head + body + '</div>';
+  }
+
+  /* ---------- [M2 3차] 홈 해설 당번 카드 (같은 팀 안에서만) ---------- */
+  var EXPL_TEXT = { TOO_SHORT: "해설은 10글자 이상 써 주세요.", TOO_LONG: "해설은 200글자 안으로 줄여 주세요.",
+                    PRIVATE_INFO: "이메일·전화번호는 쓰지 마세요. 팀원에게 그대로 보여요." };
+  function explainerCard() {
+    var e = S.expl, t = S.team;
+    if (!e || !e.inTeam || !t || !t.inTeam) return "";
+    var wrap = function (inner, state) {
+      return '<div class="card expl-card" id="expl-card" data-state="' + state + '"><div class="plan-row"><h3>이번 주 해설 당번</h3>' +
+        (e.fake ? '<span class="tag">가짜(개발용)</span>' : "") + '</div>' + inner +
+        (S.explMsg ? '<p class="tried" id="expl-msg" role="alert">' + esc(S.explMsg) + '</p>' : "") + '</div>';
+    };
+    if (!e.hasDuty) return wrap('<p id="expl-status">팀 활동 중인 팀원이 없어 이번 주 당번이 없어요.</p>', "none");
+    var it = e.item, q = S.explQ;
+    var item = it ? '<div class="expl-item"><span class="tag">' + esc(lecName(it.lecture)) + '</span> <span class="qtext" id="expl-q" data-id="' + esc(it.qid) + '">' + esc(it.question) + '</span>' +
+      (e.iAmDuty && q ? '<p class="sub" id="expl-answer">정답: ' + esc(q.choices[q.answer_index]) + '</p>' : "") + '</div>' : "";
+    var bodyView = e.body ? '<div class="expl-text" id="expl-text">' + esc(e.body) + '</div>' : "";
+    if (!e.iAmDuty) {
+      return wrap('<p id="expl-status">이번 주 해설 당번: <b>' + esc(e.dutyNickname) + '</b> 님</p>' +
+        (it ? '<p class="sub">팀에서 가장 많이 헷갈린 문항 1개</p>' + item : '<p class="sub">팀이 연습 문제를 풀면 해설할 문항이 정해져요.</p>') +
+        (bodyView || (it ? '<p class="sub" id="expl-none">아직 해설이 올라오지 않았어요.</p>' : "")), e.body ? "read" : "waiting");
+    }
+    var status = '<p id="expl-status"><b>이번 주 해설 당번은 나예요.</b> ' +
+      (it ? "팀에서 가장 많이 헷갈린 문항 1개를 짧게 풀어 주세요." : "팀이 연습 문제를 풀면 가장 많이 헷갈린 문항이 정해져요.") + '</p>';
+    if (!it) return wrap(status, "duty-wait");
+    var max = e.maxChars || LU.WEEKLY.EXPLAIN_MAX, editing = S.explDraft !== null;
+    var editor = editing
+      ? '<div class="field"><label for="expl-body">해설 (' + max + '자 안 · 팀원에게만 보여요)</label>' +
+        '<textarea id="expl-body" rows="4" maxlength="' + max + '" placeholder="정답의 이유 / 헷갈린 보기가 틀린 이유 / 내 업무라면?">' + esc(S.explDraft) + '</textarea>' +
+        '<p class="tutor-count" id="expl-count">' + S.explDraft.length + ' / ' + max + '</p></div>' +
+        '<div class="btn-col"><button class="btn btn-secondary" data-act="expl-save">' + (e.body ? "고친 해설 올리기" : "해설 올리기") + '</button>' +
+        '<button class="linkbtn" data-act="expl-cancel">취소</button></div>'
+      : (bodyView ? '<p class="sub">올린 해설</p>' + bodyView : "") +
+        '<button class="btn btn-secondary" data-act="expl-edit">' + (e.body ? "해설 고치기" : "해설 쓰기") + '</button>';
+    return wrap(status + item + editor +
+      '<p class="sub">세 가지를 짧게: 정답의 이유 · 헷갈린 보기가 틀린 이유 · 내 업무라면? 이름·연락처는 쓰지 마세요. 쓰지 않아도 괜찮아요 — 벌점은 없어요.</p>',
+      editing ? "duty-edit" : e.body ? "duty-done" : "duty");
+  }
+
+  /* ---------- [M2 3차] 공통 점검 화면 (진단과 같은 모양 · 힌트·AI 튜터 없음 · 정오답은 끝까지 안 보여 줌) ---------- */
+  function vWeekly() {
+    var k = S.wk, q = k.items[k.idx], last = k.idx + 1 === k.items.length;
+    return '<div class="content">' +
+      '<div class="qhead"><div class="qhead-row"><span class="count" id="count">공통 점검 ' + (k.idx + 1) + ' / ' + k.items.length + '</span><span class="tag">' + esc(lecName(q.lecture)) + '</span></div>' +
+      '<div class="progress"><i style="width:' + Math.round(k.idx / k.items.length * 100) + '%"></i></div></div>' +
+      (k.idx === 0 ? '<div class="info" id="weekly-intro">' + (k.week ? k.week + "주차 " : "") + '공통 점검이에요. 혼자 풀어요 — 힌트·AI 튜터는 없어요. 맞았는지는 보여 주지 않고, 끝나면 다시 볼 개념만 알려 드려요. 모르면 찍지 말고 "아직 모르겠어요"를 눌러 주세요.</div>' : "") +
+      (k.fake ? '<p class="storage-note">[개발용] 로컬 모드는 연습 문항 8개로 흉내 내요. Supabase 모드에서는 서버의 공통 점검 문항이 나와요.</p>' : "") +
+      '<div class="card qcard"><p class="qtext" id="qid" data-id="' + esc(q.id) + '">' + esc(q.question) + '</p></div>' +
+      choiceBtns(q, range(q.choices.length), { selected: k.selected }) +
+      '<button class="btn btn-secondary" data-act="weekly-unknown">아직 모르겠어요' + (last ? " (그리고 제출)" : "") + '</button>' +
+      (last ? '<div class="note" id="weekly-last"><div class="note-title">마지막 문항이에요</div>제출하면 이번 주에는 다시 풀 수 없어요.</div>' : "") +
+      '<!--ERR-->' + (k.idx > 0 ? '<button class="linkbtn" data-act="weekly-prev">이전 문항</button>' : "") +
+      '<button class="linkbtn" data-act="weekly-later">나중에 하기 (고른 답은 저장되지 않아요)</button></div>' +
+      '<div class="bottombar"><button class="btn btn-primary" data-act="weekly-next"' + (k.selected === null ? " disabled" : "") + '>' + (last ? "제출하기" : "다음") + '</button></div>';
+  }
+  function vWeeklyDone() {
+    var r = S.wkResult || {};
+    return '<div class="content"><h2 id="weekly-done">' + (r.week ? r.week + "주차 " : "") + '공통 점검 응시 완료</h2>' +
+      '<p class="sub">점수는 보여 주지 않아요 — 나에게도, 팀원에게도요. 팀 카드에는 팀원 몇 명이 응시했는지만 보여요.</p>' +
+      '<div class="card">' + reviewLine(r.reviewLectures) + '</div></div>' +
+      '<div class="bottombar"><button class="btn btn-primary" data-act="home">홈으로</button></div>';
+  }
+  function weeklyAdvance(choice) {
+    var k = S.wk, q = k.items[k.idx];
+    k.answers[q.id] = choice;
+    if (k.idx + 1 >= k.items.length) {
+      return STORE.submitWeekly(k.answers).then(function (r) {
+        S.wkResult = r; S.wk = null; return loadWeekly();
+      }).then(function () { go("weeklyDone"); });
+    }
+    k.idx++;
+    var nq = k.items[k.idx];
+    k.selected = Object.prototype.hasOwnProperty.call(k.answers, nq.id) ? k.answers[nq.id] : null;
+    go("weekly");
   }
 
   function hintPanel() {
@@ -460,6 +588,10 @@
       var te = document.getElementById("tutor-empty"); if (te) te.hidden = !!tt.draft.trim() || !!tt.asking;
     }
     if (e.target.id === "code" || e.target.id === "nick") S.draft = e.target.value;
+    if (e.target.id === "expl-body" && S.explDraft !== null) {
+      S.explDraft = e.target.value;
+      var ec = document.getElementById("expl-count"); if (ec) ec.textContent = S.explDraft.length + " / " + ((S.expl && S.expl.maxChars) || LU.WEEKLY.EXPLAIN_MAX);
+    }
   });
   app.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target.id === "code") act("login");
@@ -496,6 +628,7 @@
 
       case "pick":
         if (S.screen === "diag") { S.diag.selected = Number(b.dataset.orig); render(); }
+        else if (S.screen === "weekly") { S.wk.selected = Number(b.dataset.orig); render(); }
         else if (it && !it.st.closed) { it.selected = Number(b.dataset.orig); render(); }
         break;
       case "diag-unknown": return guard(function () { return diagAnswer(null); });
@@ -509,7 +642,10 @@
       case "team-off-yes":
       case "team-on":
         return guard(function () {
-          return STORE.setTeamOff(a === "team-off-yes").then(function (t) { S.team = t; S.teamConfirm = false; render(); });
+          return STORE.setTeamOff(a === "team-off-yes").then(function (t) {
+            S.team = t; S.teamConfirm = false;
+            return Promise.all([loadWeekly(), loadExplainer()]);   // 쉼이면 당번·팀 응시 인원도 바뀜
+          }).then(function () { render(); });
         });
       case "home": return guard(goHome);
       case "retry": S.err = ""; render(); return guard(boot);
@@ -547,6 +683,40 @@
           }, function (e) { tu.asking = false; tu.msg = (e && e.message) || "AI 튜터가 지금 답하지 못했어요."; render(); });
         });
       case "next": return guard(nextItem);
+
+      /* [M2 3차] 공통 점검 */
+      case "weekly-start":
+        return guard(function () {
+          return STORE.weeklyItems().then(function (r) {
+            if (!r.items.length) throw new Error("이번 주 공통 점검 문항이 아직 준비되지 않았어요.");
+            S.wk = { week: r.week, items: r.items, idx: 0, answers: {}, selected: null, fake: !!r.fake }; go("weekly");
+          }, function (e) { return loadWeekly().then(function () { throw e; }); });   // 다른 기기에서 이미 응시 등 → 카드도 새로
+        });
+      case "weekly-next": if (!S.wk || S.wk.selected === null) return; return guard(function () { return weeklyAdvance(S.wk.selected); });
+      case "weekly-unknown": if (!S.wk) return; return guard(function () { return weeklyAdvance(null); });
+      case "weekly-prev":
+        if (!S.wk || S.wk.idx === 0) return;
+        S.wk.idx--; S.wk.selected = S.wk.answers[S.wk.items[S.wk.idx].id];
+        if (S.wk.selected === undefined) S.wk.selected = null;
+        return go("weekly");
+      case "weekly-later": S.wk = null; return guard(goHome);
+
+      /* [M2 3차] 해설 당번 */
+      case "expl-edit": S.explDraft = (S.expl && S.expl.body) || ""; S.explMsg = ""; return render();
+      case "expl-cancel": S.explDraft = null; S.explMsg = ""; return render();
+      case "expl-save":
+        var ex = S.expl, bad = LU.checkExplain(S.explDraft);
+        if (!ex || !ex.item) return;
+        if (bad) { S.explMsg = EXPL_TEXT[bad]; return render(); }
+        return guard(function () {
+          return STORE.writeExplainer(ex.item.qid, LU.cleanExplain(S.explDraft)).then(function (e2) {
+            S.expl = e2; S.explDraft = null; S.explMsg = "해설을 올렸어요. 팀원에게 보여요."; render();
+          }, function (er) {
+            S.explMsg = (er && er.message) || "해설을 올리지 못했어요.";
+            if (/문항이 바뀌었어요/.test(S.explMsg)) return loadExplainer().then(function () { render(); });   // 쓴 글(explDraft)은 그대로
+            render();
+          });
+        });
     }
   }
   function diagAnswer(choice) {
