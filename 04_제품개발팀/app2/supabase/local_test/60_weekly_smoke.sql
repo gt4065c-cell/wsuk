@@ -46,7 +46,9 @@ insert into question_keys (question_id, answer_index, explanation) values
   ('X-P1', 0, '해설'), ('X-P2', 0, '해설'), ('X-P3', 0, '해설'), ('X-P4', 0, '해설');
 
 -- 60번 파일의 "주 번호 채우기"를 다시 실행(가짜 문항을 넣은 뒤) — 파일을 그대로 한 번 더 실행해도 안전한지도 함께 봄
+set client_min_messages = warning;
 \i ../60_m2_weekly_explainer.sql
+set client_min_messages = notice;
 
 -- ---------- 가짜 학생 + 기기 + 팀 ----------
 -- 1팀: 가람(A) · 나래(B) · 다솜(C) · 라온(D, 팀 활동 쉼) / 2팀: 마루(E) / 팀 없음: 바람(F)
