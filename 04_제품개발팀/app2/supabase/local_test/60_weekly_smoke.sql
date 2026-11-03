@@ -171,14 +171,14 @@ select zz_check((select n_items = 3 and n_correct = 1 and cohort = '2027-1' from
 -- 다른 팀원 B(만점) · 쉼 팀원 D · 다른 팀 E · 팀 없는 F
 set role authenticated;
 select set_config('test.uid', :'ub', false);
-select zz_check(weekly_check_submit('{"W2-Q1":1,"W2-Q2":2,"W2-Q3":3}'::jsonb) -> 'reviewLectures' = '[]'::jsonb, 'W-36 모두 맞히면 다시 볼 강 없음([])');
+select zz_check(weekly_check_submit('{"W2-Q1":1,"W2-Q2":2,"W2-Q3":3}'::jsonb)::jsonb -> 'reviewLectures' = '[]'::jsonb, 'W-36 모두 맞히면 다시 볼 강 없음([])');
 select zz_check((weekly_check_status() -> 'team' ->> 'taken')::int = 2, 'W-37 팀원 B 화면: 팀원 2/3명 응시');
 select set_config('test.uid', :'ud', false);
 select weekly_check_submit('{"W2-Q1":0,"W2-Q2":0,"W2-Q3":0}'::jsonb) as subd \gset
 select zz_check((weekly_check_status() -> 'team' ->> 'active')::int = 3 and (weekly_check_status() -> 'team' ->> 'taken')::int = 2,
   'W-38 팀 활동 쉼 팀원(D)은 응시해도 팀 n/m 에 안 셈 (개인 응시는 됨)');
 select set_config('test.uid', :'uf', false);
-select zz_check((weekly_check_status() -> 'team') = 'null'::jsonb and (weekly_check_status() ->> 'open')::boolean, 'W-39 팀 없는 학생: 점검은 열림, 팀 칸은 비움');
+select zz_check((weekly_check_status()::jsonb -> 'team') = 'null'::jsonb and (weekly_check_status() ->> 'open')::boolean, 'W-39 팀 없는 학생: 점검은 열림, 팀 칸은 비움');
 select zz_expect_error($$select admin_weekly_stats()$$, 'NOT_ADMIN', 'W-40 학생이 교수용 점검 통계를 부르면 NOT_ADMIN');
 reset role;
 
@@ -232,7 +232,7 @@ select my_team_explainer() as ee \gset
 select zz_check(:'ee'::jsonb ->> 'dutyNickname' = '마루' and (:'ee'::jsonb ->> 'iAmDuty')::boolean and :'ee'::jsonb -> 'item' ->> 'qid' = 'X-P3',
   'W-46 다른 팀(2팀)은 자기 팀 기록으로: 당번 마루(나) · 문항 X-P3');
 select set_config('test.uid', :'uf', false);
-select zz_check((my_team_explainer() ->> 'inTeam')::boolean = false and (select count(*) from jsonb_object_keys(my_team_explainer())) = 2,
+select zz_check((my_team_explainer() ->> 'inTeam')::boolean = false and (select count(*) from json_object_keys(my_team_explainer())) = 2,
   'W-47 팀 없는 학생: inTeam=false 만');
 -- 쓰기
 select set_config('test.uid', :'ub', false);
@@ -294,7 +294,7 @@ delete from team_explainers where team_id = :'t2';
 delete from attempts where student_id = :'se';
 set role authenticated;
 select set_config('test.uid', :'ue', false);
-select zz_check((my_team_explainer() -> 'item') = 'null'::jsonb and (my_team_explainer() ->> 'iAmDuty')::boolean, 'W-67 팀 기록이 아직 없으면 당번만 정하고 문항은 비움');
+select zz_check((my_team_explainer()::jsonb -> 'item') = 'null'::jsonb and (my_team_explainer() ->> 'iAmDuty')::boolean, 'W-67 팀 기록이 아직 없으면 당번만 정하고 문항은 비움');
 select zz_expect_error($$select write_team_explainer(null, '문항이 없을 때 쓰는 해설이에요.')$$, 'NO_ITEM', 'W-68 문항이 없으면 쓸 수 없음(NO_ITEM)');
 reset role;
 select zz_check(not exists (select 1 from team_explainers e join questions q on q.id = e.question_id where q.pool <> 'practice'),
