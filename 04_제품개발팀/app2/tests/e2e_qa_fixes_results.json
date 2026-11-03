@@ -1,0 +1,100 @@
+[
+ {
+  "id": "F-01",
+  "name": "별명 검사: 빈칸 정리 · 2~12글자 · 전화번호(일부)·이메일·숫자 7개 이상 거절 · \"별빛2027\"은 통과 (SQL 시험 Q-10~Q-20 과 같은 예)",
+  "status": "pass",
+  "note": "10가지",
+  "ms": 1
+ },
+ {
+  "id": "F-02",
+  "name": "같은 규칙이 SQL 에도: 이메일·전화번호 정규식 + 숫자 7개 이상 + 2~12글자 / 화면 안내 글(NOT_OPEN)이 Edge Function 글과 같음",
+  "status": "pass",
+  "note": "",
+  "ms": 6
+ },
+ {
+  "id": "F-03",
+  "name": "일요일 판정: 그 주(월~일) 마지막 날만 true",
+  "status": "pass",
+  "note": "",
+  "ms": 1
+ },
+ {
+  "id": "F-04",
+  "name": "70번 SQL: drop·truncate 없음 · delete 는 원래 close_item 의 복습 졸업 1줄뿐 · 비밀 열쇠 없음 · questions 칸 허용 = store.js 가 읽는 칸 + pool · b·n_resp·week 는 허용 안 함",
+  "status": "pass",
+  "note": "10칸",
+  "ms": 1
+ },
+ {
+  "id": "F-05",
+  "name": "별명 \"홍길동 010-1234\" → 칸 아래 안내(서버와 같은 말), 저장 안 됨 · \"  하늘   별 \" → \"하늘 별\"로 저장",
+  "status": "pass",
+  "note": "",
+  "ms": 485
+ },
+ {
+  "id": "F-06",
+  "name": "진단 1문항 뒤 홈: 공통 점검 카드 \"진단을 10문항 이상 마치면…\"(시작 버튼 없음) · 해설 당번 카드 닫힘 · 창구로 불러도 NEED_DIAG · 진단 보기 99 → 거절",
+  "status": "pass",
+  "note": "",
+  "ms": 226
+ },
+ {
+  "id": "F-07",
+  "name": "진단을 마치면 공통 점검 열림 · 해설 당번 카드 열림",
+  "status": "pass",
+  "note": "",
+  "ms": 900
+ },
+ {
+  "id": "F-08",
+  "name": "일요일(개발용 날짜)에 점검 시작 → \"월요일 새벽 3시 전까지 제출\" 안내 · 월요일에는 안내 없음",
+  "status": "pass",
+  "note": "일요일까지 +5일",
+  "ms": 470
+ },
+ {
+  "id": "F-09",
+  "name": "로컬 창구: 같은 문항을 다시 마감하면 XP 0 · θ 그대로 (서버 70번 close_item 과 같음)",
+  "status": "pass",
+  "note": "",
+  "ms": 4
+ },
+ {
+  "id": "F-10",
+  "name": "O/X 문제(검토 끝난 힌트 있음): 답 내기 전 \"힌트 3단계까지 보고도 막히면 AI 튜터…\" 안내 한 줄 / 힌트 없는 O/X 는 안내 없음",
+  "status": "pass",
+  "note": "",
+  "ms": 708
+ },
+ {
+  "id": "F-11",
+  "name": "점검 8문항을 풀고 제출했는데 서버가 WEEK_CHANGED(자정 지남) → 홈으로 + \"고른 답은 제출되지 않았어요 · 이번 주 점검을 새로 시작\" 안내 · 시작 버튼 다시 보임",
+  "status": "pass",
+  "note": "",
+  "ms": 918
+ },
+ {
+  "id": "F-12",
+  "name": "서버가 NEED_DIAG 를 보내면 점검 카드 \"진단을 10문항 이상…\"(시작 버튼 없음) · 오류 이름 NEED_DIAG → 쉬운 말",
+  "status": "pass",
+  "note": "",
+  "ms": 271
+ },
+ {
+  "id": "F-13",
+  "name": "Supabase 창구: 별명은 정리해서 보냄(set_nickname p_name \"하늘 별\") · 서버 오류 이름 → 쉬운 말(NICK_PRIVATE·NICK_LENGTH·BAD_CHOICE·NOT_OPEN·WEEK_CHANGED)",
+  "status": "pass",
+  "note": "",
+  "ms": 394
+ },
+ {
+  "id": "F-14",
+  "name": "임시 PostgreSQL 시험(있으면): supabase/local_test/run_qa_fixes_local.sh 실패 0",
+  "status": "pass",
+  "note": "로컬 PostgreSQL 시험(QA 낮음 수정 SQL): 통과 66 · 실패 0   (임시 DB는 지웠어요)",
+  "ms": 1895
+ }
+]

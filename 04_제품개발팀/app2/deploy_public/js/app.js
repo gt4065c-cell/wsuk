@@ -200,7 +200,7 @@
   function vNickname() {
     return '<div class="content"><h2>별명을 정해 주세요</h2>' +
       '<p class="sub">처음 한 번만 정해요. 팀원에게 이 별명으로 보여요.</p>' +
-      '<div class="note"><div class="note-title">실명은 쓰지 마세요</div>이름·학번·전화번호 대신 별명만 써 주세요.</div>' +
+      '<div class="note"><div class="note-title">실명은 쓰지 마세요</div>이름·학번·전화번호 대신 별명만 써 주세요. 전화번호·이메일·학번처럼 보이는 글(숫자 7개 이상 등)은 받지 않아요.</div>' +
       '<div class="field' + (S.nickHint ? " err" : "") + '"><label for="nick">별명 (2~12글자)</label><input id="nick" class="text" maxlength="12" autocomplete="off" value="' + esc(S.draft) + '">' +
       (S.nickHint ? '<p class="error" id="nick-error">' + esc(S.nickHint) + '</p>' : "") + '</div>' +
       '<!--ERR--></div><div class="bottombar"><button class="btn btn-primary" data-act="save-nick">이 별명으로 시작</button></div>';
@@ -328,12 +328,16 @@
         : S.teamConfirm ? offBtn : '<button class="linkbtn" data-act="team-off">팀 활동 쉬기</button>') + '</div>';
   }
 
+  var NICK_TEXT = { NICK_LENGTH: "별명은 2~12글자로 정해 주세요. (빈칸은 하나로 줄여서 세요)",
+                    NICK_PRIVATE: "전화번호·이메일·학번처럼 보이는 글은 별명에 쓸 수 없어요. 팀원에게 그대로 보여요." };
+
   /* ---------- [M2 3차] 홈 공통 점검 카드 ----------
      결재2 ⑤: 점수는 본인에게도 숨김 → "응시 완료"와 다시 볼 개념(강 번호)만. 꺼져 있으면(OFF) 카드 없음 */
   var WEEKLY_CLOSED_TEXT = {
     NOT_STARTED: "공통 점검은 기수가 시작되면 매주 열려요.",
     ENDED: "이번 기수 공통 점검이 모두 끝났어요. 수고했어요.",
-    NO_ITEMS: "이번 주 공통 점검 문항이 아직 준비되지 않았어요."
+    NO_ITEMS: "이번 주 공통 점검 문항이 아직 준비되지 않았어요.",
+    NEED_DIAG: "진단을 10문항 이상 마치면 공통 점검이 열려요."   // QA #10 (설계 D4: 진단 먼저)
   };
   function reviewLine(arr) {
     return arr && arr.length
@@ -363,6 +367,8 @@
   function explainerCard() {
     var e = S.expl, t = S.team;
     if (!e || !e.inTeam || !t || !t.inTeam) return "";
+    if (e.needDiag) return '<div class="card expl-card" id="expl-card" data-state="need-diag"><div class="plan-row"><h3>이번 주 해설 당번</h3></div>' +
+      '<p id="expl-status" class="sub">진단을 10문항 이상 마치면 해설 당번 카드가 열려요.</p></div>';   // QA #10
     var wrap = function (inner, state) {
       return '<div class="card expl-card" id="expl-card" data-state="' + state + '"><div class="plan-row"><h3>이번 주 해설 당번</h3>' +
         (e.fake ? '<span class="tag">가짜(개발용)</span>' : "") + '</div>' + inner +
@@ -402,6 +408,8 @@
       '<div class="qhead"><div class="qhead-row"><span class="count" id="count">공통 점검 ' + (k.idx + 1) + ' / ' + k.items.length + '</span><span class="tag">' + esc(lecName(q.lecture)) + '</span></div>' +
       '<div class="progress"><i style="width:' + Math.round(k.idx / k.items.length * 100) + '%"></i></div></div>' +
       (k.idx === 0 ? '<div class="info" id="weekly-intro">' + (k.week ? k.week + "주차 " : "") + '공통 점검이에요. 혼자 풀어요 — 힌트·AI 튜터는 없어요. 맞았는지는 보여 주지 않고, 끝나면 다시 볼 개념만 알려 드려요. 모르면 찍지 말고 "아직 모르겠어요"를 눌러 주세요.</div>' : "") +
+      (k.idx === 0 && LU.isWeekLastDay(LU.dayKey(STORE.now())) ? '<div class="note" id="weekly-sunday"><div class="note-title">오늘은 이번 주 마지막 날(일요일)이에요</div>' +
+        '밤 12시가 지나면 다음 주 점검으로 바뀌어요. 시작했다면 월요일 새벽 3시 전까지 제출해 주세요 — 그 뒤에는 고른 답이 사라져요.</div>' : "") +
       (k.fake ? '<p class="storage-note">[개발용] 로컬 모드는 연습 문항 8개로 흉내 내요. Supabase 모드에서는 서버의 공통 점검 문항이 나와요.</p>' : "") +
       '<div class="card qcard"><p class="qtext" id="qid" data-id="' + esc(q.id) + '">' + esc(q.question) + '</p></div>' +
       choiceBtns(q, range(q.choices.length), { selected: k.selected }) +
@@ -423,8 +431,14 @@
     k.answers[q.id] = choice;
     if (k.idx + 1 >= k.items.length) {
       return STORE.submitWeekly(k.answers).then(function (r) {
-        S.wkResult = r; S.wk = null; return loadWeekly();
-      }).then(function () { go("weeklyDone"); });
+        S.wkResult = r; S.wk = null; return loadWeekly().then(function () { go("weeklyDone"); });
+      }, function (e) {
+        // QA #11ⓑ: 자정이 지나 지난주 점검이 닫혔으면 → 홈으로(이번 주 점검 카드가 새로 열림) + 쉬운 안내 한 줄
+        if (/지난주 공통 점검이 닫혔어요|진단을 10문항/.test((e && e.message) || "")) {
+          S.wk = null; return goHome().then(function () { S.err = e.message; render(); });
+        }
+        throw e;
+      });
     }
     k.idx++;
     var nq = k.items[k.idx];
@@ -464,9 +478,10 @@
   function tutorPanel() {
     var it = S.item, t = it.tutor;
     if (!STORE.tutorStatus || !LU.tutorEligible(it.st, !!it.hints)) {
-      // 캡틴 결정(2026-11-03 ①): 아직 열리기 전이면 "언제 열리는지" 한 줄 안내 (4지선다·연습/복습·아직 안 끝난 문항만)
+      // 캡틴 결정(2026-11-03 ①): 아직 열리기 전이면 "언제 열리는지" 한 줄 안내 (연습/복습·아직 안 끝난 문항만)
+      //   O/X 는 한 번 틀리면 바로 끝나므로 힌트가 없으면 튜터가 열릴 일이 없음 → 힌트가 있는 O/X 에만 안내 (QA #11ⓐ)
       var st = it.st, pre = st && (st.mode === "PRACTICE" || st.mode === "REVIEW") && !st.closed && st.level < 4 &&
-        it.q && it.q.type !== "ox" && !(it.tutor && it.tutor.hidden);
+        it.q && (it.q.type !== "ox" || !!it.hints) && !(it.tutor && it.tutor.hidden);   // QA #11ⓐ: O/X 도 힌트가 있으면 안내
       return tutorHistory() + (pre ? '<p class="sub tutor-pre" id="tutor-pre">💬 ' +
         (it.hints ? "힌트 3단계까지 보고도 막히면 AI 튜터에게 물어볼 수 있어요." : "틀린 답을 한 번 고르면 AI 튜터에게 물어볼 수 있어요.") + '</p>' : "");
     }
@@ -620,8 +635,8 @@
           });
         });
       case "save-nick":
-        var nick = (S.draft || "").trim();
-        if (nick.length < 2) { S.nickHint = "별명은 2글자 이상이어야 해요."; return render(); }
+        var nick = LU.cleanNickname(S.draft), nickBad = LU.checkNickname(nick);   // QA #6 #7: 서버 set_nickname 과 같은 검사
+        if (nickBad) { S.nickHint = NICK_TEXT[nickBad]; return render(); }
         S.nickHint = "";
         return guard(function () { return STORE.setNickname(nick).then(function (s) { S.student = s; S.draft = ""; return route(); }); });
       case "logout": return guard(function () { return STORE.logout().then(function () { S.student = null; S.draft = ""; go("login"); }); });
@@ -686,6 +701,7 @@
 
       /* [M2 3차] 공통 점검 */
       case "weekly-start":
+        if (needDiag(S.student)) return guard(startDiag);   // QA #10: 진단 먼저
         return guard(function () {
           return STORE.weeklyItems().then(function (r) {
             if (!r.items.length) throw new Error("이번 주 공통 점검 문항이 아직 준비되지 않았어요.");

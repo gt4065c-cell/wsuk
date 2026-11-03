@@ -341,6 +341,19 @@
     if (/[^\s@]+@[^\s@]+\.[A-Za-z]{2,}/.test(b) || /01[016789][-. ]?\d{3,4}[-. ]?\d{4}/.test(b)) return "PRIVATE_INFO";
     return null;
   }
+  // [QA #6 #7] 별명 정리·검사 (서버 70_qa_fixes.sql set_nickname 과 같은 규칙)
+  //   정리: 빈칸(탭·줄바꿈 포함)을 하나로 줄이고 앞뒤 빈칸 지움 → 2~12글자가 아니면 NICK_LENGTH
+  //   개인 정보 모양: 해설 당번과 같은 이메일·전화번호 규칙 + 숫자 7개 이상 이어짐(-·.·빈칸 무시: 전화번호 일부·학번) → NICK_PRIVATE
+  var NICK = { MIN: 2, MAX: 12 };
+  function cleanNickname(s) { return String(s == null ? "" : s).replace(/\s+/g, " ").replace(/^ | $/g, ""); }
+  function checkNickname(s) {
+    var v = cleanNickname(s);
+    if (v.length < NICK.MIN || v.length > NICK.MAX) return "NICK_LENGTH";
+    if (/[^\s@]+@[^\s@]+\.[A-Za-z]{2,}/.test(v) || /01[016789][-. ]?\d{3,4}[-. ]?\d{4}/.test(v) || /\d{7,}/.test(v.replace(/[-. ]/g, ""))) return "NICK_PRIVATE";
+    return null;
+  }
+  // [QA #11ⓑ] 오늘이 그 주(월~일) 마지막 날(일요일)인지 — 공통 점검은 일요일 밤 12시에 다음 주로 넘어감
+  function isWeekLastDay(day) { return !!day && daysBetween(weekKey(day), day) === 6; }
   // 다시 볼 강: 틀렸거나 "아직 모르겠어요"(null)인 문항의 강 번호(겹침 없이, 작은 순). 점수는 만들지 않음
   function reviewLectures(items, answers, keyOf) {
     var seen = {}, out = [];
@@ -354,6 +367,7 @@
   var api = {
     C: C, OUTCOME: OUTCOME, R_OF: R_OF,
     tutorEligible: tutorEligible, TUTOR: TUTOR,
+    NICK: NICK, cleanNickname: cleanNickname, checkNickname: checkNickname, isWeekLastDay: isWeekLastDay,
     WEEKLY: WEEKLY, checkWeek: checkWeek, cleanExplain: cleanExplain, checkExplain: checkExplain, reviewLectures: reviewLectures,
     normalizeCode: normalizeCode, isValidCodeShape: isValidCodeShape,
     guessRate: guessRate, initialB: initialB, pCorrect: pCorrect, kLearner: kLearner,

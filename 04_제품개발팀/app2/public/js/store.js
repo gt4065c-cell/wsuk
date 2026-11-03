@@ -79,6 +79,8 @@
     return code && db.students[code] ? db.students[code] : null;
   }
   function needLogin() { return Promise.reject(new Error("로그인이 필요해요")); }
+  // [QA #10] 진단 먼저 (서버 lu_diag_ready 와 같은 기준: 진단 끝냄 또는 10문항 이상 답함)
+  function diagReady(db, s) { var d = db.diag[s.code] || { answers: [], done: false }; return !!d.done || d.answers.length >= LU.C.DIAG_MIN; }
 
   /* [개발용] 진단 정답 파일을 그때 그때 읽음 — 학생 화면 파일(diagnostic.js)에는 정답이 없음 */
   var devKeyPromise = null;
@@ -150,7 +152,8 @@
     var w = localWeekNo(s), rec = ((db.weekly || {})[s.code] || {})[w] || null;
     // 바다(응시) · 소나무(아직) · 나 — 팀 활동 쉼이면 나는 m·n 둘 다에서 빠짐 (서버 weekly_check_status 와 같음)
     var active = 2 + (s.teamOff ? 0 : 1), taken = 1 + (rec && !s.teamOff ? 1 : 0);
-    return { open: true, reason: null, week: w, cohortStart: LU.weekKey(s.created || today()), nItems: WEEKLY_N, done: !!rec,
+    var need = !rec && !diagReady(db, s);   // [QA #10] 진단 10문항 전이면 닫힘(NEED_DIAG)
+    return { open: !need, reason: need ? "NEED_DIAG" : null, week: w, cohortStart: LU.weekKey(s.created || today()), nItems: WEEKLY_N, done: !!rec,
              reviewLectures: rec ? rec.reviewLectures.slice() : null, team: { active: active, taken: taken }, fake: true };
   }
   /* [M2 3차] 로컬 모드 해설 당번 = 흉내. 기본은 내가 당번(쓰기 화면을 보려고).
@@ -167,6 +170,7 @@
   }
   function localExplainer(db, s) {
     var week = LU.weekKey(today()), mate = lsGet("lu2_dev_duty") === "mate";
+    if (!diagReady(db, s)) return { inTeam: true, weekStart: week, needDiag: true, fake: true };   // [QA #10] 진단 먼저
     var store = ((db.explainer || {})[s.code] || {})[week] || null;
     var q = store ? QBY[store.qid] : localExplainItem(db, s);
     if (mate) q = q || PRACTICE[0];
@@ -202,7 +206,8 @@
     logout: function () { lsDel(SESSION_KEY); return Promise.resolve(); },
     setNickname: function (name) {
       var db = loadDb(), s = current(db); if (!s) return needLogin();
-      s.nickname = String(name).trim().slice(0, 12); saveDb(db);
+      var bad = LU.checkNickname(name); if (bad) return Promise.reject(new Error(ERR_TEXT[bad]));   // 서버 set_nickname 과 같은 검사
+      s.nickname = LU.cleanNickname(name); saveDb(db);
       return Promise.resolve(publicStudent(s, db));
     },
 
@@ -223,7 +228,10 @@
       var db = loadDb(), s = current(db); if (!s) return needLogin();
       var d = db.diag[s.code] = db.diag[s.code] || { answers: [], done: false };
       if (d.done) return Promise.resolve({ answered: d.answers.length });
-      if (!DIAG.some(function (q) { return q.id === qid; })) return Promise.reject(new Error("진단 문항이 아니에요"));
+      var dq = DIAG.filter(function (q) { return q.id === qid; })[0];
+      if (!dq) return Promise.reject(new Error("진단 문항이 아니에요"));
+      if (choice !== null && choice !== undefined && !(Number(choice) >= 0 && Number(choice) < dq.choices.length && Number(choice) === Math.floor(Number(choice))))
+        return Promise.reject(new Error(ERR_TEXT.BAD_CHOICE));   // 서버 diag_answer 와 같은 검사
       if (!d.answers.some(function (a) { return a.qid === qid; })) d.answers.push({ qid: qid, choice: choice === null ? null : Number(choice) });
       saveDb(db);
       return Promise.resolve({ answered: d.answers.length });   // 정오답은 알려 주지 않음 (D1)
@@ -294,6 +302,8 @@
       var sub = (rec.submits || []).map(Number);
       if (sub.length > LU.maxSubmitsFor(q) || sub.some(function (x) { return !(x >= 0 && x < q.choices.length && x === Math.floor(x)); }) ||
           (sub.length === 2 && sub[0] === sub[1])) return Promise.reject(new Error(ERR_TEXT.BAD_SUBMITS));
+      // 서버 close_item 과 같게: 새 연습은 열린 강까지만 (QA #9)
+      if (rec.mode === "PRACTICE" && q.lecture > (CFG.OPEN_UP_TO_LECTURE || 99)) return Promise.reject(new Error(ERR_TEXT.NOT_OPEN));
       var day = today();
       var xp = LU.xpFor(rec.mode, rec.outcome, xpToday(db, s.code, day));
       var R = LU.R_OF[rec.outcome];
@@ -305,9 +315,8 @@
         var first = !db.attempts.some(function (a) { return a.code === s.code && a.qid === q.id; });
         // 서버 close_item과 같게: 복습 일정 밖에서 같은 문항을 다시 풀면 XP 없음 (팀게임 설계 1-1, QA 3번)
         if (!first) xp = 0;
-        var e = LU.applyElo(s, item, q, R);
-        s.theta = e.theta; s.n = e.n;
-        if (first) { item.b = e.b; item.n = e.itemN; }
+        // QA #9: 다시 마감하면 θ·답 수도 그대로 (서버 70번 close_item 과 같음)
+        if (first) { var e = LU.applyElo(s, item, q, R); s.theta = e.theta; s.n = e.n; item.b = e.b; item.n = e.itemN; }
         db.items[q.id] = item;
         var nb = LU.reviewAfterPractice(rec.outcome, day);
         if (nb) { box[q.id] = nb; reviewNote = "again"; }
@@ -347,6 +356,12 @@
       if (!q) return Promise.resolve({ ok: false, error: "NOT_PRACTICE", message: "AI 튜터는 연습 문제에서만 쓸 수 있어요." });
       if (!text) return Promise.resolve({ ok: false, error: "EMPTY", message: "궁금한 점을 한 줄 이상 써 주세요." });
       if (text.length > LU.TUTOR.MAX_CHARS) return Promise.resolve({ ok: false, error: "TOO_LONG", message: "질문은 300자 안으로 줄여 주세요." });
+      // 서버 70번 tutor_begin 과 같은 확인(QA #8): 열린 강 밖(복습 날 아님) · 최근 7일 안에 이미 마감한 문항
+      var rv = (db.review[s.code] || {})[q.id], due = !!(rv && rv.due <= today());
+      if (!due && q.lecture > (CFG.OPEN_UP_TO_LECTURE || 99)) return Promise.resolve({ ok: false, error: "NOT_OPEN", message: ERR_TEXT.NOT_OPEN });
+      var lastDay = db.attempts.filter(function (a) { return a.code === s.code && a.qid === q.id; }).reduce(function (m, a) { return a.day > m ? a.day : m; }, "");
+      if (lastDay && (due ? lastDay === today() : (rv || LU.daysBetween(lastDay, today()) < 7)))
+        return Promise.resolve({ ok: false, error: "ITEM_CLOSED", message: "이 문제는 이미 끝났어요. 해설을 읽어 봐요." });
       var st = localTutorState(s.code);
       if (!st.enabled) return Promise.resolve({ ok: false, error: st.reason, message: LU.TUTOR.TEXT[st.reason], state: st });
       var kind = lsGet("lu2_dev_tutor_kind") || "ok"; lsDel("lu2_dev_tutor_kind");
@@ -370,14 +385,25 @@
       var db = loadDb(), s = current(db); if (!s) return needLogin();
       var st = localWeekly(db, s);
       if (st.done) return Promise.reject(new Error(ERR_TEXT.WEEKLY_DONE));
+      if (st.reason === "NEED_DIAG") return Promise.reject(new Error(ERR_TEXT.NEED_DIAG));
       return Promise.resolve({ week: st.week, fake: true, items: localWeeklyItems(st.week).map(function (q) {
         return { id: q.id, lecture: q.lecture, type: q.type, question: q.question, choices: q.choices.slice() };   // 정답 칸은 빼고
       }) });
     },
     submitWeekly: function (answers) {
       var db = loadDb(), s = current(db); if (!s) return needLogin();
-      var st = localWeekly(db, s); if (st.done) return Promise.reject(new Error(ERR_TEXT.WEEKLY_DONE));
-      var items = localWeeklyItems(st.week), a = answers || {};
+      if (!diagReady(db, s)) return Promise.reject(new Error(ERR_TEXT.NEED_DIAG));
+      var st = localWeekly(db, s), a = answers || {}, wk = st.week;
+      // [QA #11ⓑ] 답이 모두 지난주 문항이면: 월요일 03:00 전 → 지난주 점검으로 받음 / 그 뒤 → WEEK_CHANGED (서버 70번과 같음)
+      var keys = Object.keys(a), prev = wk >= 2 ? localWeeklyItems(wk - 1).map(function (q) { return q.id; }) : [];
+      var cur = localWeeklyItems(wk).map(function (q) { return q.id; });
+      if (wk >= 2 && keys.length && keys.every(function (k) { return prev.indexOf(k) >= 0 && cur.indexOf(k) < 0; })) {
+        var kst = new Date(now() + 9 * 3600 * 1000);
+        if (LU.daysBetween(LU.weekKey(today()), today()) === 0 && kst.getUTCHours() < 3) wk = wk - 1;
+        else return Promise.reject(new Error(ERR_TEXT.WEEK_CHANGED));
+      }
+      if (((db.weekly || {})[s.code] || {})[wk]) return Promise.reject(new Error(ERR_TEXT.WEEKLY_DONE));
+      var items = localWeeklyItems(wk);
       // 서버 weekly_check_submit 과 같은 검사: 이번 주 문항 모두(빠짐·남는 것 없이), 보기 번호 범위 또는 null
       var okShape = Object.keys(a).length === items.length && items.every(function (q) {
         if (!has(a, q.id)) return false; var c = a[q.id];
@@ -386,9 +412,9 @@
       if (!okShape) return Promise.reject(new Error(ERR_TEXT.BAD_ANSWERS));
       var rl = LU.reviewLectures(items, a, function (id) { return QBY[id].answer_index; });
       db.weekly = db.weekly || {}; db.weekly[s.code] = db.weekly[s.code] || {};
-      db.weekly[s.code][st.week] = { answers: a, reviewLectures: rl, at: now() };   // 맞힌 수는 저장도 안 함(로컬)
+      db.weekly[s.code][wk] = { answers: a, reviewLectures: rl, at: now() };   // 맞힌 수는 저장도 안 함(로컬)
       saveDb(db);
-      return Promise.resolve({ done: true, week: st.week, reviewLectures: rl });
+      return Promise.resolve({ done: true, week: wk, reviewLectures: rl });
     },
     /* [M2 3차] 팀 해설 당번 (로컬 = 흉내) */
     teamExplainer: function () {
@@ -398,6 +424,7 @@
     writeExplainer: function (qid, body) {
       var db = loadDb(), s = current(db); if (!s) return needLogin();
       var e = localExplainer(db, s);
+      if (e.needDiag) return Promise.reject(new Error(ERR_TEXT.NEED_DIAG));
       if (!e.iAmDuty) return Promise.reject(new Error(ERR_TEXT.NOT_DUTY));
       if (!e.item) return Promise.reject(new Error(ERR_TEXT.NO_ITEM));
       if (qid !== e.item.qid) return Promise.reject(new Error(ERR_TEXT.ITEM_CHANGED));
@@ -455,7 +482,14 @@
     TOO_SHORT: "해설은 10글자 이상 써 주세요.",
     TOO_LONG: "해설은 200글자 안으로 줄여 주세요.",
     PRIVATE_INFO: "이메일·전화번호는 쓰지 마세요. 팀원에게 그대로 보여요.",
-    NO_TEAM: "아직 팀이 없어요."
+    NO_TEAM: "아직 팀이 없어요.",
+    // [QA 낮음 수정 — 70_qa_fixes.sql]
+    NICK_LENGTH: "별명은 2~12글자로 정해 주세요.",
+    NICK_PRIVATE: "전화번호·이메일·학번처럼 보이는 글은 별명에 쓸 수 없어요. 팀원에게 그대로 보여요.",
+    BAD_CHOICE: "고른 보기가 서버 규칙과 맞지 않아 저장하지 못했어요. 새로고침해 주세요.",
+    NOT_OPEN: "이 강의는 아직 열리지 않았어요. 홈으로 돌아가 주세요.",
+    NEED_DIAG: "진단을 10문항 이상 마치면 열려요. 진단부터 이어 해 주세요.",
+    WEEK_CHANGED: "밤 12시가 지나 지난주 공통 점검이 닫혔어요. 고른 답은 제출되지 않았어요. 이번 주 점검을 새로 시작해 주세요."
   };
   function explainError(e) {
     var m = String((e && (e.message || e.error_description || e.msg)) || e || "");
@@ -615,6 +649,7 @@
   function normExplainer(e) {
     e = e || {};
     if (!e.inTeam) return { inTeam: false };
+    if (e.needDiag) return { inTeam: true, needDiag: true, weekStart: String(e.weekStart || "").slice(0, 10), fake: false };   // [QA #10]
     var it = e.item && e.item.qid ? { qid: String(e.item.qid), lecture: Number(e.item.lecture) || 0, question: String(e.item.question || ""),
                                      sourceSection: String(e.item.sourceSection || "") } : null;
     return { inTeam: true, weekStart: String(e.weekStart || "").slice(0, 10), maxChars: Number(e.maxChars) || LU.WEEKLY.EXPLAIN_MAX,
@@ -659,7 +694,8 @@
         .then(function () {}, function () {});
     },
     setNickname: function (name) {
-      return rpc("set_nickname", { p_name: String(name).trim().slice(0, 12) })
+      var bad = LU.checkNickname(name); if (bad) return Promise.reject(new Error(ERR_TEXT[bad]));   // 서버도 같은 검사(70번)
+      return rpc("set_nickname", { p_name: LU.cleanNickname(name) })
         .then(me).then(function (s) { if (!s) throw new Error("NOT_LINKED"); return strip(s); })
         .catch(function (e) { throw friendly(e); });
     },

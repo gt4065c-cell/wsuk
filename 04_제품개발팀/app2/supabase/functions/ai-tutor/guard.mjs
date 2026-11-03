@@ -24,6 +24,7 @@ export const MESSAGES = {
   NOT_PRACTICE: "AI 튜터는 연습 문제에서만 쓸 수 있어요.",
   NOT_YET: "AI 튜터는 미리 만든 힌트를 3단계까지 본 뒤에 열려요.",
   ITEM_CLOSED: "이 문제는 이미 끝났어요. 해설을 읽어 봐요.",
+  NOT_OPEN: "이 강의는 아직 열리지 않았어요. 홈으로 돌아가 주세요.",   // 70_qa_fixes.sql tutor_begin (QA #8)
   NOT_LINKED: "이 기기가 아직 코드와 연결되지 않았어요. 코드를 다시 넣어 주세요.",
   NO_AUTH: "로그인이 풀렸어요. 새로고침한 뒤 코드를 다시 넣어 주세요.",
   NO_QUESTION: "문제를 찾지 못했어요. 새로고침해 주세요.",
