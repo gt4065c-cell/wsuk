@@ -76,6 +76,7 @@
   .card{
     --c:#7c5cff;
     position:relative;border-radius:26px;padding:16px 18px 22px;
+    background:var(--panel);border:2px solid rgba(255,255,255,.2);box-shadow:0 18px 40px rgba(0,0,0,.45);
     background:linear-gradient(180deg,color-mix(in srgb,var(--c) 26%,var(--panel)) 0%,var(--panel) 62%);
     border:2px solid color-mix(in srgb,var(--c) 55%,transparent);
     box-shadow:0 18px 40px rgba(0,0,0,.45),0 0 0 6px color-mix(in srgb,var(--c) 10%,transparent);
@@ -276,11 +277,11 @@
 
   /* ===== 내용 (01강 대본 범위) ===== */
   var CARDS = [
-    {era:"1956", c:"#ffb347", title:"AI의 출발", line:"다트머스의 한 연구 모임에서 AI 연구가 본격 시작됐어요.", art:art0},
-    {era:"규칙", c:"#4dabf7", title:"규칙 중심 AI", line:"사람이 “이 말엔 이렇게” 규칙을 직접 넣어요.", art:art1},
+    {era:"1956", c:"#ffb347", title:"AI의 출발", line:"다트머스 연구 모임에서 AI 연구가 출발했어요.", art:art0},
+    {era:"규칙", c:"#4dabf7", title:"규칙 중심 AI", line:"사람이 규칙을 하나하나 직접 넣어요.", art:art1},
     {era:"데이터", c:"#38d9a9", title:"머신러닝", line:"많은 예시를 보고 패턴을 스스로 찾아요.", art:art2},
     {era:"신경망", c:"#9775fa", title:"딥러닝", line:"신경망을 여러 겹 쌓아 복잡한 패턴을 다뤄요.", art:art3},
-    {era:"생성", c:"#f783ac", title:"생성형 AI", line:"글이나 코드를 새로 만들어요. 확인은 사람이 해요.", art:art4},
+    {era:"생성", c:"#f783ac", title:"생성형 AI", line:"글이나 코드를 새로 만들어 내요.", art:art4},
     {era:"도구", c:"#ffd43b", title:"도구를 쓰는 AI", line:"허락된 도구로 정보를 찾고 일도 실행해요.", art:art5}
   ];
 
@@ -294,12 +295,12 @@
         {text:"수강 신청 취소는요?",bin:"hit",hint:"“수강 신청”이 들어 있으니 규칙표가 잡아요."},
         {text:"다른 반으로 옮길래요",bin:"miss",hint:"뜻은 비슷해도, 규칙에 없는 말은 놓쳐요."}
       ],
-      done:"규칙에 없는 말은 놓쳐요. 그래서 머신러닝이 나왔어요."
+      done:"규칙에 없는 말은 놓쳐요. 그래서 머신러닝!"
     },
     { kind:"match", tag:"퀴즈 2/4 · 짝 맞추기", title:"이름을 설명 옆에 놓아요",
       bins:[{id:"m",label:"예시에서 패턴을 스스로 찾아요"},{id:"d",label:"신경망을 여러 겹 쌓아요"},{id:"r",label:"사람이 규칙을 직접 넣어요"}],
       items:[{text:"규칙 중심",bin:"r"},{text:"머신러닝",bin:"m"},{text:"딥러닝",bin:"d"}],
-      done:"옛 방식도 사라지지 않고, 지금도 일에 맞게 같이 써요."
+      done:"옛 방식도 지금 일에 맞게 같이 써요."
     },
     { kind:"sort3", tag:"퀴즈 3/4 · 끌어다 나누기", title:"이 일은 AI의 어떤 역할?",
       bins:[{id:"cls",ic:"🗂️",label:"분류"},{id:"gen",ic:"✍️",label:"생성"},{id:"tool",ic:"🔧",label:"도구 실행"}],
@@ -309,12 +310,12 @@
         {text:"학습 기록 찾아보기",bin:"tool",hint:"AI는 자료 창고가 아니라, 도구로 찾아봐요."},
         {text:"해설 초안 쓰기",bin:"gen",hint:"새 글을 만들어 내는 일이에요."}
       ],
-      done:"같은 AI라도 분류·생성·도구 실행은 일하는 방식이 달라요."
+      done:"이름은 같은 AI라도 일하는 방식이 달라요."
     },
     { kind:"order", tag:"보스 퀴즈 · 순서 맞추기", boss:true, title:"일어난 순서대로 놓아요",
       bins:[{id:"1"},{id:"2"},{id:"3"},{id:"4"},{id:"5"}],
       items:[{text:"1956 다트머스 모임",bin:"1"},{text:"규칙 중심 AI",bin:"2"},{text:"머신러닝",bin:"3"},{text:"딥러닝",bin:"4"},{text:"생성형 AI·도구",bin:"5"}],
-      done:"새 기술이 나와도 옛 기술은 버리지 않고 같이 써요."
+      done:"새 기술이 나와도 옛 기술은 같이 써요."
     }
   ];
 
@@ -438,12 +439,13 @@
 
   function attachSwipe(card){
     var sx=0, sy=0, dx=0, on=false;
+    var cap=false;
     card.addEventListener("pointerdown",function(e){
-      on=true; sx=e.clientX; sy=e.clientY; dx=0; card.style.transition="none";
-      try{card.setPointerCapture(e.pointerId)}catch(_){}
+      on=true; cap=false; sx=e.clientX; sy=e.clientY; dx=0; card.style.transition="none";
     });
     card.addEventListener("pointermove",function(e){
       if(!on) return; dx=e.clientX-sx; var dy=e.clientY-sy;
+      if(!cap && Math.abs(dx)>8){ cap=true; try{card.setPointerCapture(e.pointerId)}catch(_){} }
       if(Math.abs(dx)>Math.abs(dy)) card.style.transform="translateX("+dx+"px) rotate("+(dx/28)+"deg)";
     });
     function end(){
@@ -580,7 +582,7 @@
         '<div class="stars" aria-label="별 '+stars+'개">'+st+'</div>'+
         '<ul class="tc-lines">'+
           '<li><b>1</b>AI 연구는 1956년 다트머스 모임에서 시작됐어요.</li>'+
-          '<li><b>2</b>규칙 → 데이터 학습 → 생성·도구로 넓어졌고, 옛 기술도 같이 써요.</li>'+
+          '<li><b>2</b>규칙 → 데이터 → 생성·도구로 넓어졌고, 옛 기술도 같이 써요.</li>'+
           '<li><b>3</b>분류·생성·도구 실행은 일하는 방식이 달라요.</li>'+
         '</ul>'+
         '<div class="tc-foot">⚡ '+S.xp+' XP · 🔥 최고 '+S.best+'콤보 · 한 번에 맞힘 '+S.first+'/'+TOTAL_ITEMS+'</div>'+
