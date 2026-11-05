@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>사건 파일 #01 · AI 탐정 (1강 시제품 A안)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;background:#0B0D1F;color:#F3F4FF;word-break:keep-all;overflow-wrap:anywhere;-webkit-tap-highlight-color:transparent}
+#app{max-width:430px;width:100%;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% -10%,#2A2266 0%,#12142E 45%,#0B0D1F 100%);position:relative;overflow-x:hidden}
+#app.quake{animation:quake .5s}
+.hud{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px;font-size:15px;font-weight:700;color:#B9BCE6}
+.hud .score{background:#1E2148;border:1px solid #3A3F7A;padding:6px 12px;border-radius:999px;color:#FFE08A}
+.progress{height:6px;background:#262A4A;margin:0 16px;border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7C5CFF,#3BA7FF);transition:width .5s}
+.screen{display:none;flex:1;flex-direction:column;padding:20px 18px 26px}
+.screen.on{display:flex;animation:fadein .35s}
+h1{font-size:28px;line-height:1.3;margin-bottom:10px}
+h2{font-size:23px;line-height:1.35;margin-bottom:8px}
+.lead{font-size:18px;line-height:1.55;color:#C9CCEB}
+.kicker{font-size:14px;font-weight:800;letter-spacing:.08em;color:#9D8CFF;margin-bottom:6px}
+.actions{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:12px}
+.btn{display:block;width:100%;min-height:58px;border:0;border-radius:16px;font-size:19px;font-weight:800;color:#fff;background:linear-gradient(135deg,#7C5CFF,#5B3DF5);box-shadow:0 6px 0 #3A22B8;cursor:pointer;font-family:inherit;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #3A22B8}
+.btn.ghost{background:#23264A;box-shadow:0 6px 0 #15172F;color:#DADCFF}
+.btn.gold{background:linear-gradient(135deg,#FFB547,#F08A00);box-shadow:0 6px 0 #A85E00;color:#2A1800}
+.btn[hidden]{display:none}
+
+/* 1. 사건 도착 */
+.arrive{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.folder{position:relative;width:190px;height:150px;margin-bottom:26px;animation:drop .9s cubic-bezier(.2,1.4,.4,1) both}
+.folder .back{position:absolute;inset:16px 0 0 0;background:#C98B2E;border-radius:10px}
+.folder .tab{position:absolute;left:0;top:0;width:80px;height:30px;background:#C98B2E;border-radius:10px 10px 0 0}
+.folder .front{position:absolute;inset:30px 0 0 0;background:linear-gradient(#F2B652,#E09A30);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#5A3A08}
+.stamp{position:absolute;right:-18px;top:44px;border:4px solid #FF3355;color:#FF3355;font-weight:900;font-size:20px;padding:2px 10px;border-radius:8px;transform:rotate(14deg) scale(0);animation:stamp .4s 1s forwards;background:rgba(255,255,255,.85)}
+.blink{animation:blink 1.2s infinite}
+
+/* 2. 브리핑 */
+.chat{background:#1C1F3D;border-radius:18px 18px 18px 4px;padding:16px;font-size:18px;line-height:1.5;margin:14px 0 18px;border:1px solid #2F3366}
+.chat .who{font-size:13px;color:#9D8CFF;font-weight:800;margin-bottom:4px}
+.suspects{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sus{border-radius:16px;padding:16px 10px;text-align:center;font-weight:800;font-size:17px}
+.sus .ic{font-size:40px;display:block;margin-bottom:6px}
+.sus.rule{background:rgba(245,165,36,.12);border:2px solid #F5A524;color:#FFD27A}
+.sus.ml{background:rgba(59,167,255,.12);border:2px solid #3BA7FF;color:#9BD2FF}
+.sus small{display:block;font-size:13px;font-weight:600;opacity:.85;margin-top:4px}
+
+/* 3. 단서 분류 */
+.stage{position:relative;min-height:200px;display:flex;align-items:center;justify-content:center;margin:10px 0 6px}
+.clue{width:90%;min-height:160px;background:#FFF8E7;color:#2A2410;border-radius:18px;padding:18px;font-size:20px;font-weight:800;line-height:1.45;box-shadow:0 12px 26px rgba(0,0,0,.45);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:5}
+.clue.enter{animation:cardin .35s}
+.clue .tag{font-size:13px;color:#8A7A50;font-weight:700;margin-bottom:8px}
+.clue .grip{position:absolute;right:14px;bottom:10px;font-size:13px;color:#A8976A;font-weight:600}
+.clue.selected{outline:4px solid #7C5CFF;outline-offset:3px}
+.clue:active{cursor:grabbing}
+.done-box{text-align:center;font-size:20px;font-weight:800;color:#5BE49B}
+.fb{min-height:54px;font-size:16px;line-height:1.45;text-align:center;padding:4px 6px;color:#B9BCE6}
+.fb.good{color:#5BE49B}
+.fb.bad{color:#FF8FA3}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:auto}
+.bin{min-height:132px;border-radius:18px;border:3px dashed;padding:12px 6px;text-align:center;font-size:18px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:transform .15s;font-family:inherit;user-select:none}
+.bin .ic{font-size:34px}
+.bin .cnt{font-size:14px;font-weight:700;opacity:.9}
+.bin.rule{border-color:#F5A524;background:rgba(245,165,36,.1);color:#FFD27A}
+.bin.ml{border-color:#3BA7FF;background:rgba(59,167,255,.1);color:#9BD2FF}
+.bin.hover{transform:scale(1.06);border-style:solid}
+.bin.ok{animation:pop .45s;border-style:solid}
+.bin.no{animation:shake .45s;border-color:#FF4D6D}
+
+/* 4. 반전 */
+.engine{border-radius:14px;padding:12px 14px;font-size:16px;font-weight:700;line-height:1.45;margin-top:10px}
+.engine.rule{background:rgba(245,165,36,.12);border:2px solid #F5A524;color:#FFD27A}
+.engine.ml{background:rgba(59,167,255,.12);border:2px solid #3BA7FF;color:#9BD2FF}
+.log{display:flex;flex-direction:column;gap:10px;margin:14px 0 8px;position:relative}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#1C1F3D;border:1px solid #2F3366;border-radius:14px;padding:12px 14px;font-size:17px;line-height:1.4;opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s}
+.row.show{opacity:1;transform:none}
+.row .res{flex-shrink:0;font-size:14px;font-weight:900;padding:6px 10px;border-radius:999px;white-space:nowrap}
+.res.ok{background:#1E5B3E;color:#9DF5C4}
+.res.boom{background:#FF3355;color:#fff}
+.res.warn{background:#6A5612;color:#FFE08A}
+.row.boom{background:#4A1020;border-color:#FF3355;animation:boom .6s}
+.row.warn{border-color:#E8C14A;animation:shake .45s}
+.bigstamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-10deg) scale(0);font-size:40px;font-weight:900;color:#FF3355;border:5px solid #FF3355;border-radius:12px;padding:4px 16px;background:rgba(11,13,31,.85);pointer-events:none;white-space:nowrap}
+.bigstamp.go{animation:bigstamp 1.6s forwards}
+.caption{font-size:17px;line-height:1.5;text-align:center;min-height:52px;font-weight:700}
+#flash{position:fixed;inset:0;background:#FF1F4B;opacity:0;pointer-events:none;z-index:50}
+#flash.go{animation:flash .6s}
+
+/* 5. 해설 */
+.formula{display:flex;align-items:center;justify-content:center;gap:10px;font-size:44px;margin:26px 0 22px}
+.formula .arrow{font-size:26px;color:#7C7FB8}
+.formula .bad{animation:blink 1s infinite}
+.say{font-size:21px;line-height:1.55;font-weight:700;text-align:center}
+.say em{font-style:normal;color:#9BD2FF}
+.say b{color:#FFD27A}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
+.chip{font-size:14px;font-weight:700;padding:8px 12px;border-radius:999px;background:#1E2148;border:1px solid #3A3F7A;color:#C9CCEB}
+
+/* 6. 연표 */
+.tl{position:relative;margin:16px 0 0 10px;padding-left:26px;border-left:3px solid #2E3260}
+.ev{position:relative;margin-bottom:16px;opacity:.22;filter:grayscale(1);transition:opacity .4s,filter .4s,transform .4s;transform:translateX(8px)}
+.ev.on{opacity:1;filter:none;transform:none}
+.ev::before{content:"";position:absolute;left:-36px;top:3px;width:17px;height:17px;border-radius:50%;background:#2E3260;border:3px solid #0B0D1F;transition:background .4s}
+.ev.on::before{background:#7C5CFF;box-shadow:0 0 0 4px rgba(124,92,255,.3)}
+.ev .yr{font-size:13px;font-weight:900;color:#B9A6FF}
+.ev b{display:block;font-size:18px;margin:2px 0}
+.ev span{font-size:15px;color:#C9CCEB;line-height:1.45}
+.memo{background:#FFF8E7;color:#2A2410;border-radius:14px;padding:14px;font-size:16px;font-weight:800;line-height:1.5;margin-top:6px;transform:rotate(-1.5deg);display:none}
+.memo.on{display:block;animation:cardin .4s}
+
+/* 7. 추리 */
+.q{font-size:20px;font-weight:800;line-height:1.45;margin:8px 0 14px}
+.opt{width:100%;text-align:left;min-height:58px;padding:12px 14px;margin-bottom:10px;border-radius:14px;border:2px solid #343868;background:#1C1F3D;color:#F3F4FF;font-size:17px;line-height:1.4;cursor:pointer;display:flex;gap:10px;align-items:center;font-family:inherit}
+.opt .mk{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:#2E3260;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
+.opt.right{background:#1E5B3E;border-color:#5BE49B;animation:jump .5s}
+.opt.right .mk{background:#5BE49B;color:#0B2A1A}
+.opt.wrong{border-color:#FF4D6D;background:#3D1222;animation:shake .45s;opacity:.75}
+.opt.wrong .mk{background:#FF4D6D;color:#fff}
+.opt:disabled{cursor:default}
+.qfb{font-size:16px;line-height:1.45;min-height:24px;font-weight:700}
+.qfb.good{color:#5BE49B}
+.qfb.bad{color:#FF8FA3}
+
+/* 8. 해결 */
+.end{text-align:center;display:flex;flex-direction:column;align-items:center}
+.badge{width:150px;height:150px;margin:6px auto 10px;animation:badgein .9s cubic-bezier(.2,1.5,.4,1) both}
+.big{font-size:52px;font-weight:900;color:#FFE08A;line-height:1.1}
+.rank{display:inline-block;margin:8px 0 6px;padding:6px 14px;border-radius:999px;background:#2A2266;color:#D9CFFF;font-weight:800;font-size:16px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:14px}
+.stat{background:#1C1F3D;border-radius:14px;padding:12px;font-size:14px;color:#B9BCE6}
+.stat b{display:block;font-size:22px;color:#fff}
+
+/* 공통 오버레이 */
+.modal{position:fixed;inset:0;background:rgba(5,6,18,.7);display:none;align-items:flex-end;justify-content:center;z-index:60}
+.modal.on{display:flex}
+.sheet{width:100%;max-width:430px;background:#1A1D3A;border-radius:22px 22px 0 0;padding:22px 18px 26px;animation:sheetup .3s}
+.sheet h3{font-size:19px;margin-bottom:10px;color:#FFD27A}
+.sheet p{font-size:17px;line-height:1.55;margin-bottom:16px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(40px);opacity:0;width:calc(100% - 36px);max-width:394px;background:#F3F4FF;color:#14162B;font-size:15px;font-weight:700;line-height:1.45;padding:14px 16px;border-radius:14px;text-align:center;transition:.3s;z-index:70;pointer-events:none}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.plus{position:fixed;font-weight:900;font-size:20px;color:#FFE08A;pointer-events:none;z-index:80;animation:plus .9s forwards}
+#confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:40}
+#confetti i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes drop{from{transform:translateY(-260px) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes stamp{to{transform:rotate(14deg) scale(1)}}
+@keyframes blink{50%{opacity:.35}}
+@keyframes cardin{from{transform:scale(.7) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes jump{0%{transform:translateY(0)}35%{transform:translateY(-12px) scale(1.03)}65%{transform:translateY(2px)}100%{transform:none}}
+@keyframes boom{0%{transform:scale(1)}30%{transform:scale(1.08)}50%{transform:scale(.97)}100%{transform:scale(1)}}
+@keyframes bigstamp{0%{transform:translate(-50%,-50%) rotate(-10deg) scale(2.4);opacity:0}20%{transform:translate(-50%,-50%) rotate(-10deg) scale(1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-50%) rotate(-10deg) scale(1);opacity:0}}
+@keyframes flash{0%{opacity:0}20%{opacity:.45}100%{opacity:0}}
+@keyframes quake{0%,100%{transform:none}20%{transform:translate(-6px,2px)}40%{transform:translate(6px,-2px)}60%{transform:translate(-4px,1px)}80%{transform:translate(4px,0)}}
+@keyframes sheetup{from{transform:translateY(100%)}to{transform:none}}
+@keyframes plus{from{transform:translateY(0);opacity:1}to{transform:translateY(-40px);opacity:0}}
+@keyframes badgein{from{transform:scale(0) rotate(-30deg)}to{transform:none}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud"><span id="hudTitle">사건 파일 #01</span><span class="score">🔍 <span id="score">0</span>점</span></div>
+  <div class="progress"><i id="bar"></i></div>
+
+  <!-- 1. 사건 도착 -->
+  <section class="screen on" id="s-arrive">
+    <div class="arrive">
+      <div class="folder">
+        <div class="tab"></div><div class="back"></div>
+        <div class="front">사건 #01</div>
+        <div class="stamp">긴급</div>
+      </div>
+      <div class="kicker">새 사건 도착</div>
+      <h1>사라진 학생 문의</h1>
+      <p class="lead">학사 창구 AI가 문의를 놓치고 있다.<br>범인의 정체를 밝혀라.</p>
+    </div>
+    <div class="actions"><button class="btn blink-off" id="btnOpen">사건 파일 열기</button></div>
+  </section>
+
+  <!-- 2. 브리핑 -->
+  <section class="screen" id="s-brief">
+    <div class="kicker">사건 개요</div>
+    <h2>문의가 아무 데도 안 갔다</h2>
+    <div class="chat"><div class="who">학사팀 조교</div>“과목을 바꾸고 싶어요” 문의가 학사 문의로 안 들어왔어요!</div>
+    <p class="lead" style="margin-bottom:14px">용의자는 두 AI. 먼저 단서로 특징을 파악하자.</p>
+    <div class="suspects">
+      <div class="sus rule"><span class="ic">📋</span>규칙 AI<small>용의자 1</small></div>
+      <div class="sus ml"><span class="ic">🧠</span>머신러닝<small>용의자 2</small></div>
+    </div>
+    <div class="actions"><button class="btn" id="btnBrief">단서 나누기 시작</button></div>
+  </section>
+
+  <!-- 3. 단서 분류 -->
+  <section class="screen" id="s-sort">
+    <div class="kicker">추리 1 · 단서 분류</div>
+    <h2>이 단서는 누구의 특징?</h2>
+    <p class="lead" style="font-size:16px">카드를 아래 상자로 끌어 넣으세요. (카드를 누른 뒤 상자를 눌러도 돼요)</p>
+    <div class="stage" id="stage"></div>
+    <div class="fb" id="sortFb"></div>
+    <div class="bins">
+      <button class="bin rule" data-k="rule" type="button"><span class="ic">📋</span>규칙 AI<span class="cnt" id="cnt-rule">0개</span></button>
+      <button class="bin ml" data-k="ml" type="button"><span class="ic">🧠</span>머신러닝<span class="cnt" id="cnt-ml">0개</span></button>
+    </div>
+    <div class="actions" style="padding-top:12px"><button class="btn" id="btnSortNext" hidden>사건 재현 실험하기</button></div>
+  </section>
+
+  <!-- 4. 반전 -->
+  <section class="screen" id="s-twist">
+    <div class="kicker">추리 2 · 재현 실험</div>
+    <h2 id="twTitle">같은 문의를 넣어 보자</h2>
+    <div class="engine rule" id="engine">📋 규칙표: “수강 신청”이 있으면 → 학사 문의</div>
+    <div class="log" id="log"><div class="bigstamp" id="bigstamp">놓쳤다!</div></div>
+    <div class="caption" id="twCap"></div>
+    <div class="actions"><button class="btn" id="btnTwist">▶ 규칙 AI에 문의 넣기</button></div>
+  </section>
+
+  <!-- 5. 해설 -->
+  <section class="screen" id="s-explain">
+    <div class="kicker">탐정의 메모</div>
+    <div class="formula"><span>📋</span><span class="arrow">→</span><span class="bad">❗</span><span class="arrow">→</span><span>🧠</span></div>
+    <p class="say">규칙 AI는 <b>사람이 넣어 둔 말</b>에만 반응해요.<br>그래서 <em>예시에서 패턴을 배우는 머신러닝</em>이 나왔어요.</p>
+    <div class="chips"><span class="chip">🧠 머신러닝도 가끔 틀려요</span><span class="chip">📋 규칙 AI도 여전히 쓸모 있어요</span></div>
+    <div class="actions"><button class="btn" id="btnExplain">사건 연표 펼치기</button></div>
+  </section>
+
+  <!-- 6. 연표 -->
+  <section class="screen" id="s-timeline">
+    <div class="kicker">추리 3 · 사건 연표</div>
+    <h2>AI는 네 번 모습을 바꿨다</h2>
+    <div class="tl" id="tl"></div>
+    <div class="memo" id="memo">📌 새 기술이 와도 옛 기술은 버려지지 않아요. 지금도 일에 맞게 같이 써요.</div>
+    <div class="actions"><button class="btn" id="btnTl">다음 기록 열기 (1/5)</button></div>
+  </section>
+
+  <!-- 7. 최종 추리 -->
+  <section class="screen" id="s-quiz">
+    <div class="kicker" id="qKick">최종 추리 1 / 3</div>
+    <div class="q" id="qText"></div>
+    <div id="qOpts"></div>
+    <div class="qfb" id="qFb"></div>
+    <div class="actions">
+      <button class="btn ghost" id="btnHint" hidden>🔍 단서 다시 보기</button>
+      <button class="btn" id="btnQNext" hidden>다음 추리</button>
+    </div>
+  </section>
+
+  <!-- 8. 사건 해결 -->
+  <section class="screen" id="s-end">
+    <div class="end">
+      <div class="kicker">사건 해결</div>
+      <svg class="badge" viewBox="0 0 120 120" aria-label="사건 해결 배지">
+        <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9D8CFF"/><stop offset="1" stop-color="#3BA7FF"/></linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE08A"/><stop offset="1" stop-color="#F08A00"/></linearGradient></defs>
+        <path d="M60 6 L104 22 V58 C104 86 84 104 60 114 C36 104 16 86 16 58 V22 Z" fill="url(#g1)" stroke="#FFE08A" stroke-width="4"/>
+        <circle cx="54" cy="54" r="20" fill="#14162B" stroke="url(#g2)" stroke-width="7"/>
+        <line x1="68" y1="68" x2="84" y2="84" stroke="url(#g2)" stroke-width="9" stroke-linecap="round"/>
+        <text x="54" y="61" text-anchor="middle" font-size="20" font-weight="900" fill="#FFE08A">AI</text>
+      </svg>
+      <h1 style="margin-bottom:4px">사건 #01 해결!</h1>
+      <div class="big"><span id="endScore">0</span><span style="font-size:22px">점</span></div>
+      <div class="rank" id="rank">견습 탐정</div>
+      <div class="stats">
+        <div class="stat"><b id="stClue">6/6</b>단서 한 번에 맞힘</div>
+        <div class="stat"><b id="stQuiz">3/3</b>추리 한 번에 맞힘</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn gold" id="btnChallenge">⚔️ 친구에게 도전장 보내기</button>
+      <button class="btn ghost" id="btnRestart">처음부터 다시</button>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal"><div class="sheet"><h3 id="mTitle">단서</h3><p id="mBody"></p><button class="btn" id="mClose">다시 추리하기</button></div></div>
+<div id="toast"></div>
+<div id="flash"></div>
+<div id="confetti"></div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var score = 0, clueFirst = 0, quizFirst = 0;
+
+  /* ---------- 공통 ---------- */
+  var progress = {'s-arrive':0,'s-brief':8,'s-sort':20,'s-twist':42,'s-explain':55,'s-timeline':65,'s-quiz':75,'s-end':100};
+  function go(id){
+    var list = document.querySelectorAll('.screen');
+    for (var i=0;i<list.length;i++) list[i].classList.remove('on');
+    $(id).classList.add('on');
+    $('bar').style.width = progress[id] + '%';
+    window.scrollTo(0,0);
+  }
+  function addScore(n, el){
+    score += n; $('score').textContent = score;
+    var r = (el || $('score')).getBoundingClientRect();
+    var p = document.createElement('div');
+    p.className = 'plus'; p.textContent = '+' + n;
+    p.style.left = Math.min(window.innerWidth - 60, r.left + r.width/2 - 16) + 'px';
+    p.style.top = (r.top - 4) + 'px';
+    document.body.appendChild(p);
+    setTimeout(function(){ p.remove(); }, 900);
+  }
+  function buzz(){ if (navigator.vibrate) { try{ navigator.vibrate(120); }catch(e){} } }
+  var toastT;
+  function toast(msg){
+    var t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('on'); }, 2600);
+  }
+  function retrigger(el, cls, ms){
+    el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+    setTimeout(function(){ el.classList.remove(cls); }, ms || 500);
+  }
+
+  /* ---------- 1~2. 도착·브리핑 ---------- */
+  $('btnOpen').onclick = function(){ go('s-brief'); };
+  $('btnBrief').onclick = function(){ go('s-sort'); renderClue(); };
+
+  /* ---------- 3. 단서 분류 (끌어 넣기) ---------- */
+  var clues = [
+    {t:'“수강 신청”이란 말이 오면 학사 문의로 보내요', a:'rule', why:'정해 둔 말에 반응하는 건 규칙 AI예요.'},
+    {t:'많은 예시 자료를 보고 패턴을 스스로 찾아요', a:'ml', why:'예시에서 패턴을 찾는 건 머신러닝이에요.'},
+    {t:'사람이 “이런 말엔 이렇게 하라”를 직접 넣어요', a:'rule', why:'사람이 규칙을 직접 넣는 건 규칙 AI예요.'},
+    {t:'표현이 달라도 뜻이 비슷하면 같이 묶어요', a:'ml', why:'비슷한 뜻을 묶는 건 패턴을 배운 머신러닝이에요.'},
+    {t:'가끔은 틀리게 나누기도 해요', a:'ml', why:'머신러닝의 예측은 언제나 맞지는 않아요.'},
+    {t:'조건이 분명한 일에는 지금도 쓸모 있어요', a:'rule', why:'규칙 AI는 조건이 분명한 일에 여전히 유용해요.'}
+  ];
+  var ci = 0, busy = false, card = null, counts = {rule:0, ml:0};
+  var bins = document.querySelectorAll('.bin');
+
+  function renderClue(){
+    var stage = $('stage'); stage.innerHTML = '';
+    if (ci >= clues.length){
+      stage.innerHTML = '<div class="done-box">🗂️ 단서 6개 정리 완료!</div>';
+      $('sortFb').className = 'fb good';
+      $('sortFb').textContent = '이제 두 용의자에게 같은 문의를 넣어 보자.';
+      $('btnSortNext').hidden = false;
+      card = null; return;
+    }
+    card = document.createElement('div');
+    card.className = 'clue enter';
+    card.innerHTML = '<div class="tag">단서 ' + (ci+1) + ' / ' + clues.length + '</div>' + clues[ci].t + '<span class="grip">✋ 끌어서 넣기</span>';
+    card._dx = 0; card._dy = 0; card._wrong = false;
+    stage.appendChild(card);
+    bindDrag(card);
+  }
+
+  function binAt(x, y){
+    for (var i=0;i<bins.length;i++){
+      var r = bins[i].getBoundingClientRect();
+      if (x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 30 && y <= r.bottom + 10) return bins[i];
+    }
+    return null;
+  }
+  function hover(b){ for (var i=0;i<bins.length;i++) bins[i].classList.toggle('hover', bins[i] === b); }
+
+  function bindDrag(c){
+    var sx=0, sy=0, pid=null, dragging=false, moved=false;
+    c.addEventListener('pointerdown', function(e){
+      if (busy) return;
+      e.preventDefault();
+      pid = e.pointerId; dragging = true; moved = false;
+      sx = e.clientX; sy = e.clientY;
+      try { c.setPointerCapture(pid); } catch(err){}
+      c.style.transition = 'none';
+    });
+    c.addEventListener('pointermove', function(e){
+      if (!dragging || e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.abs(dx) + Math.abs(dy) > 8) moved = true;
+      if (!moved) return;
+      c.classList.remove('selected');
+      c._dx = dx; c._dy = dy;
+      c.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (dx/18) + 'deg) scale(.9)';
+      hover(binAt(e.clientX, e.clientY));
+    });
+    function end(e, cancelled){
+      if (!dragging || e.pointerId !== pid) return;
+      dragging = false; hover(null);
+      if (!moved && !cancelled){
+        c.classList.toggle('selected');
+        if (c.classList.contains('selected')){
+          $('sortFb').className = 'fb';
+          $('sortFb').textContent = '좋아요. 이제 아래 상자 중 하나를 누르세요.';
+        }
+        return;
+      }
+      var b = cancelled ? null : binAt(e.clientX, e.clientY);
+      if (b) judge(b.getAttribute('data-k'));
+      else goBack(c, false);
+    }
+    c.addEventListener('pointerup', function(e){ end(e, false); });
+    c.addEventListener('pointercancel', function(e){ end(e, true); });
+  }
+
+  function goBack(c, shake){
+    c.style.transition = 'transform .3s';
+    c.style.transform = '';
+    c._dx = 0; c._dy = 0;
+    if (shake) setTimeout(function(){ c.style.transition = ''; retrigger(c, 'shake', 460); }, 300);
+  }
+
+  function judge(k){
+    if (busy || !card) return;
+    busy = true;
+    var c = card, clue = clues[ci];
+    var bin = document.querySelector('.bin[data-k="' + k + '"]');
+    c.classList.remove('selected');
+    if (clue.a === k){
+      var br = bin.getBoundingClientRect(), cr = c.getBoundingClientRect();
+      var tx = c._dx + (br.left + br.width/2) - (cr.left + cr.width/2);
+      var ty = c._dy + (br.top + br.height/2) - (cr.top + cr.height/2);
+      c.style.transition = 'transform .4s ease-in, opacity .4s ease-in';
+      c.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(.15) rotate(8deg)';
+      c.style.opacity = '0';
+      counts[k]++;
+      $('cnt-' + k).textContent = counts[k] + '개';
+      retrigger(bin, 'ok', 460);
+      $('sortFb').className = 'fb good';
+      $('sortFb').textContent = '✓ 맞아요! ' + clue.why;
+      if (!c._wrong){ clueFirst++; addScore(20, bin); }
+      setTimeout(function(){ ci++; busy = false; renderClue(); }, 650);
+    } else {
+      c._wrong = true;
+      retrigger(bin, 'no', 460);
+      buzz();
+      $('sortFb').className = 'fb bad';
+      $('sortFb').textContent = '✕ 아니에요. ' + clue.why;
+      goBack(c, true);
+      setTimeout(function(){ busy = false; }, 760);
+    }
+  }
+  for (var b=0;b<bins.length;b++){
+    bins[b].addEventListener('click', function(){
+      if (!card) return;
+      judge(this.getAttribute('data-k'));
+    });
+  }
+  $('btnSortNext').onclick = function(){ go('s-twist'); };
+
+  /* ---------- 4. 반전: 재현 실험 ---------- */
+  var ruleMsgs = [
+    ['수강 신청 언제 해요?', 'ok', '✓ 학사 문의'],
+    ['수강 신청 취소도 되나요?', 'ok', '✓ 학사 문의'],
+    ['과목을 바꾸고 싶어요', 'boom', '✕ 분류 실패']
+  ];
+  var mlMsgs = [
+    ['수강 신청 언제 해요?', 'ok', '✓ 학사 문의'],
+    ['과목을 바꾸고 싶어요', 'ok', '✓ 학사 문의'],
+    ['듣는 수업을 다른 걸로 옮기고 싶어요', 'warn', '△ 잘못 분류']
+  ];
+  var twPhase = 0, twRunning = false;
+
+  function runLog(msgs, done){
+    var log = $('log');
+    var rows = log.querySelectorAll('.row');
+    for (var i=0;i<rows.length;i++) rows[i].remove();
+    msgs.forEach(function(m, i){
+      setTimeout(function(){
+        var r = document.createElement('div');
+        r.className = 'row';
+        r.innerHTML = '<span>💬 ' + m[0] + '</span><span class="res ' + m[1] + '">' + m[2] + '</span>';
+        log.appendChild(r);
+        void r.offsetWidth; r.classList.add('show');
+        if (m[1] === 'boom'){
+          r.classList.add('boom');
+          retrigger($('flash'), 'go', 620);
+          retrigger($('app'), 'quake', 520);
+          retrigger($('bigstamp'), 'go', 1650);
+          buzz();
+        }
+        if (m[1] === 'warn') r.classList.add('warn');
+        if (i === msgs.length - 1) setTimeout(done, m[1] === 'boom' ? 1100 : 600);
+      }, 300 + i * 850);
+    });
+  }
+
+  $('btnTwist').onclick = function(){
+    if (twRunning) return;
+    var btn = this;
+    if (twPhase === 0){
+      twRunning = true; btn.disabled = true; btn.style.opacity = .5;
+      $('twCap').textContent = '';
+      runLog(ruleMsgs, function(){
+        $('twCap').style.color = '#FF8FA3';
+        $('twCap').textContent = '규칙표에 없는 말이라 놓쳤다! 범인은 규칙의 빈틈.';
+        btn.textContent = '▶ 머신러닝에 같은 문의 넣기';
+        btn.disabled = false; btn.style.opacity = 1; twRunning = false; twPhase = 1;
+      });
+    } else if (twPhase === 1){
+      twRunning = true; btn.disabled = true; btn.style.opacity = .5;
+      $('twTitle').textContent = '이번엔 머신러닝 차례';
+      var eg = $('engine'); eg.className = 'engine ml';
+      eg.textContent = '🧠 예시 문의로 패턴을 배운 분류기';
+      $('twCap').textContent = '';
+      runLog(mlMsgs, function(){
+        $('twCap').style.color = '#FFE08A';
+        $('twCap').textContent = '표현이 달라도 잡아냈다. 하지만 수강 변경 문의 1건은 잘못 나눴다.';
+        btn.textContent = '왜 그런지 메모 보기';
+        btn.disabled = false; btn.style.opacity = 1; twRunning = false; twPhase = 2;
+        addScore(20);
+      });
+    } else {
+      go('s-explain');
+    }
+  };
+
+  /* ---------- 5. 해설 ---------- */
+  $('btnExplain').onclick = function(){ go('s-timeline'); };
+
+  /* ---------- 6. 연표 ---------- */
+  var events = [
+    ['1956 · 출발', '다트머스 연구 모임', 'AI 연구가 본격적으로 시작됐어요'],
+    ['변화 ①', '규칙 중심 AI', '사람이 지식과 규칙을 직접 넣어요'],
+    ['변화 ②', '머신러닝', '예시 자료에서 패턴을 스스로 찾아요'],
+    ['변화 ③', '딥러닝', '신경망을 여러 겹 쌓아 더 복잡한 패턴을 다뤄요'],
+    ['변화 ④', '생성형 AI + 도구', '글·코드를 만들고, 도구로 정보를 찾거나 작업을 실행해요']
+  ];
+  var tl = $('tl'), tlIdx = 0;
+  events.forEach(function(ev){
+    var d = document.createElement('div'); d.className = 'ev';
+    d.innerHTML = '<div class="yr">' + ev[0] + '</div><b>' + ev[1] + '</b><span>' + ev[2] + '</span>';
+    tl.appendChild(d);
+  });
+  $('btnTl').onclick = function(){
+    var evs = tl.querySelectorAll('.ev');
+    if (tlIdx < evs.length){
+      evs[tlIdx].classList.add('on');
+      tlIdx++;
+      if (tlIdx < evs.length) this.textContent = '다음 기록 열기 (' + (tlIdx+1) + '/5)';
+      else { $('memo').classList.add('on'); this.textContent = '최종 추리 시작'; }
+    } else {
+      go('s-quiz'); renderQ();
+    }
+  };
+
+  /* ---------- 7. 최종 추리 (1강 연습 문항 L01-Q1, Q4, Q3) ---------- */
+  var qs = [
+    { q:'AI 역사의 중요한 출발점으로 소개된 사건은?',
+      c:['1956년 다트머스 연구 모임','1991년 파이썬 공개','1995년 자바스크립트 등장','생성형 AI의 등장'],
+      a:0,
+      ok:'정답! 1956년 다트머스 모임이 AI 연구의 출발점이에요.',
+      r:[null,'1991년은 파이썬이 공개된 해예요. AI의 출발점이 아니에요.','1995년은 자바스크립트가 나온 해예요. AI의 출발점이 아니에요.','생성형 AI는 출발점이 아니라 나중에 온 변화예요.'],
+      h:['사건 연표 첫 칸','1956 · 다트머스 연구 모임 — AI 연구가 본격적으로 시작됐어요.'] },
+    { q:'규칙표가 “과목을 바꾸고 싶다”는 질문을 놓친 이유는?',
+      c:['규칙 중심 방식은 틀린 방식이기 때문','사람이 어떤 규칙을 넣었는지가 작동 범위를 결정하기 때문','글이나 코드 같은 결과를 만들지 못하기 때문','학습한 자료의 품질이 낮기 때문'],
+      a:1,
+      ok:'정답! 사람이 넣은 규칙이 작동 범위를 정해요.',
+      r:['규칙 방식은 틀린 게 아니에요. 조건이 분명한 일엔 여전히 유용해요.',null,'글·코드를 만드는 건 생성형 AI 이야기예요.','자료 품질은 머신러닝이 틀리는 이유예요. 규칙표는 학습하지 않아요.'],
+      h:['재현 실험 기록','규칙표는 사람이 넣어 둔 “수강 신청”에만 반응했어요. “과목을 바꾸고 싶어요”는 규칙에 없었죠.'] },
+    { q:'1강 내용과 맞는 설명은?',
+      c:['앞선 기술이 사라진 것이 아니라 목적에 따라 지금도 함께 사용된다.','도구를 쓰는 AI에서 모델은 데이터베이스 그 자체이므로 권한 설계가 필요 없다.','패턴을 학습한 분류기는 표현이 달라도 언제나 정확하게 분류한다.','생성형 AI가 나오면서 규칙 중심 방식은 더 이상 쓰이지 않는다.'],
+      a:0,
+      ok:'정답! 옛 기술도 목적에 맞게 지금도 함께 써요.',
+      r:[null,'모델은 데이터베이스가 아니에요. 허락된 도구로 정보를 받아서 권한 설계가 필요해요.','머신러닝도 수강 변경 문의 1건을 틀렸죠? 언제나 맞지는 않아요.','새 기술이 와도 규칙 방식은 지금도 쓰여요.'],
+      h:['연표 마지막 메모 + 재현 실험','새 기술이 와도 옛 기술은 버려지지 않아요. 그리고 머신러닝도 1건을 잘못 나눴어요.'] }
+  ];
+  var qi = 0, qTries = 0, qLocked = false;
+  var marks = ['A','B','C','D'];
+
+  function renderQ(){
+    var Q = qs[qi]; qTries = 0; qLocked = false;
+    $('qKick').textContent = '최종 추리 ' + (qi+1) + ' / ' + qs.length;
+    $('qText').textContent = Q.q;
+    $('qFb').className = 'qfb'; $('qFb').textContent = '';
+    $('btnHint').hidden = true; $('btnQNext').hidden = true;
+    $('bar').style.width = (75 + qi*8) + '%';
+    var box = $('qOpts'); box.innerHTML = '';
+    Q.c.forEach(function(txt, i){
+      var o = document.createElement('button');
+      o.type = 'button'; o.className = 'opt';
+      o.innerHTML = '<span class="mk">' + marks[i] + '</span><span>' + txt + '</span>';
+      o.onclick = function(){ pick(i, o); };
+      box.appendChild(o);
+    });
+  }
+  function pick(i, el){
+    if (qLocked) return;
+    var Q = qs[qi];
+    if (i === Q.a){
+      qLocked = true;
+      el.classList.add('right');
+      el.querySelector('.mk').textContent = '✓';
+      var pts = qTries === 0 ? 60 : (qTries === 1 ? 30 : 10);
+      if (qTries === 0) quizFirst++;
+      addScore(pts, el);
+      $('qFb').className = 'qfb good'; $('qFb').textContent = Q.ok;
+      $('btnHint').hidden = true;
+      var all = $('qOpts').querySelectorAll('.opt');
+      for (var k=0;k<all.length;k++) all[k].disabled = true;
+      $('btnQNext').hidden = false;
+      $('btnQNext').textContent = qi < qs.length - 1 ? '다음 추리' : '사건 해결하기';
+    } else {
+      qTries++;
+      el.classList.remove('wrong'); void el.offsetWidth; el.classList.add('wrong');
+      el.querySelector('.mk').textContent = '✕';
+      el.disabled = true;
+      buzz();
+      $('qFb').className = 'qfb bad'; $('qFb').textContent = '✕ ' + Q.r[i];
+      $('btnHint').hidden = false;
+    }
+  }
+  $('btnHint').onclick = function(){
+    var h = qs[qi].h;
+    $('mTitle').textContent = '🔍 ' + h[0];
+    $('mBody').textContent = h[1];
+    $('modal').classList.add('on');
+  };
+  $('mClose').onclick = function(){ $('modal').classList.remove('on'); };
+  $('modal').addEventListener('click', function(e){ if (e.target === this) this.classList.remove('on'); });
+  $('btnQNext').onclick = function(){
+    if (qi < qs.length - 1){ qi++; renderQ(); }
+    else finish();
+  };
+
+  /* ---------- 8. 사건 해결 ---------- */
+  function finish(){
+    go('s-end');
+    $('hudTitle').textContent = '사건 파일 #01 · 해결';
+    $('stClue').textContent = clueFirst + '/6';
+    $('stQuiz').textContent = quizFirst + '/3';
+    var rank = score >= 280 ? '🏅 명탐정' : (score >= 200 ? '🥈 수석 탐정' : '🔰 견습 탐정');
+    $('rank').textContent = rank;
+    var n = 0, target = score, step = Math.max(1, Math.round(target / 40));
+    var t = setInterval(function(){
+      n = Math.min(target, n + step); $('endScore').textContent = n;
+      if (n >= target) clearInterval(t);
+    }, 25);
+    var cf = $('confetti'), colors = ['#7C5CFF','#3BA7FF','#FFE08A','#5BE49B','#FF8FA3','#F5A524'];
+    cf.innerHTML = '';
+    for (var i=0;i<60;i++){
+      var p = document.createElement('i');
+      p.style.left = (Math.random()*100) + '%';
+      p.style.background = colors[i % colors.length];
+      p.style.animationDuration = (1.8 + Math.random()*1.6) + 's';
+      p.style.animationDelay = (Math.random()*0.6) + 's';
+      cf.appendChild(p);
+    }
+    setTimeout(function(){ cf.innerHTML = ''; }, 4200);
+  }
+  $('btnChallenge').onclick = function(){ toast('시제품이라 모양만 있어요. 실제 앱에서는 친구에게 이 사건을 보낼 수 있어요.'); };
+  $('btnRestart').onclick = function(){ location.reload(); };
+})();
+</script>
+</body>
+</html>

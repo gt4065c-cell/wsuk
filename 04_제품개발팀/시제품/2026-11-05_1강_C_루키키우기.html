@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>1강 · 신입 AI 루키 키우기 (C안 시제품)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:#0B1026;color:#EEF2FF;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;font-size:17px;line-height:1.5;overflow-x:hidden;word-break:keep-all;overflow-wrap:anywhere;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.wrap{max-width:430px;margin:0 auto;min-height:100vh;min-height:100dvh;position:relative;background:radial-gradient(120% 60% at 50% 0%,#1E2A66 0%,#0F1530 55%,#0B1026 100%)}
+.hidden{display:none!important}
+
+/* 버튼 */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;border-radius:16px;font-weight:800;font-size:17px;padding:12px 16px;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(135deg,#4FE3C1,#5AA8FF);color:#0B1026;box-shadow:0 6px 20px rgba(79,227,193,.3)}
+.btn.reply{background:#232D63;border:2px solid #5AA8FF;color:#EEF2FF;justify-content:flex-end;text-align:right}
+.btn.reply::before{content:"팀장";font-size:13px;font-weight:700;background:#5AA8FF;color:#0B1026;border-radius:8px;padding:2px 7px;margin-right:auto}
+.btn.ghost{background:#1B2350;border:1.5px solid #3A4686;color:#EEF2FF}
+.btn.gold{background:linear-gradient(135deg,#FFD166,#FF9F5A);color:#2A1600}
+
+/* 첫 화면 */
+#intro{padding:28px 20px 32px;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;min-height:100dvh}
+.badge-day{font-size:14px;font-weight:700;color:#4FE3C1;background:rgba(79,227,193,.12);border:1px solid rgba(79,227,193,.4);border-radius:999px;padding:5px 12px;margin-top:6px}
+#intro h1{font-size:28px;line-height:1.3;margin:16px 0 6px;letter-spacing:-.5px}
+#intro h1 em{font-style:normal;background:linear-gradient(90deg,#4FE3C1,#8B7BFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+#intro .sub{color:#B9C3EA;font-size:17px}
+.intro-rk{width:170px;height:170px;margin:14px 0 4px;animation:float 3s ease-in-out infinite}
+.idcard{width:100%;background:#18204A;border:1px solid #2E3A7A;border-radius:18px;padding:14px 16px;text-align:left;margin:8px 0 18px}
+.idcard .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #2E3A7A;font-size:16px}
+.idcard .row:last-child{border:0}
+.idcard .row span:first-child{color:#97A3D6}
+.idcard .row b{color:#fff}
+#intro .btn{margin-top:auto}
+
+/* 게임 화면 */
+#hud{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(11,16,38,.92);backdrop-filter:blur(6px);border-bottom:1px solid #222C5E}
+.lv{flex:none;font-weight:900;font-size:15px;background:linear-gradient(135deg,#8B7BFF,#5AA8FF);color:#fff;border-radius:10px;padding:4px 9px}
+.hud-mid{flex:1;min-width:0}
+.hud-mid .t{display:flex;justify-content:space-between;font-size:13px;color:#B9C3EA;font-weight:700}
+.bar{height:9px;background:#222C5E;border-radius:99px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4FE3C1,#8B7BFF);border-radius:99px;transition:width .6s}
+.cardcnt{flex:none;font-weight:800;font-size:15px;background:#1B2350;border:1px solid #3A4686;border-radius:10px;padding:4px 9px}
+
+#stage{padding:12px 16px 4px;display:flex;flex-direction:column;align-items:center}
+.mtitle{align-self:stretch;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:#B9C3EA;margin-bottom:6px}
+.mtitle .chip{background:#8B7BFF;color:#fff;border-radius:8px;padding:2px 8px}
+.mtitle .concept{margin-left:auto;color:#4FE3C1;font-weight:700}
+#rkStage{width:96px;height:99px}
+#rkStage svg{width:100%;height:100%}
+#bubble{position:relative;align-self:stretch;background:#fff;color:#141A3A;border-radius:18px;padding:12px 15px 12px;margin-top:8px;min-height:74px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#bubble::before{content:"";position:absolute;top:-9px;left:50%;margin-left:-9px;border:9px solid transparent;border-top:0;border-bottom-color:#fff}
+#bubble .who{display:inline-block;font-size:12px;font-weight:800;color:#fff;background:#141A3A;border-radius:6px;padding:1px 7px;margin-bottom:2px}
+#btext{font-size:17px;font-weight:700;line-height:1.45}
+#bubble.pop{animation:pop .28s ease-out}
+
+#panel{padding:10px 16px 4px}
+#actions{padding:8px 16px 28px;display:flex;flex-direction:column;gap:10px}
+.prompt{font-weight:800;font-size:16px;color:#FFD166;text-align:center}
+.choice{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;text-align:left;padding:12px 14px;border-radius:14px;background:#18204A;border:2px solid #3A4686;font-size:16.5px;font-weight:700;transition:transform .1s}
+.choice:active{transform:scale(.98)}
+.choice .mk{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid #5C68A8;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px}
+.choice.ok{border-color:#4FE3C1;background:#123F45}
+.choice.ok .mk{background:#4FE3C1;border-color:#4FE3C1;color:#0B1026}
+.choice.bad{border-color:#FF8A5B;background:#3D1F2A;opacity:.85}
+.choice.bad .mk{background:#FF8A5B;border-color:#FF8A5B;color:#2A0E00}
+.choice[disabled]{cursor:default}
+
+.card{background:#18204A;border:1px solid #2E3A7A;border-radius:18px;padding:13px 14px;margin-bottom:10px}
+.lbl{font-size:14px;font-weight:800;color:#97A3D6;margin-bottom:8px}
+.rule{background:#0F1530;border:1px dashed #5C68A8;border-radius:12px;padding:9px 11px;font-size:15.5px;margin-top:6px}
+.rule b{color:#4FE3C1}
+.rule.newr{animation:flash 1s}
+.msgrow{display:flex;flex-direction:column;gap:6px;padding:9px 0;border-bottom:1px solid #2A3570}
+.msgrow:last-child{border:0}
+.msg{background:#EEF2FF;color:#141A3A;border-radius:12px 12px 12px 4px;padding:8px 12px;font-weight:700;font-size:16px;align-self:flex-start}
+.tag{align-self:flex-end;font-size:15px;font-weight:800;border-radius:999px;padding:4px 12px;border:2px solid}
+.tag.wait{border-color:#5C68A8;color:#B9C3EA;animation:blinkt .8s infinite}
+.tag.ok{border-color:#4FE3C1;color:#4FE3C1;background:rgba(79,227,193,.1)}
+.tag.bad{border-color:#FF8A5B;color:#FF8A5B;background:rgba(255,138,91,.1)}
+.note{font-size:14.5px;color:#B9C3EA;margin-top:8px}
+.note b{color:#4FE3C1}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:72px}
+.chips span{font-size:14px;background:#2A3570;border-radius:8px;padding:4px 8px;animation:fly .4s ease-out}
+
+.rows .rowbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:52px;text-align:left;padding:8px 10px;border-radius:12px;background:#0F1530;border:2px solid #2E3A7A;margin-top:7px;font-size:15.5px;font-weight:700}
+.rowbtn .cls{flex:0 1 auto;text-align:right;font-size:14px;border-radius:8px;padding:3px 8px;background:#2A3570;color:#DDE3FF}
+.rowbtn.new .cls::after{content:" ★규칙에 없던 말";color:#FFD166}
+.rowbtn.found{border-color:#FF8A5B;background:#3D1F2A}
+.rowbtn.found .cls{background:#FF8A5B;color:#2A0E00}
+.rowbtn.nope{animation:shake .4s}
+
+.memo{background:#FFF8DD;color:#3A2E00;border-radius:12px;padding:10px 12px;font-weight:700;font-size:15.5px}
+.draft .dl{display:block;width:100%;text-align:left;min-height:48px;padding:9px 11px;border-radius:12px;background:#0F1530;border:2px solid #2E3A7A;margin-top:7px;font-size:15.5px;font-weight:700;animation:fly .35s ease-out}
+.draft .dl.found{border-color:#FF8A5B;background:#3D1F2A;text-decoration:line-through;text-decoration-color:#FF8A5B}
+.draft .dl.found::after{content:"  ✗ 메모에 없음";text-decoration:none;display:inline-block;color:#FF8A5B;font-size:14px}
+.draft .dl.nope{animation:shake .4s}
+.typing{font-size:14px;color:#97A3D6;margin-top:6px}
+
+.dropzone{display:flex;align-items:center;gap:12px;min-height:84px;border:2.5px dashed #5AA8FF;border-radius:16px;padding:10px 12px;background:rgba(90,168,255,.08);transition:background .2s,transform .2s}
+.dropzone.hot{background:rgba(79,227,193,.18);border-color:#4FE3C1;transform:scale(1.02)}
+.dropzone .mini{width:56px;height:58px;flex:none}
+.dropzone .dz-t{font-weight:800;font-size:15.5px}
+.dropzone .dz-s{font-size:13.5px;color:#B9C3EA}
+.drag{touch-action:none;user-select:none;-webkit-user-select:none;position:relative;z-index:1}
+.drag.dragging{z-index:50;box-shadow:0 12px 26px rgba(0,0,0,.45);transition:none}
+.drag.sel{outline:3px solid #FFD166;outline-offset:2px}
+.drag.used{opacity:.45;pointer-events:none}
+.key{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:10px 12px;border-radius:14px;background:#232D63;border:2px solid #3A4686;font-weight:700;font-size:15.5px;margin-top:8px;text-align:left;cursor:grab}
+.key .ico{font-size:24px;flex:none}
+.key small{display:block;font-size:13px;color:#B9C3EA;font-weight:600}
+.key.nope{animation:shake .4s;border-color:#FF8A5B}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:#070B1C;border-radius:12px;padding:10px 12px;color:#7CF7D4}
+.log div{animation:fly .35s ease-out;padding:2px 0}
+.hint{font-size:13.5px;color:#97A3D6;text-align:center;margin-top:8px}
+
+.bins{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.bin{min-height:96px;border:2.5px dashed #5C68A8;border-radius:14px;padding:8px 4px;text-align:center;background:#0F1530;transition:background .2s,transform .2s}
+.bin .bi{font-size:24px;line-height:1.1}
+.bin .bn{font-weight:900;font-size:15px}
+.bin .bc{font-size:13px;color:#B9C3EA}
+.bin.hot{background:rgba(79,227,193,.15);border-color:#4FE3C1;transform:scale(1.03)}
+.bin.okf{animation:flash .7s}
+.tray{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.task{min-height:52px;padding:10px 12px;border-radius:12px;background:#EEF2FF;color:#141A3A;font-weight:800;font-size:15.5px;cursor:grab;display:flex;align-items:center;gap:8px}
+.task::before{content:"⠿";color:#7A84B8;font-size:18px}
+.task.nope{animation:shake .4s;background:#FFD9CB}
+.timer{font-weight:800;color:#FFD166}
+
+.quiz .qno{font-size:14px;font-weight:800;color:#8B7BFF}
+.quiz .qtext{font-size:17.5px;font-weight:800;margin:6px 0 4px;line-height:1.5}
+.quiz .choice{margin-top:8px}
+.exp{margin-top:10px;background:#0F1530;border-radius:12px;padding:10px 12px;font-size:15px;color:#DDE3FF;border-left:4px solid #8B7BFF}
+.exp .warn{display:block;margin-top:6px;color:#FFD166;font-size:14.5px}
+
+/* 레벨업 */
+#overlay{position:fixed;inset:0;z-index:100;background:rgba(5,8,22,.86);display:flex;justify-content:center;overflow-y:auto}
+.lvup{position:relative;width:100%;max-width:430px;padding:30px 20px 30px;text-align:center;overflow:hidden}
+.lv-title{font-size:38px;font-weight:900;letter-spacing:1px;background:linear-gradient(90deg,#FFD166,#4FE3C1,#8B7BFF);-webkit-background-clip:text;background-clip:text;color:transparent;animation:zoom .5s ease-out}
+.lv-from{font-size:18px;font-weight:800;color:#B9C3EA;margin-top:2px}
+.lv-from b{color:#FFD166;font-size:22px}
+.lvup .rkbig{width:120px;height:124px;margin:8px auto 0;animation:hop .7s ease-out}
+.abil{margin:12px auto 18px;max-width:320px;border-radius:20px;padding:16px;text-align:left;color:#141A3A;animation:flip .7s ease-out both;animation-delay:.25s;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.abil-top{display:flex;justify-content:space-between;align-items:center}
+.abil-ico{font-size:34px}
+.abil-rar{font-size:13px;font-weight:800;background:rgba(20,26,58,.85);color:#fff;border-radius:8px;padding:3px 8px}
+.abil-name{font-size:23px;font-weight:900;margin-top:4px}
+.abil-sub{font-size:14px;font-weight:800;opacity:.75}
+.abil ul{margin-top:8px;padding-left:0;list-style:none}
+.abil li{font-size:15.5px;font-weight:700;padding:5px 0;border-top:1px solid rgba(20,26,58,.15)}
+.abil li::before{content:"▸ "}
+.c1{background:linear-gradient(135deg,#DDE3FF,#AFC0FF)}
+.c2{background:linear-gradient(135deg,#C9F7EC,#7FE3CB)}
+.c3{background:linear-gradient(135deg,#FFE9B8,#FFC970)}
+.c4{background:linear-gradient(135deg,#E3DAFF,#B9A6FF)}
+.c5{background:linear-gradient(135deg,#FFE0D1,#FFB08A)}
+.confetti i{position:absolute;top:-20px;width:8px;height:14px;border-radius:2px;animation:fall 2.4s linear forwards}
+
+/* 결과 화면 */
+#final{padding:18px 16px 36px}
+.fin-h{text-align:center;font-size:26px;font-weight:900;margin:6px 0 2px}
+.fin-s{text-align:center;color:#B9C3EA;font-size:16px;margin-bottom:12px}
+.rkcard{position:relative;border-radius:22px;padding:16px;background:linear-gradient(150deg,#2A2370,#14306A 60%,#0F4A5A);border:2px solid #FFD166;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden}
+.rkcard::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) 45%,transparent 60%);animation:shine 3s infinite}
+.rkc-top{display:flex;gap:12px;align-items:center}
+.rkc-top .rkm{width:92px;height:95px;flex:none}
+.rkc-name{font-size:22px;font-weight:900}
+.rkc-lv{display:inline-block;font-size:14px;font-weight:900;background:#FFD166;color:#2A1600;border-radius:8px;padding:2px 8px;margin-top:4px}
+.rkc-stars{font-size:16px;color:#FFD166;margin-top:4px;font-weight:800}
+.rkc-line{margin-top:12px;background:rgba(255,255,255,.1);border-radius:12px;padding:10px 12px;font-weight:800;font-size:16px}
+.rkc-line small{display:block;font-size:12.5px;color:#B9C3EA;font-weight:700}
+.rkc-cards{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.rkc-cards span{flex:1 1 52px;min-width:52px;text-align:center;border-radius:10px;padding:6px 2px;font-size:20px;color:#141A3A}
+.rkc-cards span b{display:block;font-size:11.5px;font-weight:800}
+.sec-h{font-size:18px;font-weight:900;margin:20px 0 8px;display:flex;align-items:center;gap:8px}
+.sec-h small{font-size:13px;color:#97A3D6;font-weight:700;margin-left:auto}
+.part{background:#141B42;border:1px solid #2A3570;border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.part-n{font-size:14px;font-weight:800;color:#B9C3EA;margin-bottom:8px}
+.nodes{display:flex;flex-wrap:wrap;gap:6px}
+.node{position:relative;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:#0F1530;border:2px solid #2E3A7A;color:#5C68A8}
+.node.done{background:linear-gradient(135deg,#FFD166,#4FE3C1);border-color:#FFD166;color:#0B1026;box-shadow:0 0 0 4px rgba(255,209,102,.25),0 0 18px rgba(255,209,102,.7);animation:glow 1.8s infinite}
+.node.next{border-color:#8B7BFF;color:#DDD5FF;border-style:dashed}
+.friends{display:flex;align-items:center;gap:8px;margin-top:10px;background:#0F1530;border-radius:12px;padding:8px 10px}
+.friends .heads{display:flex}
+.friends .heads svg{width:30px;height:30px;margin-right:-6px;border-radius:50%;background:#1B2350;border:2px solid #0F1530}
+.friends .ft{font-size:14.5px;font-weight:700;margin-left:8px}
+.friends .ft b{color:#4FE3C1}
+.nextbox{display:flex;align-items:center;gap:10px;background:#1B2350;border:1.5px dashed #8B7BFF;border-radius:14px;padding:10px 12px;font-size:15px;margin-top:4px}
+.nextbox .ico{font-size:24px}
+.nextbox small{display:block;color:#B9C3EA;font-size:13px}
+.mission{background:#18204A;border:1px solid #2E3A7A;border-radius:16px;padding:12px 14px;font-size:15.5px}
+.mission b{color:#FFD166}
+.fin-btns{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+
+.share-sheet{width:100%;max-width:430px;align-self:flex-end;background:#141B42;border-radius:24px 24px 0 0;padding:18px 16px 28px;animation:up .3s ease-out}
+.share-sheet h3{font-size:19px;text-align:center;margin-bottom:12px}
+.share-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.share-btns .btn{font-size:15.5px;min-height:56px}
+
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;z-index:200;max-width:calc(100% - 32px);width:max-content;background:#FFD166;color:#2A1600;font-weight:800;font-size:15px;padding:11px 16px;border-radius:14px;transition:all .3s;pointer-events:none;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* 루키 캐릭터 */
+.rk{--rk:#9AA8BF;overflow:visible}
+.rk.lvc2{--rk:#7FB3FF}.rk.lvc3{--rk:#6FA0FF}.rk.lvc4{--rk:#8D84FF}.rk.lvc5{--rk:#A676FF}.rk.lvc6{--rk:#FFB547}
+.rk .head,.rk .body,.rk .ear,.rk .hand{fill:var(--rk);transition:fill .6s}
+.rk .ant line{stroke:var(--rk)}
+.rk .screen{fill:#1D2540}
+.rk .bulb{fill:#4FE3C1;animation:bulb 1.6s infinite}
+.rk .e-normal ellipse,.rk .e-confused ellipse{fill:#7CF7D4}
+.rk .e-happy path,.rk .e-confused path,.rk .mouth{fill:none;stroke:#7CF7D4;stroke-width:3.5;stroke-linecap:round}
+.rk .e-normal{animation:blink 4s infinite;transform-origin:60px 50px;transform-box:view-box}
+.rk .qmark{font-size:26px;font-weight:900;fill:#FFD166;display:none}
+.rk .e-happy,.rk .e-confused,.rk .m-happy,.rk .m-confused{display:none}
+.rk.mood-happy .e-normal,.rk.mood-happy .m-normal,.rk.mood-confused .e-normal,.rk.mood-confused .m-normal{display:none}
+.rk.mood-happy .e-happy,.rk.mood-happy .m-happy,.rk.mood-confused .e-confused,.rk.mood-confused .m-confused,.rk.mood-confused .qmark{display:inline}
+.rk.mood-think .bulb{animation:bulb .35s infinite}
+.rk .a2,.rk .a3,.rk .a4,.rk .a5,.rk .a6{display:none}
+.rk.l2 .a2,.rk.l3 .a3,.rk.l4 .a4,.rk.l5 .a5,.rk.l6 .a6{display:inline}
+.rk.l6 .ant{display:none}
+.hop{animation:hop .5s ease-out}
+.shake{animation:shake .45s}
+
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pop{0%{transform:scale(.94);opacity:.4}100%{transform:scale(1);opacity:1}}
+@keyframes hop{0%,100%{transform:translateY(0)}35%{transform:translateY(-16px)}65%{transform:translateY(0)}80%{transform:translateY(-5px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes bulb{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes flash{0%{box-shadow:0 0 0 0 rgba(79,227,193,.9)}100%{box-shadow:0 0 0 14px rgba(79,227,193,0)}}
+@keyframes blinkt{50%{opacity:.4}}
+@keyframes fly{0%{transform:translateY(10px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes zoom{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes flip{0%{transform:perspective(600px) rotateY(90deg);opacity:0}100%{transform:perspective(600px) rotateY(0);opacity:1}}
+@keyframes fall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(105vh) rotate(540deg);opacity:.7}}
+@keyframes glow{50%{box-shadow:0 0 0 6px rgba(255,209,102,.15),0 0 26px rgba(255,209,102,.9)}}
+@keyframes shine{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+@keyframes up{0%{transform:translateY(100%)}100%{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 첫 화면 -->
+  <section id="intro">
+    <div class="badge-day">1강 · 입사 첫날</div>
+    <h1>오늘 입사한<br>신입 AI <em>'루키'</em></h1>
+    <p class="sub">당신은 교육팀 팀장.<br>아무것도 모르는 루키에게 일을 가르쳐 주세요.</p>
+    <div class="intro-rk" id="introRk"></div>
+    <div class="idcard">
+      <div class="row"><span>이름</span><b>루키 (신입 AI)</b></div>
+      <div class="row"><span>현재 레벨</span><b>Lv.1 · 아무것도 모름</b></div>
+      <div class="row"><span>오늘 할 일</span><b>업무 5개 + 평가 3문제</b></div>
+      <div class="row"><span>걸리는 시간</span><b>약 6분</b></div>
+    </div>
+    <button class="btn primary" id="startBtn">팀장으로 출근하기 ▶</button>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section id="game" class="hidden">
+    <header id="hud">
+      <span class="lv" id="hudLv">Lv.1</span>
+      <div class="hud-mid">
+        <div class="t"><span>1강 진행</span><span id="hudXp">XP 0</span></div>
+        <div class="bar"><i id="hudBar"></i></div>
+      </div>
+      <span class="cardcnt" id="hudCards">🃏 0/5</span>
+    </header>
+    <div id="stage">
+      <div class="mtitle" id="mtitle"></div>
+      <div id="rkStage"></div>
+      <div id="bubble"><span class="who">루키</span><p id="btext"></p></div>
+    </div>
+    <div id="panel"></div>
+    <div id="actions"></div>
+  </section>
+
+  <!-- 결과 화면 -->
+  <section id="final" class="hidden"></section>
+</div>
+
+<div id="overlay" class="hidden"></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const S={lv:1,xp:0,cards:[],score:0,step:0,mood:'normal'};
+const TOTAL=6; // 업무 5 + 평가
+
+/* ---------- 루키 그림 (SVG) ---------- */
+function rookieSVG(){
+  return '<svg class="rk" viewBox="0 0 120 124" aria-hidden="true">'+
+  '<g class="a3"><path d="M17 50 Q17 13 60 13 Q103 13 103 50" fill="none" stroke="#2B3560" stroke-width="5"/><path d="M103 58 q3 16 -16 17" fill="none" stroke="#2B3560" stroke-width="3"/><circle cx="86" cy="75" r="3.5" fill="#4FE3C1"/></g>'+
+  '<g class="ant"><line x1="60" y1="24" x2="60" y2="12" stroke-width="3" stroke-linecap="round"/><circle class="bulb" cx="60" cy="9" r="5"/></g>'+
+  '<rect class="ear" x="11" y="40" width="11" height="22" rx="5"/><rect class="ear" x="98" y="40" width="11" height="22" rx="5"/>'+
+  '<rect class="head" x="20" y="22" width="80" height="58" rx="22"/>'+
+  '<rect class="screen" x="30" y="33" width="60" height="36" rx="13"/>'+
+  '<g class="eyes e-normal"><ellipse cx="47" cy="50" rx="5" ry="6"/><ellipse cx="73" cy="50" rx="5" ry="6"/></g>'+
+  '<g class="eyes e-happy"><path d="M41 53 q6 -9 12 0 M67 53 q6 -9 12 0"/></g>'+
+  '<g class="eyes e-confused"><ellipse cx="47" cy="50" rx="6" ry="7"/><path d="M67 50 h12"/></g>'+
+  '<path class="mouth m-normal" d="M54 60 q6 4 12 0"/>'+
+  '<path class="mouth m-happy" d="M50 58 q10 9 20 0"/>'+
+  '<path class="mouth m-confused" d="M52 62 q4 -3 8 0 q4 3 8 0"/>'+
+  '<text class="qmark" x="98" y="26">?</text>'+
+  '<circle class="hand" cx="27" cy="96" r="7"/><circle class="hand" cx="93" cy="96" r="7"/>'+
+  '<rect class="body" x="34" y="82" width="52" height="34" rx="12"/>'+
+  '<g class="a2"><rect x="43" y="87" width="34" height="12" rx="3" fill="#fff"/><text x="60" y="96" text-anchor="middle" font-size="7.5" font-weight="800" fill="#1D2540">ROOKIE</text></g>'+
+  '<g class="a4"><line x1="96" y1="99" x2="107" y2="82" stroke="#FFD166" stroke-width="4" stroke-linecap="round"/><circle cx="107.5" cy="81" r="2" fill="#141A3A"/></g>'+
+  '<g class="a5"><circle cx="60" cy="108" r="4.5" fill="#FFD166"/><path d="M58 108 l1.5 1.5 l3 -3" stroke="#141A3A" stroke-width="1.5" fill="none"/></g>'+
+  '<g class="a6"><path d="M34 21 L60 9 L86 21 L60 32 Z" fill="#1D2540" stroke="#FFD166" stroke-width="2"/><line x1="82" y1="20" x2="84" y2="34" stroke="#FFD166" stroke-width="2"/><circle cx="84" cy="35" r="3" fill="#FFD166"/></g>'+
+  '</svg>';
+}
+function styleRk(svg,lv,m){
+  if(!svg) return;
+  const ls=[2,3,4,5,6].filter(x=>lv>=x).map(x=>'l'+x).join(' ');
+  svg.setAttribute('class','rk mood-'+m+' lvc'+lv+' '+ls);
+}
+function miniHead(color){
+  return '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="6" y="9" width="28" height="24" rx="9" fill="'+color+'"/><rect x="10" y="14" width="20" height="13" rx="5" fill="#1D2540"/><path d="M14 21 q2.5 -3 5 0 M21 21 q2.5 -3 5 0" stroke="#7CF7D4" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="20" y1="9" x2="20" y2="4" stroke="'+color+'" stroke-width="2"/><circle cx="20" cy="3.5" r="2.2" fill="#4FE3C1"/></svg>';
+}
+
+/* ---------- 화면 도우미 ---------- */
+function mood(m){
+  S.mood=m;
+  styleRk($('#rkStage svg'),S.lv,m);
+  const w=$('#rkStage');
+  w.classList.remove('hop','shake'); void w.offsetWidth;
+  if(m==='happy') w.classList.add('hop');
+  if(m==='confused') w.classList.add('shake');
+}
+function say(t,m){
+  const b=$('#bubble');
+  $('#btext').innerHTML=t;
+  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  mood(m||'normal');
+}
+function setActions(h){ $('#actions').innerHTML=h; }
+function panel(h){ $('#panel').innerHTML=h; }
+function setTitle(chip,name,concept){
+  $('#mtitle').innerHTML='<span class="chip">'+chip+'</span><span>'+name+'</span>'+(concept?'<span class="concept">'+concept+'</span>':'');
+}
+function act(label,cls){
+  return new Promise(res=>{
+    setActions('<button class="btn '+(cls||'primary')+'" id="actBtn">'+label+'</button>');
+    $('#actBtn').onclick=()=>{ setActions(''); res(); };
+  });
+}
+async function talk(lines){
+  for(const L of lines){ say(L.t,L.m); await act(L.r||'다음 ▶', L.r?'reply':'primary'); }
+}
+function choice(prompt,opts){
+  return new Promise(res=>{
+    setActions('<div class="prompt">'+prompt+'</div>'+opts.map((o,i)=>'<button class="choice" data-i="'+i+'"><span class="mk"></span><span>'+o.t+'</span></button>').join(''));
+    const btns=[...$('#actions').querySelectorAll('.choice')];
+    btns.forEach(b=>b.onclick=async()=>{
+      if(b.disabled) return;
+      const o=opts[+b.dataset.i];
+      if(o.ok){
+        b.classList.add('ok'); b.querySelector('.mk').textContent='✓';
+        btns.forEach(x=>x.disabled=true);
+        mood('happy');
+        await wait(650); setActions(''); res();
+      }else{
+        b.classList.add('bad'); b.querySelector('.mk').textContent='✗'; b.disabled=true;
+        say(o.fb,'confused');
+      }
+    });
+  });
+}
+function toast(t){
+  const el=$('#toast'); el.textContent=t; el.classList.add('show');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'),2200);
+}
+function hud(){
+  $('#hudLv').textContent='Lv.'+S.lv;
+  $('#hudXp').textContent='XP '+S.xp;
+  $('#hudCards').textContent='🃏 '+S.cards.length+'/5';
+  $('#hudBar').style.width=Math.round(S.step/TOTAL*100)+'%';
+}
+
+/* ---------- 끌어다 놓기 (누르고-누르기도 가능) ---------- */
+function dragSetup(items,zones,onDrop){
+  let selected=null;
+  const zoneAt=(x,y)=>zones.find(z=>{const r=z.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;});
+  const clearHot=()=>zones.forEach(z=>z.classList.remove('hot'));
+  items.forEach(it=>{
+    let sx=0,sy=0,dragging=false,pid=null;
+    it.addEventListener('pointerdown',e=>{
+      if(it.classList.contains('used')) return;
+      pid=e.pointerId; sx=e.clientX; sy=e.clientY; dragging=false;
+      try{it.setPointerCapture(pid);}catch(_){}
+    });
+    it.addEventListener('pointermove',e=>{
+      if(pid!==e.pointerId) return;
+      const dx=e.clientX-sx, dy=e.clientY-sy;
+      if(!dragging && Math.hypot(dx,dy)>8){ dragging=true; it.classList.add('dragging'); if(selected){selected.classList.remove('sel');selected=null;} }
+      if(dragging){
+        it.style.transform='translate('+dx+'px,'+dy+'px) scale(1.04)';
+        clearHot(); const z=zoneAt(e.clientX,e.clientY); if(z) z.classList.add('hot');
+      }
+    });
+    const end=(e,cancel)=>{
+      if(pid!==e.pointerId) return;
+      pid=null; it.classList.remove('dragging'); it.style.transform=''; clearHot();
+      if(cancel) return;
+      if(dragging){ const z=zoneAt(e.clientX,e.clientY); if(z) onDrop(it,z); }
+      else{
+        if(selected===it){ it.classList.remove('sel'); selected=null; }
+        else{ if(selected) selected.classList.remove('sel'); selected=it; it.classList.add('sel'); }
+      }
+    };
+    it.addEventListener('pointerup',e=>end(e,false));
+    it.addEventListener('pointercancel',e=>end(e,true));
+  });
+  zones.forEach(z=>z.addEventListener('click',()=>{
+    if(selected){ const s=selected; s.classList.remove('sel'); selected=null; onDrop(s,z); }
+    else toast('먼저 카드를 누르거나, 끌어다 놓아 주세요');
+  }));
+}
+function nope(el){ el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); setTimeout(()=>el.classList.remove('nope'),700); }
+
+/* ---------- 레벨업 연출 ---------- */
+const CARDS=[
+  {ico:'📋',name:'규칙 따르기',sub:'규칙 중심 AI',c:'c1',pts:['정해 둔 말에는 정확해요','규칙에 없는 표현은 놓쳐요','조건이 분명한 일엔 지금도 쓸모 있어요']},
+  {ico:'🔍',name:'패턴 찾기',sub:'머신러닝 · 딥러닝',c:'c2',pts:['예시를 보고 패턴을 스스로 찾아요','표현이 달라도 뜻이 비슷하면 묶어요','가끔 틀려요 → 사람이 확인!']},
+  {ico:'✍️',name:'초안 쓰기',sub:'생성형 AI',c:'c3',pts:['글·문항을 새로 만들어요','원문에 없는 말을 보탤 수 있어요','생성 따로, 검증(확인) 따로!']},
+  {ico:'🔧',name:'도구 쓰기',sub:'도구를 통한 실행',c:'c4',pts:['허락받은 도구로 정보를 받아요','AI는 자료 창고 그 자체가 아니에요','줄 도구·권한은 미리 설계해요']},
+  {ico:'🧭',name:'일 구별하기',sub:'1강 핵심 · 수료 카드',c:'c5',pts:['분류: 종류를 골라 나눠요','생성: 새로 만들어요','도구 실행: 도구로 조회·실행해요']}
+];
+function levelUp(idx){
+  return new Promise(res=>{
+    const card=CARDS[idx], from=S.lv;
+    S.lv++; S.xp+=100; S.cards.push(idx); S.step++; hud();
+    styleRk($('#rkStage svg'),S.lv,'happy');
+    let conf='';
+    const cols=['#FFD166','#4FE3C1','#8B7BFF','#5AA8FF','#FF8A5B'];
+    for(let i=0;i<26;i++) conf+='<i style="left:'+(Math.random()*100)+'%;background:'+cols[i%5]+';animation-delay:'+(Math.random()*0.8).toFixed(2)+'s"></i>';
+    const ov=$('#overlay');
+    ov.innerHTML='<div class="lvup"><div class="confetti">'+conf+'</div>'+
+      '<div class="lv-title">'+(S.lv===6?'1강 수료!':'LEVEL UP!')+'</div>'+
+      '<div class="lv-from">Lv.'+from+' → <b>Lv.'+S.lv+'</b></div>'+
+      '<div class="rkbig">'+rookieSVG()+'</div>'+
+      '<div class="abil '+card.c+'"><div class="abil-top"><span class="abil-ico">'+card.ico+'</span><span class="abil-rar">능력 카드 '+(idx+1)+'/5</span></div>'+
+      '<div class="abil-name">'+card.name+'</div><div class="abil-sub">'+card.sub+'</div>'+
+      '<ul>'+card.pts.map(p=>'<li>'+p+'</li>').join('')+'</ul></div>'+
+      '<button class="btn gold" id="lvBtn">카드 받기 ✓</button></div>';
+    styleRk(ov.querySelector('.rkbig svg'),S.lv,'happy');
+    ov.classList.remove('hidden'); ov.scrollTop=0;
+    $('#lvBtn').onclick=()=>{ ov.classList.add('hidden'); ov.innerHTML=''; mood('happy'); res(); };
+  });
+}
+
+/* ---------- 업무 1: 규칙 중심 AI ---------- */
+function addMsg(q){
+  const row=document.createElement('div'); row.className='msgrow';
+  row.innerHTML='<div class="msg">📩 '+q+'</div><div class="tag wait">루키가 읽는 중…</div>';
+  $('#inbox').appendChild(row); return row;
+}
+async function judge(row,label,ok){
+  mood('think'); await wait(900);
+  const t=row.querySelector('.tag'); t.className='tag '+(ok?'ok':'bad'); t.textContent=(ok?'✓ ':'? ')+label;
+}
+async function m1(){
+  setTitle('업무 1/5','문의 나누기','규칙 중심 AI');
+  panel('<div class="card"><div class="lbl">📋 루키의 규칙표</div><div id="rules"><div class="rule">\'수강 신청\'이 들어 있으면 → <b>학사 문의</b></div></div></div>'+
+        '<div class="card"><div class="lbl">📥 받은 문의함</div><div id="inbox"></div></div>');
+  await talk([{t:'첫 업무는 학생 문의 나누기!<br>규칙표대로만 할게요.',m:'happy',r:'그래, 해 보자'}]);
+  let r=addMsg('수강 신청 언제까지예요?'); r.querySelector('.tag').textContent='대기 중';
+  say('문의가 왔어요!<br>저한테 넘겨 주세요.','normal');
+  await act('📨 루키에게 넘기기');
+  await judge(r,'학사 문의',true);
+  say('\'수강 신청\'이 있네요!<br>학사 문의로 쏙!','happy');
+  await act('📨 다음 문의 넘기기');
+  r=addMsg('과목을 바꾸고 싶어요');
+  await judge(r,'분류 못 함',false);
+  say('어…? 규칙표에 없는 말이에요.<br>못 나누겠어요!','confused');
+  await choice('루키가 왜 놓쳤을까? 알려 주세요',[
+    {t:'규칙 방식은 원래 틀린 방식이라서',fb:'음… 정해 둔 말엔 제가<br>잘 나눴잖아요?'},
+    {t:'사람이 넣어 준 규칙만큼만 일해서',ok:true},
+    {t:'루키가 문의를 너무 빨리 읽어서',fb:'속도는 상관없어요.<br>규칙표를 다시 봐 주세요!'}
+  ]);
+  await talk([{t:'아하! 넣어 준 규칙이<br>제가 일하는 범위군요!',m:'happy',r:'맞아, 규칙을 하나 더 넣어 줄게'}]);
+  const nr=document.createElement('div'); nr.className='rule newr';
+  nr.innerHTML='\'과목을 바꾸\'가 들어 있으면 → <b>학사 문의</b>';
+  $('#rules').appendChild(nr);
+  say('새 규칙 장착 완료!<br>이제 다 나눌 수 있을 거예요!','happy');
+  await act('📨 새 문의 2개 넘기기');
+  r=addMsg('과목을 바꾸고 싶어요'); await judge(r,'학사 문의',true);
+  r=addMsg('수강 변경 되나요?'); await judge(r,'분류 못 함',false);
+  await talk([
+    {t:'또 놓쳤어요…<br>같은 뜻인데 말이 끝없이 달라요.',m:'confused',r:'규칙만으론 한계가 있구나'},
+    {t:'그래도 조건이 분명한 일엔<br>규칙이 딱 정확해요!',m:'happy',r:'그 능력, 카드로 줄게'}
+  ]);
+  await levelUp(0);
+}
+
+/* ---------- 업무 2: 머신러닝 ---------- */
+async function m2(){
+  setTitle('업무 2/5','예시로 배우기','머신러닝');
+  panel('<div class="card" id="learn"><div class="lbl">📚 예시 문의로 공부 중</div><div class="chips" id="chips"></div><div class="bar"><i id="lbar"></i></div>'+
+        '<div class="note"><b>머신러닝(기계 학습)</b>: 많은 예시를 보고 패턴(반복되는 모양)을 스스로 찾아요.</div></div>');
+  await talk([{t:'규칙 대신 예시 문의를 잔뜩<br>보여 주세요. 패턴을 찾을게요!',m:'happy',r:'좋아, 예시 보여 줄게'}]);
+  mood('think'); say('공부 중… 공부 중…<br>비슷한 뜻끼리 모으는 중!','normal'); mood('think');
+  const ex=['수강 정정 문의','과목 취소','강의실 어디?','시간표 바꾸기','도서관 시간','수강 신청 기간','와이파이 고장','학점 인정 문의','주차장 위치'];
+  for(let i=0;i<ex.length;i++){
+    const s=document.createElement('span'); s.textContent=ex[i]; $('#chips').appendChild(s);
+    $('#lbar').style.width=Math.round((i+1)/ex.length*100)+'%';
+    await wait(230);
+  }
+  await wait(300);
+  const rows=[
+    {q:'수강 신청 언제까지예요?',c:'학사 문의'},
+    {q:'수강 변경 되나요?',c:'시설 문의',bad:true},
+    {q:'도서관 몇 시에 닫아요?',c:'시설 문의'},
+    {q:'과목을 바꾸고 싶어요',c:'학사 문의',nw:true}
+  ];
+  panel('<div class="card"><div class="lbl">🔍 루키의 분류 결과 — 틀린 한 건을 찾아라!</div><div class="rows">'+
+    rows.map((r,i)=>'<button class="rowbtn'+(r.nw?' new':'')+'" data-i="'+i+'"><span>'+r.q+'</span><span class="cls">'+r.c+'</span></button>').join('')+
+    '</div><div class="hint">틀린 줄을 눌러 주세요</div></div>');
+  await talk([{t:'규칙에 없던 \'과목 바꾸기\'도<br>뜻이 비슷해서 묶었어요!',m:'happy',r:'오, 많이 늘었네'}]);
+  say('근데… 하나는 틀린 것 같아요.<br>팀장님이 찾아 주실래요?','confused');
+  await new Promise(res=>{
+    $('#panel').querySelectorAll('.rowbtn').forEach(b=>b.onclick=()=>{
+      const r=rows[+b.dataset.i];
+      if(r.bad){ b.classList.add('found'); b.querySelector('.cls').textContent='✗ 실은 학사 문의'; res(); }
+      else{ nope(b); say('그 줄은 제대로 나눈 거예요.<br>다른 줄을 봐 주세요!','normal'); }
+    });
+  });
+  await talk([
+    {t:'앗, 수강 변경 문의를<br>시설 문의로 넣었네요!',m:'confused',r:'괜찮아, 찾았으니 됐어'},
+    {t:'예시 자료의 품질과 범위에 따라<br>저도 틀릴 수 있대요.',m:'normal',r:'그래서 사람이 확인해야 해'}
+  ]);
+  say('그럼 이제 규칙 카드는<br>버려도 돼요?','normal');
+  await choice('팀장님의 판단은?',[
+    {t:'응, 이제 필요 없어. 버리자',fb:'정말요? 조건이 분명한 일엔<br>규칙이 정확했는데…'},
+    {t:'아니, 일에 맞게 같이 골라 써',ok:true}
+  ]);
+  await talk([
+    {t:'옛 기술도 버리지 않고<br>일에 맞게 골라 쓰는 거군요!',m:'happy'},
+    {t:'참, 신경망을 여러 겹 쌓으면<br>\'딥러닝\'이래요.',m:'normal'},
+    {t:'더 복잡한 패턴까지<br>다룰 수 있대요. 신기해!',m:'happy',r:'다음 능력 카드 받자'}
+  ]);
+  await levelUp(1);
+}
+
+/* ---------- 업무 3: 생성형 AI ---------- */
+async function m3(){
+  setTitle('업무 3/5','문제 초안 쓰기','생성형 AI');
+  panel('<div class="card"><div class="lbl">📄 팀장이 준 강의 메모</div><div class="memo">AI 연구는 1956년 다트머스 연구 모임에서 본격적으로 시작됐다.</div></div>'+
+        '<div class="card draft"><div class="lbl">✍️ 루키가 쓴 확인 문제 초안</div><div id="dlines"></div><div class="typing" id="typing">루키가 쓰는 중…</div></div>');
+  await talk([{t:'이번엔 이 메모로<br>확인 문제를 만들어 볼게요!',m:'happy',r:'좋아, 써 봐'}]);
+  mood('think'); say('쓰는 중… 쓰는 중…','normal'); mood('think');
+  const lines=[
+    {t:'문제: AI 연구가 본격적으로 시작된 해는?'},
+    {t:'정답: 1956년'},
+    {t:'해설: 다트머스 연구 모임이 출발점이에요.'},
+    {t:'해설: 이 모임에서 첫 AI 로봇이 완성됐어요.',bad:true}
+  ];
+  for(let i=0;i<lines.length;i++){
+    await wait(600);
+    const b=document.createElement('button'); b.className='dl'; b.dataset.i=i; b.textContent=lines[i].t;
+    $('#dlines').appendChild(b);
+  }
+  $('#typing').textContent='메모와 비교해서, 메모에 없는 줄을 눌러 주세요';
+  say('완성! 이대로 수업에<br>바로 써도 될까요?','happy');
+  await new Promise(res=>{
+    $('#dlines').querySelectorAll('.dl').forEach(b=>b.onclick=()=>{
+      if(lines[+b.dataset.i].bad){ b.classList.add('found'); res(); }
+      else{ nope(b); say('그 줄은 메모에 있는 내용이에요.<br>메모와 다시 비교해 주세요!','normal'); }
+    });
+  });
+  $('#typing').textContent='메모에 없는 말을 잡아냈어요. 이게 바로 검증!';
+  await talk([
+    {t:'헉, 메모에 없는 말을<br>제가 지어서 보탰네요…',m:'confused',r:'그래서 사람이 검토해야 해'},
+    {t:'만드는 건 \'생성\',<br>맞는지 보는 건 \'검증\'이군요!',m:'happy',r:'생성과 검증은 따로!'}
+  ]);
+  await levelUp(2);
+}
+
+/* ---------- 업무 4: 도구를 통한 실행 ---------- */
+async function m4(){
+  setTitle('업무 4/5','다음 문제 골라 주기','도구 실행');
+  panel('<div class="card"><div class="lbl">🎯 오늘의 일: 학생 A(가짜 학생)에게 맞는 다음 문제 고르기</div>'+
+        '<div class="dropzone" id="dz"><div class="mini" id="dzRk"></div><div><div class="dz-t">여기로 열쇠를 끌어다 놓기</div><div class="dz-s">또는 열쇠를 누른 뒤 여기를 눌러요</div></div></div>'+
+        '<div id="keys">'+
+        '<div class="key drag" data-k="all"><span class="ico">🗝️</span><span>모든 자료 창고 마스터키<small>무엇이든 다 열 수 있음</small></span></div>'+
+        '<div class="key drag" data-k="ok"><span class="ico">🔑</span><span>학습 기록 보기 도구<small>허락받은 기록만 보기</small></span></div>'+
+        '<div class="key drag" data-k="edit"><span class="ico">✏️</span><span>성적 고치기 권한<small>점수를 바꿀 수 있음</small></span></div>'+
+        '</div></div>');
+  $('#dzRk').innerHTML=rookieSVG(); styleRk($('#dzRk svg'),S.lv,'normal');
+  await talk([
+    {t:'학생 A에게 딱 맞는<br>다음 문제를 골라 줄래요.',m:'happy',r:'학습 기록부터 봐야겠네'},
+    {t:'근데 학습 기록이<br>제 머릿속엔 없어요!',m:'confused'},
+    {t:'저는 자료 창고(데이터베이스)<br>그 자체가 아니래요.',m:'normal',r:'그럼 열쇠를 줄게'}
+  ]);
+  say('기록을 볼 열쇠를<br>딱 하나만 건네주세요!','normal');
+  const fb={all:'너무 커요! 필요 없는 것까지<br>다 열 수 있잖아요.',edit:'다음 문제 고르는 데<br>성적을 고칠 필요는 없어요!'};
+  await new Promise(res=>{
+    dragSetup([...document.querySelectorAll('#keys .key')],[$('#dz')],(it)=>{
+      if(it.dataset.k==='ok'){ it.classList.add('used'); res(); }
+      else{ nope(it); say(fb[it.dataset.k],'confused'); }
+    });
+  });
+  styleRk($('#dzRk svg'),S.lv,'happy');
+  $('#keys').outerHTML='<div class="log" id="log"></div>';
+  mood('think'); say('도구 연결 중…','normal'); mood('think');
+  const L=['▶ 학습 기록 보기 도구 실행 (학생 A)','◀ 받은 정보: 생성과 검증 구분이 약함','✔ 다음 문제: "지어낸 문장 찾기" 선택'];
+  for(const t of L){ await wait(750); const d=document.createElement('div'); d.textContent=t; $('#log').appendChild(d); }
+  await wait(300);
+  await talk([
+    {t:'허락된 도구로,<br>필요한 정보만 받아 왔어요!',m:'happy',r:'잘했어, 루키'},
+    {t:'어떤 도구와 권한을 줄지<br>미리 정해 둬야겠네요.',m:'normal',r:'진짜 연결은 뒤쪽 강의에서 하자'}
+  ]);
+  await levelUp(3);
+}
+
+/* ---------- 업무 5: 분류·생성·실행 나누기 ---------- */
+async function m5(){
+  setTitle('업무 5/5','오늘 배운 일 정리','작동 확인');
+  const tasks=[
+    {t:'문의 종류 고르기',k:'cls'},
+    {t:'해설 초안 쓰기',k:'gen'},
+    {t:'학습 기록 조회하기',k:'tool'},
+    {t:'강의 메모로 문항 초안 쓰기',k:'gen'},
+    {t:'\'수강 신청\' 문의를 학사 문의로 나누기',k:'cls'}
+  ];
+  const hints={cls:'그건 종류를 골라 나누는 일 같아요!',gen:'그건 새로 만드는 일 같아요!',tool:'그건 도구로 조회하는 일 같아요!'};
+  panel('<div class="card"><div class="lbl">🗂️ 카드를 알맞은 상자로 <span class="timer" id="tm">⏱ 0초</span></div>'+
+    '<div class="bins">'+
+      '<div class="bin" data-k="cls"><div class="bi">🏷️</div><div class="bn">분류</div><div class="bc" id="c-cls">0장</div></div>'+
+      '<div class="bin" data-k="gen"><div class="bi">✍️</div><div class="bn">생성</div><div class="bc" id="c-gen">0장</div></div>'+
+      '<div class="bin" data-k="tool"><div class="bi">🔧</div><div class="bn">도구 실행</div><div class="bc" id="c-tool">0장</div></div>'+
+    '</div><div class="tray" id="tray">'+tasks.map((x,i)=>'<div class="task drag" data-i="'+i+'">'+x.t+'</div>').join('')+'</div>'+
+    '<div class="hint">끌어다 놓거나, 카드를 누른 뒤 상자를 눌러요</div></div>');
+  await talk([{t:'마지막! 오늘 배운 일을<br>상자에 정리해 볼게요.',m:'happy',r:'정리 시작!'}]);
+  say('카드를 알맞은 상자에<br>넣어 주세요. 빨리요!','happy');
+  const t0=Date.now(); const tick=setInterval(()=>{const e=$('#tm'); if(e) e.textContent='⏱ '+Math.floor((Date.now()-t0)/1000)+'초';},500);
+  const cnt={cls:0,gen:0,tool:0}; let left=tasks.length;
+  await new Promise(res=>{
+    dragSetup([...document.querySelectorAll('#tray .task')],[...document.querySelectorAll('.bin')],(it,z)=>{
+      const tk=tasks[+it.dataset.i];
+      if(tk.k===z.dataset.k){
+        cnt[tk.k]++; $('#c-'+tk.k).textContent=cnt[tk.k]+'장 ✓';
+        z.classList.remove('okf'); void z.offsetWidth; z.classList.add('okf');
+        it.remove(); left--;
+        mood('happy'); say(left?'딩동! 맞아요.<br>남은 카드 '+left+'장!':'다 넣었어요!','happy');
+        if(!left) res();
+      }else{ nope(it); say(hints[tk.k],'confused'); }
+    });
+  });
+  clearInterval(tick);
+  const sec=Math.floor((Date.now()-t0)/1000);
+  $('#tray').innerHTML='<div class="note" style="text-align:center">🏁 <b>'+sec+'초</b> 만에 정리 완료!</div>';
+  await talk([
+    {t:'한 서비스 안에 세 가지가<br>함께 들어가기도 해요.',m:'normal'},
+    {t:'AI라는 이름은 같아도,<br>일하는 방식은 달라요!',m:'happy',r:'그게 오늘의 핵심이야'}
+  ]);
+  await levelUp(4);
+}
+
+/* ---------- 첫 업무 평가 (1강 문항 3개) ---------- */
+const Q=[
+  {id:'L01-Q1',q:'1강에서 AI 역사의 중요한 출발점으로 소개한 사건은 무엇인가요?',
+   c:['생성형 AI의 등장','1991년 파이썬 공개','1956년 다트머스 연구 모임','1995년 자바스크립트 등장'],a:2,cw:0,
+   e:'1강은 1956년 다트머스 연구 모임을 출발점으로 소개해요. 1991년·1995년은 06강의 프로그래밍 언어 이야기이고, 생성형 AI는 그 뒤에 온 변화예요.',
+   w:'요즘 많이 듣는 생성형 AI를 AI의 시작으로 착각하기 쉬워요.'},
+  {id:'L01-Q4',q:'규칙표는 \'수강 신청\'이라는 말이 오면 학사 문의로 나눠요. 그런데 \'과목을 바꾸고 싶다\'는 질문은 놓칠 수 있어요. 1강이 설명한 이유는?',
+   c:['규칙 중심 방식은 틀린 방식이기 때문','사람이 어떤 규칙을 넣었는지가 작동 범위를 결정하기 때문','글이나 코드 같은 결과를 만들지 못하기 때문','학습한 자료의 품질이 낮기 때문'],a:1,cw:3,
+   e:'사람이 넣은 규칙이 작동 범위를 정해요. 규칙 방식이 틀린 건 아니고, 조건이 분명한 일엔 여전히 쓸모 있어요.',
+   w:'\'자료의 품질\'은 예시로 배운 분류기(업무 2)가 틀린 이유예요. 둘을 섞기 쉬워요.'},
+  {id:'L01-Q3',q:'1강의 내용과 일치하는 설명은 무엇인가요?',
+   c:['생성형 AI가 나오면서 규칙 중심 방식은 더 이상 쓰이지 않는다.','패턴을 학습한 분류기는 표현이 달라도 언제나 정확하게 분류한다.','도구를 쓰는 AI에서 모델은 데이터베이스 그 자체이므로 권한 설계가 필요 없다.','앞선 기술이 사라진 것이 아니라 목적에 따라 지금도 함께 사용된다.'],a:3,cw:0,
+   e:'옛 기술은 사라지지 않고 목적에 맞게 함께 써요. 분류기는 늘 맞지는 않고, 모델은 자료 창고가 아니라 허락된 도구로 정보를 받아서 도구·권한 설계가 필요해요.',
+   w:'기술 발전을 \'옛것이 새것으로 바뀌는 것\'으로 오해하기 쉬워요.'}
+];
+function askQ(i){
+  return new Promise(res=>{
+    const q=Q[i];
+    panel('<div class="card quiz"><div class="qno">📋 첫 업무 평가 '+(i+1)+'/3</div><div class="qtext">'+q.q+'</div>'+
+      q.c.map((t,j)=>'<button class="choice" data-j="'+j+'"><span class="mk">'+'ABCD'[j]+'</span><span>'+t+'</span></button>').join('')+
+      '<div id="qexp"></div></div>');
+    setActions('');
+    say(['평가관이 왔어요! 떨려요…<br>같이 풀어 주세요.','두 번째 문제예요.<br>업무 1을 떠올려 봐요!','마지막 문제!<br>오늘 배운 걸 모아 봐요.'][i],i===0?'confused':'normal');
+    const bs=[...$('#panel').querySelectorAll('.choice')];
+    bs.forEach(b=>b.onclick=()=>{
+      const j=+b.dataset.j; bs.forEach(x=>x.disabled=true);
+      const right=bs[q.a]; right.classList.add('ok'); right.querySelector('.mk').textContent='✓';
+      let h='<div class="exp">'+(j===q.a?'⭕ 정답! ':'❌ 아쉬워요. ')+q.e;
+      if(j===q.a){ S.score++; S.xp+=30; say('정답! 팀장님 덕분이에요!','happy'); }
+      else{ b.classList.add('bad'); b.querySelector('.mk').textContent='✗'; say('아쉬워요. 해설 보고<br>같이 기억해 둬요!','confused'); if(j===q.cw) h+='<span class="warn">💡 자주 하는 실수: '+q.w+'</span>'; }
+      h+='</div>'; $('#qexp').innerHTML=h; hud();
+      act(i<Q.length-1?'다음 문제 ▶':'평가 결과 보기 ▶').then(res);
+      setTimeout(()=>$('#qexp').scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+    });
+  });
+}
+async function quiz(){
+  setTitle('평가','루키의 첫 업무 평가','1강 문제 3개');
+  for(let i=0;i<Q.length;i++){ await askQ(i); window.scrollTo({top:0,behavior:'smooth'}); }
+  S.step++; hud();
+  const g=S.score===3?'우수 신입 ★★★':S.score===2?'합격 ★★':'합격 · 복습 추천 ★';
+  panel('<div class="card" style="text-align:center"><div class="lbl">평가 결과</div><div style="font-size:30px;font-weight:900;color:#FFD166">'+S.score+' / 3</div><div style="font-weight:800;font-size:18px;margin-top:4px">'+g+'</div></div>');
+  await talk([{t:S.score>=2?'첫 업무 평가 통과!<br>팀장님 최고예요!':'통과는 했어요!<br>다음엔 더 잘할게요!',m:'happy',r:'내 루키 카드 보러 가기 ▶'}]);
+}
+
+/* ---------- 결과: 루키 카드 + 30강 지도 ---------- */
+function stars(){ return '★'.repeat(S.score)+'☆'.repeat(3-S.score); }
+function rkCardHTML(){
+  return '<div class="rkcard"><div class="rkc-top"><div class="rkm">'+rookieSVG()+'</div><div>'+
+    '<div class="rkc-name">내 루키</div><span class="rkc-lv">Lv.'+S.lv+' · 1강 수료</span>'+
+    '<div class="rkc-stars">첫 업무 평가 '+stars()+'</div></div></div>'+
+    '<div class="rkc-line"><small>오늘 루키가 배운 한 줄</small>AI라는 같은 이름이라도 분류·생성·도구 실행은 일하는 방식이 달라요.</div>'+
+    '<div class="rkc-cards">'+CARDS.map(c=>'<span class="'+c.c+'">'+c.ico+'<b>'+c.name+'</b></span>').join('')+'</div></div>';
+}
+function showFinal(){
+  $('#game').classList.add('hidden');
+  const f=$('#final'); f.classList.remove('hidden');
+  const parts=[
+    {n:'1부 · 루키에게 일 맡기는 법',a:1,b:5},
+    {n:'2부 · 루키와 퀴즈게임 만들기',a:6,b:13},
+    {n:'3부 · 기억 창고와 출입증 주기',a:14,b:21},
+    {n:'4부 · 학생 돕는 튜터로 승진',a:22,b:25},
+    {n:'5부 · 도구 가방 채우기',a:26,b:30}
+  ];
+  let map='';
+  parts.forEach((p,pi)=>{
+    let nodes='';
+    for(let n=p.a;n<=p.b;n++){
+      if(n===1) nodes+='<div class="node done" aria-label="1강 완료">1</div>';
+      else if(n===2) nodes+='<div class="node next" aria-label="2강 잠김">🔒</div>';
+      else nodes+='<div class="node" aria-label="'+n+'강 잠김">'+n+'</div>';
+    }
+    let extra='';
+    if(pi===0){
+      extra='<div class="friends"><div class="heads">'+miniHead('#FF8A5B')+miniHead('#5AA8FF')+'</div><div class="ft">팀원 <b>2명</b>이 1강 통과<br><span style="color:#97A3D6;font-size:13px">민지의 루키 · 준호의 루키 (예시)</span></div></div>';
+    }
+    map+='<div class="part"><div class="part-n">'+p.n+'</div><div class="nodes">'+nodes+'</div>'+extra+'</div>';
+  });
+  f.innerHTML='<div class="fin-h">🎉 1강 클리어!</div><div class="fin-s">루키가 첫날 업무를 마쳤어요</div>'+
+    rkCardHTML()+
+    '<div class="fin-btns"><button class="btn gold" id="shareBtn">📤 내 루키 카드 공유</button></div>'+
+    '<div class="sec-h">🗺️ 30강 지도 <small>1/30강 완료</small></div>'+
+    '<div class="nextbox"><span class="ico">🔒</span><div><b>다음: 2강</b><small>이 기능들이 실제 시간 절약과 수업 개선으로 이어지는 과정</small></div></div>'+
+    '<div style="height:8px"></div>'+map+
+    '<div class="sec-h">📝 오늘의 미션</div>'+
+    '<div class="mission">내 업무 <b>3가지</b>를 적고, 각각 <b>분류 · 생성 · 도구 실행</b> 중 어디에 가까운지 표시해 봐요.<br><span style="color:#97A3D6;font-size:14px">예) 문의 분류 · 수업 문항 작성 · 학습 기록 조회</span></div>'+
+    '<div class="fin-btns"><button class="btn ghost" id="lockBtn">🔒 2강 시작하기</button><button class="btn ghost" id="againBtn">↺ 처음부터 다시 하기</button></div>';
+  f.querySelectorAll('.rkm svg').forEach(s=>styleRk(s,S.lv,'happy'));
+  f.querySelectorAll('.friends svg').forEach(s=>s.removeAttribute('class'));
+  window.scrollTo(0,0);
+  $('#shareBtn').onclick=openShare;
+  $('#lockBtn').onclick=()=>toast('2강은 아직 잠겨 있어요 (시제품은 1강만)');
+  $('#againBtn').onclick=()=>location.reload();
+}
+function openShare(){
+  const ov=$('#overlay');
+  ov.innerHTML='<div class="share-sheet"><h3>오늘의 루키 카드</h3>'+rkCardHTML()+
+    '<div class="share-btns"><button class="btn primary" data-s="1">💬 단톡방에 보내기</button><button class="btn ghost" data-s="2">🖼️ 이미지 저장</button></div>'+
+    '<div style="height:10px"></div><button class="btn ghost" id="closeShare">닫기</button></div>';
+  ov.style.alignItems='flex-end';
+  ov.querySelectorAll('.rkm svg').forEach(s=>styleRk(s,S.lv,'happy'));
+  ov.classList.remove('hidden');
+  ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>toast('시제품이라 모양만 있어요. 실제 공유는 다음 단계에서!'));
+  $('#closeShare').onclick=()=>{ ov.classList.add('hidden'); ov.innerHTML=''; ov.style.alignItems=''; };
+  ov.onclick=e=>{ if(e.target===ov) $('#closeShare').click(); };
+}
+
+/* ---------- 시작 ---------- */
+$('#introRk').innerHTML=rookieSVG(); styleRk($('#introRk svg'),1,'normal');
+$('#rkStage').innerHTML=rookieSVG();
+$('#startBtn').onclick=async()=>{
+  $('#intro').classList.add('hidden'); $('#game').classList.remove('hidden'); hud();
+  setTitle('입사 첫날','루키와 인사하기','');
+  panel('');
+  await talk([
+    {t:'안녕하세요, 팀장님!<br>오늘 입사한 신입 AI 루키예요.',m:'happy',r:'반가워, 루키!'},
+    {t:'제 뿌리는 1956년<br>다트머스 연구 모임이래요.',m:'normal',r:'오, 족보가 꽤 길구나'},
+    {t:'근데 저는 아직 아무것도 몰라요.<br>일 좀 가르쳐 주세요!',m:'confused',r:'좋아, 내가 가르쳐 줄게'}
+  ]);
+  await m1(); window.scrollTo(0,0);
+  await m2(); window.scrollTo(0,0);
+  await m3(); window.scrollTo(0,0);
+  await m4(); window.scrollTo(0,0);
+  await m5(); window.scrollTo(0,0);
+  await quiz();
+  showFinal();
+};
+})();
+</script>
+</body>
+</html>
