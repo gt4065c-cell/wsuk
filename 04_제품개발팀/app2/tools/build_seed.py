@@ -46,7 +46,11 @@ if os.path.exists(os.path.join(BANK, "concept_cards.json")):
     assert len({c["lecture"] for c in cards}) == len(cards), "같은 강 카드가 둘"
 assert len([q for q in qs if q["diag_order"]]) == len(diag_ids) == 12
 out = os.path.join(APP, "supabase", "seed"); os.makedirs(out, exist_ok=True)
+# 강의 노트("lectures")는 tools/build_lectures.py 가 채움 → 여기서는 있던 것을 그대로 둠
+lectures = []
+if os.path.exists(os.path.join(out, "seed.json")):
+    with open(os.path.join(out, "seed.json"), encoding="utf-8") as f: lectures = json.load(f).get("lectures", [])
 with open(os.path.join(out, "seed.json"), "w", encoding="utf-8") as f:
-    json.dump({"questions": qs, "keys": keys, "hints": hints, "cards": cards}, f, ensure_ascii=False, separators=(",", ":"))
+    json.dump({"questions": qs, "keys": keys, "hints": hints, "cards": cards, "lectures": lectures}, f, ensure_ascii=False, separators=(",", ":"))
 from collections import Counter
 print("문항", len(qs), dict(Counter(q["pool"] for q in qs)), "힌트", len(hints), "개념 카드", len(cards))

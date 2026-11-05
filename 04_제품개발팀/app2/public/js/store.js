@@ -26,6 +26,9 @@
      submitWeekly(answers)  [M2 3차] {문항번호: 보기 번호 | null} 한꺼번에 제출 → {done, week, reviewLectures} (서버 채점, 점수 없음)
      teamExplainer()        [M2 3차] 우리 팀 이번 주 해설 당번 (당번 별명·문항·올라온 해설 — 같은 팀만)
      writeExplainer(qid, body)  [M2 3차] 당번이 해설 쓰기(200자 안)
+     lectureList()          [강의 보기] 열린 강 범위 + 1~30강 목록 {openUpTo, items:[{lecture, title, minutes, ready, draft}]} (본문 없음)
+     lecture(n)             [강의 보기] 강 하나 {lecture, title, minutes, body:[덩어리], draft} (없거나 안 열렸으면 null)
+     lecturePractice(n, exclude)  [강의 보기] 그 강의 "아직 안 푼" 연습 문항 하나 {qid} (없으면 null). next_practice 는 안 씀
 
    두 가지 창구가 같은 모양으로 들어 있습니다.
      A. LocalStore    : 로컬 모드(개발용). 이 브라우저에만 저장
@@ -473,6 +476,7 @@
   var ERR_TEXT = {
     NOT_LINKED: "이 기기가 아직 코드와 연결되지 않았어요. [다른 코드로 들어가기]를 눌러 코드를 다시 넣어 주세요.",
     NO_AUTH: "로그인이 풀렸어요. 새로고침한 뒤 코드를 다시 넣어 주세요.",
+    STALE_AUTH: "이 기기의 로그인 정보를 새로 만들었는데도 서버와 연결되지 않았어요. 새로고침한 뒤 코드를 한 번 더 넣어 주세요.",
     NOT_DIAG: "진단 문항이 아니에요. 새로고침해 주세요.",
     DIAG_TOO_FEW: "진단은 10문항 이상 답해야 끝낼 수 있어요",
     BAD_MODE: "문제 종류가 잘못 전달됐어요. 새로고침해 주세요.",
@@ -508,6 +512,8 @@
     if (/failed to fetch|networkerror|network request failed|load failed|fetch failed|ERR_|timeout/i.test(m) || (e && e.name === "TypeError" && /fetch/i.test(m)))
       return "서버에 닿지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요.";
     if (code === 429 || code === "429" || /rate limit|too many/i.test(m)) return "잠깐 너무 자주 눌렀어요. 1분쯤 뒤에 다시 해 주세요.";
+    // [80] 지워진 임시 계정으로 기기 연결을 하려다 막힘 (student_devices FK). 보통은 login() 이 새 계정으로 알아서 다시 시도함
+    if (code === "23503" || /violates foreign key|student_devices/i.test(m)) return "이 기기의 로그인 정보가 오래됐어요. 새로고침한 뒤 코드를 다시 넣어 주세요.";
     if (/jwt|token|refresh/i.test(m)) return "로그인 정보가 만료됐어요. 새로고침한 뒤 코드를 다시 넣어 주세요.";
     if (/permission denied|row-level security/i.test(m)) return "이 정보는 볼 수 없게 막혀 있어요(보안 규칙). 새로고침해 주세요.";
     if (/supabase 라이브러리/.test(m)) return m;
@@ -547,13 +553,42 @@
     return sb().then(function (c) { return c.auth.getSession(); })
       .then(function (r) { return !!(r && r.data && r.data.session); });
   }
+  /* [80 세션 복구] 브라우저에 남은 로그인의 계정이 서버에서 지워졌는지 (Auth Users 에서 삭제·만료 등)
+     → 맞으면 true. 인터넷 끊김 같은 오류는 false (멀쩡한 로그인을 함부로 지우지 않음) */
+  function isGoneUser(e) {
+    if (!e) return false;
+    var m = String(e.message || e.msg || ""), code = String(e.code || ""), st = Number(e.status) || 0;
+    if (e.name === "AuthSessionMissingError") return true;
+    if (/^(user_not_found|session_not_found|bad_jwt|refresh_token_not_found|no_authorization)$/.test(code)) return true;
+    if (st === 401 || st === 403 || st === 404) return true;
+    return /does not exist|user not found|session.*not found|invalid jwt|invalid claim|missing sub/i.test(m);
+  }
+  /* 이 기기의 로그인만 지우고(서버의 학생 기록은 그대로) 새 임시 계정을 만듦 */
+  function freshAnon(c) {
+    cache.hints = null; cache.lectures = null;
+    return c.auth.signOut({ scope: "local" }).then(null, function () {})
+      .then(function () { return c.auth.signInAnonymously(); })
+      .then(function (x) { unwrap(x); return c; });
+  }
   function ensureAuth() {
     return sb().then(function (c) {
       return c.auth.getSession().then(function (r) {
-        if (r && r.data && r.data.session) return c;
-        return c.auth.signInAnonymously().then(function (x) { unwrap(x); return c; });
+        if (!(r && r.data && r.data.session)) return c.auth.signInAnonymously().then(function (x) { unwrap(x); return c; });
+        if (typeof c.auth.getUser !== "function") return c;
+        // 세션이 있으면 서버에 그 계정이 아직 있는지 한 번 확인 (코드 넣을 때만 — 화면을 열기만 할 때는 안 물음)
+        return c.auth.getUser().then(function (u) {
+          if (u && u.error) return isGoneUser(u.error) ? freshAnon(c) : c;
+          if (u && u.data && !u.data.user) return freshAnon(c);
+          return c;
+        }, function (e) { return isGoneUser(e) ? freshAnon(c) : c; });
       });
     });
+  }
+  /* claim_code 가 "계정 없음"으로 막혔는지: 서버 80번 적용 후 {ok:false, error:'NO_AUTH'} / 적용 전 FK 오류(23503) / NO_AUTH 오류 */
+  function isStaleClaim(e) {
+    if (!e) return false;
+    var m = String(e.message || ""), code = String(e.code || "");
+    return code === "23503" || /violates foreign key|student_devices_auth_uid_fkey/i.test(m) || /NO_AUTH/.test(m);
   }
 
   /* 문항은 한 번 받아 두고 다시 씀 (연습 + 정답·해설, 진단(정답 없음), 검토 끝난 힌트) */
@@ -683,7 +718,20 @@
       var code = LU.normalizeCode(input);
       // 모양이 틀리면 서버에 묻지도, 계정을 만들지도 않음
       if (!LU.isValidCodeShape(code)) return Promise.resolve({ ok: false, error: "shape" });
-      return ensureAuth().then(function () { return rpc("claim_code", { p_code: code }); })
+      // [80 세션 복구] 계정이 지워져 막히면 이 기기 로그인만 새로 만들고 딱 한 번만 다시 시도
+      function claim(retried) {
+        var again = function () {
+          if (retried) throw new Error("STALE_AUTH");
+          return sb().then(freshAnon).then(function () { return claim(true); });
+        };
+        return rpc("claim_code", { p_code: code }).then(function (r) {
+          return r && !r.ok && r.error === "NO_AUTH" ? again() : r;
+        }, function (e) {
+          if (isStaleClaim(e)) return again();
+          throw e;
+        });
+      }
+      return ensureAuth().then(function () { return claim(false); })
         .then(function (r) {
           if (!r || !r.ok) return { ok: false, error: (r && r.error) || "unknown" };
           var st = r.student || {};
