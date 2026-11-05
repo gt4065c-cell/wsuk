@@ -296,3 +296,10 @@ bash supabase/local_test/run_weekly_local.sh     # SQL (임시 PostgreSQL, 동�
 node tests/run_e2e_qa_fixes.js                      # 화면·창구·SQL 파일 검사 18개 (PostgreSQL 있으면 아래도)
 bash supabase/local_test/run_qa_fixes_local.sh      # SQL (임시 PostgreSQL) 71개
 ```
+
+## 10. [80] 지워진 임시 계정 복구 · 강의 보기 (2026-11-05)
+- 버그: 브라우저에 남은 로그인(임시 계정)이 Supabase Auth Users 에서 지워지면 코드 입력 시 `student_devices` foreign key 오류.
+  고침: `store.js` — 코드 넣을 때 세션이 있으면 `auth.getUser()`로 확인 → 없으면 이 기기 로그인만 지우고 새 임시 계정. claim_code 가 FK(23503)/NO_AUTH 를 내도 새 계정으로 **딱 한 번** 다시 시도. 인터넷 오류일 때는 멀쩡한 로그인을 지우지 않음.
+- 서버: `supabase/80_session_fix.sql` (claim_code 가 없는 계정이면 `{ok:false, error:'NO_AUTH'}` + `lectures` 표·RLS). **실DB 적용은 비서실장.** 시험: `bash supabase/local_test/run_session_fix_local.sh`
+- 강의 보기(시제품 — 최종 형식은 바뀔 예정): `python3 tools/build_lectures.py` → `public/data/lectures.js` + `seed.json "lectures"`. 홈 [강의 보기] → 목록 → 강 페이지 → [이 강 연습 문제 풀기]
+- 테스트: `node tests/run_e2e_lectures.js` (28개, 가짜 md는 tests/fake_lectures/)
