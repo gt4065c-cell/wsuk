@@ -79,6 +79,73 @@
     return lines.length ? { title: String(c.title || ""), lines: lines } : null;
   }
 
+  /* [강의 보기] 강의 노트 본문 정리 — 서버·파일 어디서 왔든 아는 덩어리 모양만 남김 (글자는 화면이 escape 해서 보여 줌)
+     덩어리: {t:'h', lv:2|3, text} · {t:'p', text} · {t:'quote', lines:[text]} · {t:'ul'|'ol', items:[text], key} · {t:'table', head:[text], rows:[[text]]}
+     text = [[글자, 굵게 0|1], ...] */
+  var LEC_N = 30;
+  function normInline(x) {
+    if (typeof x === "string") x = [[x, 0]];
+    if (!Array.isArray(x)) return [];
+    return x.slice(0, 200).filter(Array.isArray).map(function (p) { return [String(p[0] == null ? "" : p[0]).slice(0, 4000), p[1] ? 1 : 0]; })
+      .filter(function (p) { return p[0]; });
+  }
+  function normRows(a, n) { return (Array.isArray(a) ? a : []).slice(0, n); }
+  function normBody(b) {
+    if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = []; } }
+    var out = [];
+    normRows(b, 300).forEach(function (k) {
+      if (!k || typeof k !== "object") return;
+      if (k.t === "h") out.push({ t: "h", lv: Number(k.lv) === 3 ? 3 : 2, text: normInline(k.text) });
+      else if (k.t === "p") out.push({ t: "p", text: normInline(k.text) });
+      else if (k.t === "quote") out.push({ t: "quote", lines: normRows(k.lines, 50).map(normInline) });
+      else if (k.t === "ul" || k.t === "ol") out.push({ t: k.t, key: !!k.key, items: normRows(k.items, 50).map(normInline) });
+      else if (k.t === "table") out.push({ t: "table", head: normRows(k.head, 6).map(normInline),
+                                          rows: normRows(k.rows, 50).map(function (r) { return normRows(r, 6).map(normInline); }) });
+    });
+    return out;
+  }
+  function lecTitle(x) { return String((x && x.title) || "").slice(0, 60); }
+  function lecMinutes(x) { var n = Number(x && x.minutes); return n >= 1 && n <= 60 ? Math.round(n) : null; }
+  function lecList(openUpTo, by) {
+    var open = Math.max(0, Math.min(LEC_N, Number(openUpTo) || 0)), items = [];
+    for (var n = 1; n <= open; n++) {
+      var x = by[String(n)];
+      items.push(x ? { lecture: n, title: lecTitle(x), minutes: lecMinutes(x), ready: true, draft: !!x.draft }
+                   : { lecture: n, title: "", minutes: null, ready: false, draft: false });
+    }
+    return { openUpTo: open, items: items };
+  }
+  /* 그 강의 아직 안 푼 연습 문항 하나: 쉬운 것부터, 같은 난이도면 문항 번호 순 */
+  function pickLecturePractice(list, lecture, doneIds, exclude) {
+    var done = {}; (doneIds || []).concat(exclude || []).forEach(function (id) { done[id] = 1; });
+    var c = list.filter(function (q) { return q.lecture === lecture && !done[q.id]; })
+      .sort(function (a, b) { return a.difficulty - b.difficulty || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); });
+    return c.length ? { qid: c[0].id, left: c.length } : null;
+  }
+
+  /* [강의 보기 · 로컬 모드] data/lectures.js 를 처음 열 때 한 번만 읽음 (없으면 모두 "준비 중") */
+  var lecLocal = null;
+  function localLectures() {
+    if (!lecLocal) lecLocal = (window.LU_LECTURES ? Promise.resolve() : new Promise(function (ok) {
+      var sc = document.createElement("script");
+      sc.src = "data/lectures.js";
+      sc.onload = function () { ok(); };
+      sc.onerror = function () { lecLocal = null; ok(); };
+      document.head.appendChild(sc);
+    })).then(function () {
+      var src = (window.LU_LECTURES && window.LU_LECTURES.lectures) || {}, by = {};
+      Object.keys(src).forEach(function (k) {
+        var x = src[k], n = Number(k);
+        if (!(n >= 1 && n <= LEC_N) || !x) return;
+        var draft = x.status !== "reviewed";
+        if (draft && !CFG.SHOW_DRAFT_LECTURES) return;   // 학생용 기준: 검토 끝난 것만 (개발용 설정이면 '검토 전' 표시를 달고 보여 줌)
+        by[String(n)] = { title: x.title, minutes: x.minutes, body: x.body, draft: draft };
+      });
+      return by;
+    });
+    return lecLocal;
+  }
+
   function publicStudent(s, db) {
     // 화면에 넘기는 학생 정보 (θ 없음)
     var d = db.diag[s.code] || { answers: [], done: false };
@@ -448,6 +515,28 @@
       return Promise.resolve(localExplainer(db, s));
     },
 
+    /* [강의 보기] 로컬 모드 = data/lectures.js (tools/build_lectures.py). 읽기에는 경험치 없음(아무것도 저장 안 함) */
+    lectureList: function () {
+      return localLectures().then(function (by) { return lecList(CFG.OPEN_UP_TO_LECTURE || LEC_N, by); });
+    },
+    lecture: function (n) {
+      n = Number(n);
+      return localLectures().then(function (by) {
+        var x = by[String(n)];
+        if (!x || n > (CFG.OPEN_UP_TO_LECTURE || LEC_N)) return null;
+        var body = normBody(x.body);
+        return body.length ? { lecture: n, title: lecTitle(x), minutes: lecMinutes(x), body: body, draft: !!x.draft } : null;
+      });
+    },
+    lecturePractice: function (n, exclude) {
+      var db = loadDb(), s = current(db); if (!s) return needLogin();
+      n = Number(n);
+      if (n > (CFG.OPEN_UP_TO_LECTURE || 99)) return Promise.reject(new Error(ERR_TEXT.NOT_OPEN));
+      var done = db.attempts.filter(function (a) { return a.code === s.code; }).map(function (a) { return a.qid; });
+      var r = pickLecturePractice(PRACTICE, n, done, exclude);
+      return Promise.resolve(r ? { qid: r.qid } : null);
+    },
+
     /* [개발용] 자동 테스트가 속을 들여다보는 문. 화면 코드는 쓰지 않음. Supabase 모드에는 없음 */
     _debug: function () {
       var db = loadDb(), s = current(db);
@@ -593,7 +682,7 @@
 
   /* 문항은 한 번 받아 두고 다시 씀 (연습 + 정답·해설, 진단(정답 없음), 검토 끝난 힌트) */
   var QCOLS = "id,part,lecture,difficulty,type,question,choices,source_section";
-  var cache = { practice: null, diag: null, hints: null, cards: null };
+  var cache = { practice: null, diag: null, hints: null, cards: null, lectures: null };
   function asChoices(c) { if (typeof c === "string") { try { return JSON.parse(c); } catch (e) { return []; } } return c || []; }
   function loadPractice() {
     if (!cache.practice) cache.practice = sb().then(function (c) {
@@ -644,6 +733,25 @@
       .then(function (r) { var m = {}; (unwrap(r) || []).forEach(function (x) { m[String(x.lecture)] = { title: x.title, lines: asChoices(x.lines) }; }); return m; },
             function () { return {}; });
     return cache.cards;
+  }
+
+  /* [강의 보기] 목록(제목·읽는 시간만)과 열린 강 번호. lectures 표가 아직 없으면(80번 SQL 적용 전) 모두 "준비 중".
+     DB 규칙(lectures_reviewed)이 검토 끝난 강만 돌려줌 */
+  function loadLectureList() {
+    if (!cache.lectures) cache.lectures = sb().then(function (c) {
+      return Promise.all([
+        c.from("lectures").select("lecture,title,minutes").order("lecture").then(unwrap).then(null, function (e) {
+          if (window.console) console.warn("[레벨업] 강의 목록을 불러오지 못했어요(모두 준비 중으로 보여요):", (e && e.message) || e);
+          return [];
+        }),
+        c.from("app_settings").select("open_up_to").maybeSingle().then(unwrap).then(null, function () { return null; })
+      ]);
+    }).then(function (r) {
+      var by = {}; (r[0] || []).forEach(function (x) { if (x && x.lecture) by[String(x.lecture)] = x; });
+      var open = r[1] && Number(r[1].open_up_to) >= 0 ? Number(r[1].open_up_to) : (CFG.OPEN_UP_TO_LECTURE || LEC_N);
+      return { open: open, by: by };
+    }).catch(function (e) { cache.lectures = null; throw e; });
+    return cache.lectures;
   }
 
   /* 내 학생 정보 (θ 칸은 DB에서 아예 못 읽음). 코드와 연결 안 된 기기면 null */
@@ -880,6 +988,34 @@
     },
     writeExplainer: function (qid, body) {
       return rpc("write_team_explainer", { p_qid: qid, p_body: String(body || "") }).then(normExplainer).catch(function (e) { throw friendly(e); });
+    },
+    /* [강의 보기] lectures 표(80_session_fix.sql) — 읽기만. 읽기에는 경험치 없음(서버에 아무것도 안 씀) */
+    lectureList: function () {
+      return loadLectureList().then(function (L) { return lecList(L.open, L.by); }).catch(function (e) { throw friendly(e); });
+    },
+    lecture: function (n) {
+      n = Number(n);
+      return loadLectureList().then(function (L) {
+        if (!(n >= 1 && n <= LEC_N) || n > L.open || !L.by[String(n)]) return null;
+        return sb().then(function (c) { return c.from("lectures").select("lecture,title,minutes,body_json").eq("lecture", n).maybeSingle(); })
+          .then(unwrap).then(function (x) {
+            if (!x) return null;
+            var body = normBody(x.body_json);
+            return body.length ? { lecture: n, title: lecTitle(x), minutes: lecMinutes(x), body: body, draft: false } : null;
+          });
+      }).catch(function (e) { throw friendly(e); });
+    },
+    lecturePractice: function (n, exclude) {
+      // 그 강 연습 문항(정답 포함 — 원래 공개되는 연습 문항) 중 내 풀이 기록(attempts, 내 줄만 읽힘)에 없는 것 하나.
+      // 고르기만 화면에서. 마감·경험치·열린 강 검사는 서버 close_item 규칙 그대로
+      n = Number(n);
+      return Promise.all([loadPractice(), loadLectureList(), sb().then(function (c) { return c.from("attempts").select("question_id"); }).then(unwrap)])
+        .then(function (r) {
+          if (n > r[1].open) throw new Error("NOT_OPEN");
+          var done = (r[2] || []).map(function (a) { return a.question_id; });
+          var p = pickLecturePractice(r[0].list, n, done, exclude);
+          return p ? { qid: p.qid } : null;
+        }).catch(function (e) { throw friendly(e); });
     },
     closeItem: function (rec) {
       return rpc("close_item", { p_qid: rec.qid, p_mode: rec.mode, p_level: Number(rec.level) || 0,
