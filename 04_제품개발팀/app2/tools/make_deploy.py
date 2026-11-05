@@ -9,8 +9,9 @@
        - data/dev_diag_key.js : [개발용] 진단 정답 → 절대 올리면 안 됨
        - data/practice.js · diagnostic.js · hints.js : Supabase 모드에서는 쓰지 않음(문항은 서버에서 받음).
          특히 hints.js 에는 교수 검토 전 힌트가 들어 있어 빼는 것이 안전
+       - data/lectures.js : 강의 노트(로컬 모드용). Supabase 모드는 서버 lectures 표에서 검토 끝난 강만 받음
     2) 복사본 config.js 의 MODE 를 "supabase" 로 바꿉니다(원본 public/ 은 그대로 local).
-       개발용 줄도 지웁니다: DEV_CODES(가짜 코드) → [], SHOW_DRAFT_HINTS → false (QA 13번),
+       개발용 줄도 지웁니다: DEV_CODES(가짜 코드) → [], SHOW_DRAFT_HINTS → false (QA 13번), SHOW_DRAFT_LECTURES → false (강의 보기),
        DEV_ADMIN_EMAILS(교수 화면 가짜 교수 이메일) → [] (M2)
        이 도구가 만든 폴더라는 표시는 config.js 첫 줄 주석으로 남깁니다(따로 표시 파일 없음).
     3) 다 만든 뒤 스스로 검사: data/ 없음, 진단 정답 파일 없음, 관리자 열쇠 모양 없음,
@@ -53,6 +54,7 @@ def main():
         sys.exit('[실패] config.js 에서 MODE: "local" 줄을 찾지 못했어요')
     s2 = re.sub(r'DEV_CODES:\s*\[[^\]]*\]', "DEV_CODES: []", s2, count=1)
     s2 = re.sub(r'SHOW_DRAFT_HINTS:\s*true', "SHOW_DRAFT_HINTS: false", s2, count=1)
+    s2 = re.sub(r'SHOW_DRAFT_LECTURES:\s*true', "SHOW_DRAFT_LECTURES: false", s2, count=1)
     s2 = re.sub(r'DEV_ADMIN_EMAILS:\s*\[[^\]]*\]', "DEV_ADMIN_EMAILS: []", s2, count=1)
     open(cfg, "w", encoding="utf-8").write(STAMP + "\n" + s2)
 
@@ -74,7 +76,7 @@ def main():
             problems.append("비밀 열쇠 모양: " + rel)
         if re.search(r"service_role[\"']?\s*[:=]\s*[\"'][^\"']+", t):
             problems.append("service_role 값: " + rel)
-        if rel.endswith("config.js") and re.search(r'DEV_CODES:\s*\[\s*"|SHOW_DRAFT_HINTS:\s*true|DEV_ADMIN_EMAILS:\s*\[\s*"', t):
+        if rel.endswith("config.js") and re.search(r'DEV_CODES:\s*\[\s*"|SHOW_DRAFT_HINTS:\s*true|SHOW_DRAFT_LECTURES:\s*true|DEV_ADMIN_EMAILS:\s*\[\s*"', t):
             problems.append("개발용 설정이 남음: " + rel)
         if "window.LU_DEV_DIAG_KEY = {" in t:
             problems.append("진단 정답 내용: " + rel)
