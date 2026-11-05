@@ -18,8 +18,9 @@
     team: null, teamErr: "", teamConfirm: false,   // [M2] 홈 팀 카드
     weekly: null, wk: null, wkResult: null,        // [M2 3차] 공통 점검 상태 · 푸는 중 {week, items, idx, answers:{qid: 보기|null}, selected, fake} · 제출 결과
     expl: null, explQ: null, explDraft: null, explMsg: "",   // [M2 3차] 해설 당번 (explDraft: null = 쓰는 중 아님)
+    lecs: null, lec: null, lecMsg: "",             // [강의 보기] 목록 {openUpTo, items} · 보고 있는 강 {lecture, title, minutes, body, draft} · 안내 한 줄
     busy: false,  // 서버(저장소)에 묻는 중이면 true → 그동안 버튼 잠금 (QA 1·2번: 연타로 문제 건너뜀 방지)
-    run: null,    // {reviews:[qid], newLeft, extra, xpStart, recent:[{qid,lecture,R}], seen:[qid], log:[{qid,mode,outcome,xp}]}
+    run: null,    // {reviews:[qid], newLeft, extra, lecture(강의 보기에서 시작했으면 강 번호), xpStart, recent:[{qid,lecture,R}], seen:[qid], log:[{qid,mode,outcome,xp}]}
     item: null    // {qid, q, mode, order, st, selected, hints, thought, concept, result, triedWrong:[orig], msg, tutor}
                   // tutor = [M2 2차] AI 튜터 {loading, hidden, status, draft, msg, replies:[{q, kind, reply}]} — 질문 글은 이 문제 화면 안(메모리)에만
   };
@@ -133,6 +134,13 @@
     var run = S.run;
     if (run.reviews.length) return openItem(run.reviews.shift(), "REVIEW", false);
     if (run.newLeft <= 0) return endRun(false);
+    if (run.lecture) {   // [강의 보기] 그 강의 아직 안 푼 연습 문항 (next_practice 는 안 씀 · 마감은 서버 close_item 규칙 그대로)
+      return STORE.lecturePractice(run.lecture, run.seen).then(function (p) {
+        if (!p) return endRun(true);
+        run.newLeft--;
+        return openItem(p.qid, "PRACTICE", false);
+      }).catch(fail);
+    }
     return STORE.nextPractice(run.recent, run.seen).then(function (p) {
       if (!p) return endRun(true);
       run.newLeft--;
@@ -159,6 +167,74 @@
     S.run.noMore = noMore;
     return Promise.all([refreshStudent(), STORE.today()]).then(function (r) { S.today = r[1]; go("done"); }).catch(fail);
   }
+  /* ---------- [강의 보기] ---------- */
+  function openLectures() {
+    return STORE.lectureList().then(function (r) { S.lecs = r; S.lecMsg = ""; go("lectures"); });
+  }
+  function openLecture(n) {
+    return STORE.lecture(n).then(function (l) {
+      if (!l) throw new Error(lecName(n) + "은 아직 준비 중이에요. 다른 강을 골라 주세요.");
+      S.lec = l; S.lecMsg = ""; go("lecture");
+    });
+  }
+  function startLecturePractice(n) {
+    if (needDiag(S.student)) return startDiag();   // 진단 10문항 전에는 연습 못 함 (D4) — 오늘의 학습과 같음
+    return Promise.all([STORE.today(), STORE.lecturePractice(n, [])]).then(function (r) {
+      S.today = r[0];
+      if (!r[1]) { S.lecMsg = "이 강의 연습 문제는 이미 다 풀었어요. 틀렸던 문제는 복습 날에 다시 나와요."; render(); return; }
+      // 한 번에 최대 5문제(오늘의 새 문제 수와 같음). 경험치 규칙은 오늘의 학습과 똑같음 (읽기에는 경험치 없음)
+      S.run = { reviews: [], newLeft: LU.C.NEW_PER_DAY - 1, extra: true, lecture: n, xpStart: Number(r[0].xpToday) || 0,
+                recent: [], seen: [], log: [] };
+      return openItem(r[1].qid, "PRACTICE", false);
+    });
+  }
+  function inl(x) {   // 강의 글 한 줄: 글자는 모두 escape, 굵게만 <b>
+    return (x || []).map(function (p) { return p[1] ? "<b>" + esc(p[0]) + "</b>" : esc(p[0]); }).join("");
+  }
+  function lecBody(blocks) {
+    return blocks.map(function (k) {
+      if (k.t === "h") return k.lv === 3 ? "<h4>" + inl(k.text) + "</h4>" : "<h3>" + inl(k.text) + "</h3>";
+      if (k.t === "p") return "<p>" + inl(k.text) + "</p>";
+      if (k.t === "quote") return "<blockquote>" + k.lines.map(function (l) { return "<p>" + inl(l) + "</p>"; }).join("") + "</blockquote>";
+      if (k.t === "ul" || k.t === "ol") return "<" + k.t + (k.key ? ' class="lec-key"' : "") + ">" +
+        k.items.map(function (i) { return "<li>" + inl(i) + "</li>"; }).join("") + "</" + k.t + ">";
+      if (k.t === "table") return '<div class="lec-table" role="region" aria-label="표" tabindex="0"><table>' +
+        (k.head.length ? "<thead><tr>" + k.head.map(function (c) { return '<th scope="col">' + inl(c) + "</th>"; }).join("") + "</tr></thead>" : "") +
+        "<tbody>" + k.rows.map(function (r) { return "<tr>" + r.map(function (c) { return "<td>" + inl(c) + "</td>"; }).join("") + "</tr>"; }).join("") +
+        "</tbody></table></div>";
+      return "";
+    }).join("");
+  }
+  function vLectures() {
+    var L = S.lecs;
+    var rows = L.items.map(function (x) {
+      return x.ready
+        ? '<li><button class="lec-row" data-act="lecture" data-n="' + x.lecture + '"><span class="tag">' + lecName(x.lecture) + '</span>' +
+          '<span class="lec-t">' + esc(x.title) + (x.draft ? ' <span class="sub">(검토 전 · 개발용)</span>' : "") + '</span>' +
+          (x.minutes ? '<span class="lec-min">약 ' + x.minutes + '분</span>' : "") + '</button></li>'
+        : '<li><div class="lec-row soon" data-n="' + x.lecture + '"><span class="tag">' + lecName(x.lecture) + '</span><span class="lec-t">준비 중</span></div></li>';
+    }).join("");
+    return '<div class="content"><h2>강의 보기</h2>' +
+      '<p class="sub">강마다 5분쯤 읽는 핵심 정리예요. 다 읽고 맨 아래에서 그 강 연습 문제를 풀 수 있어요. (읽기에는 경험치가 없어요)</p>' +
+      (L.items.length ? '<ol class="lec-list" id="lec-list">' + rows + '</ol>' : '<p id="lec-none">아직 열린 강의가 없어요.</p>') +
+      (L.openUpTo < 30 ? '<p class="sub" id="lec-locked">' + lecName(L.openUpTo + 1) + '부터는 교수님이 열면 보여요.</p>' : "") +
+      '<!--ERR--></div><div class="bottombar"><button class="btn btn-primary" data-act="home">홈으로</button></div>';
+  }
+  function vLecture() {
+    var l = S.lec;
+    return '<div class="content lecture" id="lecture" data-n="' + l.lecture + '">' +
+      '<div class="qhead-row"><span class="tag">' + lecName(l.lecture) + '</span>' +
+      (l.minutes ? '<span class="sub" id="lec-min">읽는 시간 약 ' + l.minutes + '분</span>' : "") + '</div>' +
+      '<h2 class="lec-title" id="lec-title">' + esc(l.title) + '</h2>' +
+      (l.draft ? '<p class="storage-note" id="lec-draft">[개발용] 교수 검토 전 강의 노트예요. Supabase 모드에서는 검토 끝난 강만 보여요.</p>' : "") +
+      '<article class="lec-body" id="lec-body">' + lecBody(l.body) + '</article>' +
+      '<div class="btn-col lec-actions" id="lec-actions">' +
+      (S.lecMsg ? '<p class="tried" id="lec-msg" role="status">' + esc(S.lecMsg) + '</p>' : "") +
+      '<button class="btn btn-primary" data-act="lecture-practice">이 강 연습 문제 풀기</button>' +
+      '<button class="btn btn-secondary" data-act="home">홈으로</button>' +
+      '<button class="linkbtn" data-act="lectures">강의 목록으로</button></div><!--ERR--></div>';
+  }
+
   function closeIfNeeded() {
     var it = S.item;
     if (!it.st.closed || it.result) { render(); return Promise.resolve(); }
@@ -179,7 +255,8 @@
     var who = document.getElementById("who");
     who.textContent = S.student && S.student.nickname ? S.student.nickname + " 님" : "";
     var h = ({ loading: vLoading, login: vLogin, nickname: vNickname, diag: vDiag, diagResult: vDiagResult,
-               home: vHome, item: vItem, done: vDone, weekly: vWeekly, weeklyDone: vWeeklyDone })[S.screen]();
+               home: vHome, item: vItem, done: vDone, weekly: vWeekly, weeklyDone: vWeeklyDone,
+               lectures: vLectures, lecture: vLecture })[S.screen]();
     var err = S.err ? '<div class="note" role="alert" id="err"><div class="note-title">문제가 생겼어요</div>' + esc(S.err) + '</div>' : "";
     app.innerHTML = '<section class="screen" data-screen="' + S.screen + '">' + h.replace("<!--ERR-->", err) + '</section>';
     if (S.screen === "item") { startTick(); maybeLoadTutor(); }
@@ -282,6 +359,8 @@
       '<ul class="stats"><li><b id="xp-week">' + t.weekXp + '</b><span>이번 주 학습량 XP</span></li>' +
       '<li><b id="solved-week">' + t.weekSolved + '</b><span>이번 주 푼 문항</span></li>' +
       '<li><b id="xp-total">' + s.xp + '</b><span>모은 XP</span></li></ul>' +
+      '<div class="card lec-entry" id="lec-entry"><h3>강의 노트</h3><p class="sub">1~30강 핵심을 5분이면 읽어요. 읽고 나서 그 강 연습 문제를 풀 수 있어요.</p>' +
+      '<button class="btn btn-secondary" data-act="lectures">강의 보기</button></div>' +
       weeklyCard() + teamCard() + explainerCard() +
       '<p class="sub">경험치는 문제를 끝까지 풀면 10 XP, 복습에서 혼자 맞히면 +5 XP예요. 힌트를 써도 줄지 않아요. 이미 푼 문제는 복습 날에 다시 풀 때만 경험치가 있어요.</p>' +
       '<!--ERR--><button class="linkbtn" data-act="logout">다른 코드로 들어가기</button></div>' +
@@ -582,14 +661,16 @@
   function vDone() {
     var run = S.run, t = S.today, st = t.streak;
     var xp = run.log.reduce(function (a, l) { return a + l.xp; }, 0);
-    return '<div class="content"><h2>' + (run.extra ? "더 풀기 끝!" : "오늘 할 일 완료") + '</h2>' +
-      (run.noMore ? '<div class="info" id="no-more">지금 열린 강의의 새 문제를 다 풀었어요. 복습 날짜가 되면 다시 나와요.</div>' : "") +
+    return '<div class="content"><h2>' + (run.lecture ? lecName(run.lecture) + " 연습 끝!" : run.extra ? "더 풀기 끝!" : "오늘 할 일 완료") + '</h2>' +
+      (run.noMore ? '<div class="info" id="no-more">' + (run.lecture ? "이 강의 아직 안 푼 연습 문제를 다 풀었어요. 틀렸던 문제는 복습 날에 다시 나와요."
+        : "지금 열린 강의의 새 문제를 다 풀었어요. 복습 날짜가 되면 다시 나와요.") + '</div>' : "") +
       '<p><span class="xp-pop" id="run-xp">이번에 +' + xp + ' XP</span></p>' +
       '<div class="rv" id="run-log">' + run.log.map(function (l) {
         return '<div class="rv-row ' + (l.outcome === O.SHOWN ? "no" : "ok") + '"><span class="rv-k">' + (l.mode === "REVIEW" ? "복습" : "새 문제") + '</span><span class="rv-v">' + esc(l.outcome) + ' · +' + l.xp + ' XP</span></div>';
       }).join("") + '</div>' +
       '<p>' + (st.current ? '연속 학습 ' + st.current + '일째' : '오늘 ' + LU.C.STUDY_DAY_MIN + '문항을 끝까지 풀면 학습한 날이 돼요') + '</p></div>' +
-      '<div class="bottombar"><button class="btn btn-primary" data-act="home">홈으로</button></div>';
+      '<div class="bottombar"><button class="btn btn-primary" data-act="home">홈으로</button>' +
+      (run.lecture ? '<button class="btn btn-secondary" data-act="lecture" data-n="' + run.lecture + '">' + lecName(run.lecture) + ' 다시 읽기</button>' : "") + '</div>';
   }
 
   /* ---------- 힌트 버튼 시계 (1초마다 글자만 바꿈) ---------- */
@@ -671,6 +752,10 @@
           }).then(function () { render(); });
         });
       case "home": return guard(goHome);
+      /* [강의 보기] */
+      case "lectures": return guard(openLectures);
+      case "lecture": var ln = Number(b && b.dataset.n); if (!ln) return; return guard(function () { return openLecture(ln); });
+      case "lecture-practice": if (!S.lec) return; return guard(function () { return startLecturePractice(S.lec.lecture); });
       case "retry": S.err = ""; render(); return guard(boot);
       case "start": return guard(function () { return startRun(false); });
       case "start-extra": return guard(function () { return startRun(true); });

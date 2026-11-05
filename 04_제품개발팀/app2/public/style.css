@@ -340,3 +340,40 @@ select.sel{min-height:44px;padding:8px 10px;border-radius:var(--r-btn);border:1p
 @media (max-width:560px){.tutor-usage{grid-template-columns:repeat(2,1fr)}}
 .tbl td.qtxt{white-space:normal}
 .expl-item .tag{align-self:flex-start}
+
+/* ---------- 6. [강의 보기] 강의 노트 목록 · 강 페이지 (휴대폰 360·390px에서 읽기 좋게, 글자 크게) ---------- */
+.lec-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lec-row{
+  display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:10px 14px;text-align:left;
+  background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--r-choice);
+  font:inherit;font-size:1.0625rem;line-height:1.4;cursor:pointer;
+}
+button.lec-row:active{transform:scale(.99)}
+.lec-row .tag{flex:none}
+.lec-row .lec-t{flex:1;min-width:0;font-weight:700}
+.lec-row .lec-min{flex:none;font-size:.875rem;color:var(--text-2);font-weight:600}
+.lec-row.soon{background:var(--surface-2);color:var(--text-2);cursor:default}
+.lec-row.soon .lec-t{font-weight:600}
+.lecture{gap:14px}
+.lec-title{font-size:1.5rem;line-height:1.4;font-weight:800;letter-spacing:-.01em}
+.lec-body{font-size:1.125rem;line-height:1.8;display:flex;flex-direction:column;gap:14px}
+.lec-body h3{font-size:1.25rem;line-height:1.4;font-weight:800;margin-top:10px;padding-top:12px;border-top:1px solid var(--border)}
+.lec-body h3:first-child{margin-top:0;padding-top:0;border-top:0}
+.lec-body h4{font-size:1.125rem;font-weight:700;margin:4px 0 0}
+.lec-body p{margin:0}
+.lec-body ul,.lec-body ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.lec-body b{font-weight:800}
+.lec-body blockquote{margin:0;padding:10px 14px;border-left:4px solid var(--primary);background:var(--surface-2);border-radius:0 10px 10px 0;color:var(--text)}
+.lec-body blockquote p+p{margin-top:4px}
+.lec-body .lec-key{list-style:none;padding:14px 16px;background:var(--primary-weak);border-radius:var(--r-card);counter-reset:k}
+.lec-body .lec-key li{counter-increment:k;padding-left:2em;position:relative;font-weight:600}
+.lec-body .lec-key li::before{content:counter(k);position:absolute;left:0;top:.15em;width:1.5em;height:1.5em;border-radius:50%;
+  background:var(--primary);color:var(--on-primary);font-size:.875rem;font-weight:800;display:grid;place-items:center;line-height:1}
+.lec-table{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.lec-table table{border-collapse:collapse;width:100%;min-width:100%;font-size:1rem;line-height:1.55}
+.lec-table th,.lec-table td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+.lec-table th{background:var(--surface-2);font-weight:700;white-space:nowrap}
+.lec-table tr:last-child td{border-bottom:0}
+.lec-actions{margin-top:8px;padding-top:16px;border-top:1px solid var(--border)}
+@media (max-width:374px){ .lec-body{font-size:1.0625rem} .lec-table th,.lec-table td{padding:8px 10px} }
+.lec-entry{display:flex;flex-direction:column;gap:8px}

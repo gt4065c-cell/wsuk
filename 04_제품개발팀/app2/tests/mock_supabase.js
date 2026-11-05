@@ -16,6 +16,12 @@
        (채점은 이 가짜 서버가. 응시 기록은 mock_db.weekly[코드][주] — 맞힌 수는 화면에 돌려주지 않음)
      __MOCK_DATA.explainer = {duty:'me'|별명, item:{qid,lecture,question,sourceSection}|null, body}
      __MOCK_DATA.adminTutor / adminWeekly = 교수 함수가 돌려줄 가짜 값
+   - [80 세션 복구] localStorage 'mock_gone_users' = [지워진 임시 계정 uid] → auth.getUser() 가 진짜 서버처럼 403 user_not_found,
+       claim_code 는 __MOCK_DATA.fix80 이 true 면 {ok:false, error:'NO_AUTH'}(80번 적용 후), 아니면 진짜 FK 오류(23503, 적용 전)
+       'mock_gone_after_get' = true 면 getUser 는 통과시키고 claim_code 에서만 막힘(확인과 연결 사이에 지워진 경우)
+       'mock_gone_all' = true 면 새로 만든 계정까지 모두 지워진 것처럼(다시 시도해도 실패) · 'mock_getuser_fail' = true 면 getUser 가 인터넷 오류
+   - [강의 보기] __MOCK_DATA.lectures = [{lecture,title,minutes,body_json,status}] (없으면 lectures 표 없음 = 80번 적용 전),
+       __MOCK_DATA.openUpTo = app_settings.open_up_to (없으면 30). attempts 표는 내 풀이 기록(question_id)만
    ========================================================= */
 (function () {
   "use strict";
@@ -35,6 +41,7 @@
 
   var SKEY = "mock_session";   // 지금 부르는 클라이언트의 세션 칸 (createClient 의 storageKey 로 정함)
   function session() { return ls(SKEY); }
+  function gone(uid) { return !!ls("mock_gone_all") || (ls("mock_gone_users") || []).indexOf(uid) >= 0; }
   function meCode() { var s = session(); if (!s) return null; return db().devices[s.uid] || null; }
 
   /* [M2] 팀 요약: 가짜 팀원 숫자 + 내 이번 주 기록(xp > 0)으로 schema(30_m2) 와 같은 규칙 계산 */
@@ -146,6 +153,11 @@
     },
     claim_code: function (a) {
       var s = session(); if (!s) return err("NO_AUTH");
+      if (gone(s.uid)) {
+        if (D.fix80) return ok({ ok: false, error: "NO_AUTH" });
+        return Promise.resolve({ data: null, error: { code: "23503", message: 'insert or update on table "student_devices" violates foreign key constraint "student_devices_auth_uid_fkey"',
+                                                      details: "Key (auth_uid)=(" + s.uid + ") is not present in table \"users\"." } });
+      }
       var x = db(); x.tries[s.uid] = (x.tries[s.uid] || 0) + 1; save(x);
       if (fail().claim_code === "too_many" || x.tries[s.uid] > 10) return ok({ ok: false, error: "too_many" });
       var c = String(a.p_code || "").replace(/\s/g, "").toUpperCase();
@@ -252,6 +264,9 @@
     if (table === "hints") return Object.keys(D.reviewedHints || {}).map(function (k) { var h = D.reviewedHints[k]; return { question_id: k, l1: h.l1, l2: h.l2, l3: h.l3 }; });
     if (table === "concept_cards") { if (!D.cards) return null; return D.cards.filter(function (k) { return k.status === "reviewed"; }).map(function (k) { return { lecture: k.lecture, title: k.title, lines: k.lines }; }); }   // 학생 규칙: reviewed 만
     if (table === "students") return c ? [x.students[c]] : [];
+    if (table === "app_settings") return [{ id: 1, open_up_to: D.openUpTo === undefined ? 30 : D.openUpTo }];
+    if (table === "lectures") { if (!D.lectures) return null; return D.lectures.filter(function (k) { return k.status === "reviewed"; }).map(function (k) { return { lecture: k.lecture, title: k.title, minutes: k.minutes, body_json: k.body_json }; }); }   // 학생 규칙: reviewed 만, status 칸 없음
+    if (table === "attempts") return c ? x.attempts.filter(function (t) { return t.code === c; }).map(function (t) { return { question_id: t.qid, mode: t.mode, day: t.day }; }) : [];
     if (table === "diag_answers") return c ? Object.keys(x.diag[c] || {}).map(function (k) { return { question_id: k, choice: x.diag[c][k] }; }) : [];
     return null;
   }
@@ -267,6 +282,7 @@
         var f = fail()["from:" + table];
         if (f) return err(f).then(res, rej);
         if (table === "students" && /theta|n_answers|\*/.test(q.cols)) return err("permission denied for table students").then(res, rej);
+        if (table === "lectures" && /status|\*/.test(q.cols)) return err("permission denied for table lectures").then(res, rej);
         var rows = tableRows(table);
         if (rows === null) return err("permission denied for table " + table).then(res, rej);
         q.eq.forEach(function (e) { rows = rows.filter(function (r) { return r[e[0]] === e[1]; }); });
@@ -288,6 +304,15 @@
       return {
         auth: {
           getSession: function () { use(); log({ t: "getSession" }); return ok({ session: session() }); },
+          // [80] 서버에 그 계정이 아직 있는지 (지워졌으면 진짜 서버처럼 403 user_not_found)
+          getUser: function () {
+            use(); log({ t: "getUser" }); var s = session();
+            if (!s) return Promise.resolve({ data: { user: null }, error: { name: "AuthSessionMissingError", message: "Auth session missing!", status: 400 } });
+            if (ls("mock_getuser_fail")) return Promise.resolve({ data: { user: null }, error: { name: "AuthRetryableFetchError", message: "Failed to fetch", status: 0 } });
+            if (gone(s.uid) && !ls("mock_gone_after_get"))
+              return Promise.resolve({ data: { user: null }, error: { name: "AuthApiError", message: "User from sub claim in JWT does not exist", status: 403, code: "user_not_found" } });
+            return ok({ user: s.user || { id: s.uid, is_anonymous: true } });
+          },
           // [M2] 교수 이메일 로그인 흉내: 등록된 이메일(adminUsers)만 메일 발송, 6자리 숫자 123456 이면 로그인
           signInWithOtp: function (p) {
             use(); log({ t: "signInWithOtp", email: p && p.email, options: p && p.options });
