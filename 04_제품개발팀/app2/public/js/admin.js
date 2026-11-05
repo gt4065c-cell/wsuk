@@ -11,8 +11,11 @@
    보여 주지 않는 것: 학생 코드, 개인 XP·숨은 실력값·정오답 (학생은 별명으로만)
 
    로그인
-     Supabase 모드: 교수 이메일 → Supabase가 로그인 메일(매직링크) 발송 → 메일의 링크를 누르면 이 화면으로 돌아와 로그인
+     Supabase 모드: [기본] 교수 이메일 + 비밀번호 (signInWithPassword) — 메일을 보내지 않으므로 메일 한도(시간당 몇 통)와 무관
+                    [보조] "메일로 로그인 링크 받기" → Supabase가 로그인 메일(매직링크) 발송 → 링크를 누르면 이 화면으로 돌아와 로그인
                     (메일에 6자리 숫자가 있으면 숫자로도 가능). 새 계정은 만들지 않음(shouldCreateUser: false)
+                    비밀번호는 입력 칸에서 바로 읽어 서버에 보내고 끝 — 변수·localStorage·로그 어디에도 남기지 않음
+                    어느 방법이든 로그인 뒤 admin_whoami 가 교수 여부를 판정
                     → 교수 계정은 Supabase 관리 화면에서 미리 등록 + admins 표에 이메일 등록(README 6장)
                     서버 함수(admin_*)가 매번 "admins 표에 있는, 메일 확인 끝난 계정인지" 다시 확인 → 학생이 열면 거절
      로컬 모드   : 메일 없이 config.js 의 가짜 교수 이메일(DEV_ADMIN_EMAILS)로 바로 들어감 + 가짜 통계(가짜 학생 50명)
@@ -55,11 +58,18 @@
   function explain(e) {
     var m = String((e && (e.message || e.error_description || e.msg)) || e || "");
     var code = e && (e.status || e.code);
+    var ecode = String((e && e.code) || "");
     if (/NOT_ADMIN/.test(m)) return "교수 계정이 아니라서 볼 수 없어요.";
-    if (/signups? not allowed|user not found|otp_disabled|email not confirmed/i.test(m))
-      return "교수 계정으로 등록되지 않은 이메일이에요. 교수 계정은 Supabase에 먼저 등록해야 해요(README 6장).";
+    if (ecode === "invalid_credentials" || /invalid login credentials/i.test(m))
+      return "이메일이나 비밀번호가 맞지 않아요. 다시 확인해 주세요. 비밀번호가 생각나지 않으면 아래 '메일로 로그인 링크 받기'를 눌러 주세요.";
+    if (ecode === "email_not_confirmed" || /email not confirmed/i.test(m))
+      return "아직 이메일 확인이 끝나지 않은 계정이에요. 비서실장에게 확인을 부탁하세요.";
+    if (/signups? not allowed|user not found|otp_disabled/i.test(m))
+      return "교수 계정으로 등록되지 않은 이메일이에요. 비서실장에게 등록을 부탁하세요.";
     if (/jwt expired|refresh token|invalid jwt/i.test(m)) return "로그인이 만료됐어요. 다시 로그인해 주세요.";
-    if (code === 429 || code === "429" || /rate limit|after \d+ seconds|too many/i.test(m)) return "로그인 메일을 너무 자주 요청했어요. 1분쯤 뒤에 다시 해 주세요.";
+    if (ecode === "over_email_send_rate_limit" || /email rate limit|over_email_send_rate_limit|after \d+ seconds/i.test(m))
+      return "로그인 메일은 한 시간에 몇 통만 보낼 수 있어요. 비밀번호로 로그인하거나 한 시간쯤 뒤에 다시 해 주세요.";
+    if (code === 429 || code === "429" || /rate limit|too many/i.test(m)) return "짧은 시간에 너무 여러 번 시도했어요. 몇 분 뒤에 다시 해 주세요.";
     if (/token has expired|otp.?expired|invalid.*(token|otp)|(token|otp).*invalid|expired/i.test(m)) return "숫자나 링크가 틀렸거나 시간이 지났어요. 로그인 메일을 다시 받아 주세요.";
     if (/could not find the function|PGRST202/i.test(m)) return "서버에 교수 화면 기능이 아직 설치되지 않았어요(30_m2_teams_admin.sql 적용 전). 비서실장에게 알려 주세요.";
     if (/failed to fetch|networkerror|network request failed|load failed|fetch failed|timeout/i.test(m)) return "서버에 닿지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요.";
@@ -94,6 +104,7 @@
       return Promise.resolve({ instant: true });
     },
     verifyCode: function () { return Promise.resolve(); },
+    passwordLogin: function (email) { return LocalAdmin.sendLink(email); },   // 로컬 모드는 비밀번호 칸이 없음(가짜 교수 이메일만)
     logout: function () { lsDel(LOCAL_KEY); return Promise.resolve(); },
     whoami: function () {
       var t = kstToday();
@@ -214,6 +225,10 @@
     verifyCode: function (email, code) {
       return sb().then(function (c) { return c.auth.verifyOtp({ email: email, token: code, type: "email" }); }).then(unwrap);
     },
+    // 비밀번호는 인자로만 받아 바로 보냄(어디에도 저장·기록하지 않음). 교수 여부는 이어서 admin_whoami 가 판정
+    passwordLogin: function (email, password) {
+      return sb().then(function (c) { return c.auth.signInWithPassword({ email: email, password: password }); }).then(unwrap);
+    },
     logout: function () {
       return sb().then(function (c) { return c.auth.signOut({ scope: "local" }); }).then(function () {}, function () {});
     },
@@ -289,12 +304,17 @@
     return '<div class="content"><div class="brand"><div class="logo">LU</div><div><h1>교수 화면</h1><div class="brand-sub">반 전체 학습 현황 (교수 계정 전용)</div></div></div>' +
       '<div class="field"><label for="email">교수 이메일</label><input id="email" class="text" type="email" inputmode="email" autocomplete="email" spellcheck="false" placeholder="이메일 주소" value="' + esc(A.email) + '"' + (A.sent ? " readonly" : "") + '></div>' +
       (local ? '<div class="info">[개발용] 로컬 모드 가짜 교수 이메일: <span class="mono">' + esc((CFG.DEV_ADMIN_EMAILS || []).join(" · ")) + '</span> (메일 없이 바로 들어가요)</div>'
-             : '<p class="sub">비밀번호는 없어요. 이메일로 온 로그인 링크를 누르면 들어와요. 학생 코드로는 들어올 수 없어요.</p>') +
+             : (A.sent ? "" :
+               // 비밀번호 칸: value 를 넣지 않음(다시 그리면 비워짐) · 브라우저 비밀번호 저장/자동완성은 허용
+               '<div class="field"><label for="password">비밀번호</label><input id="password" class="text" type="password" autocomplete="current-password" spellcheck="false" autocapitalize="off" placeholder="교수 계정 비밀번호"></div>' +
+               '<div class="btn-col"><button class="btn btn-primary" data-act="password">로그인</button></div>' +
+               '<p class="sub" id="pw-help">학생 코드로는 들어올 수 없어요. 비밀번호가 생각나지 않으면 아래 버튼으로 로그인 메일을 받을 수 있어요(메일은 한 시간에 몇 통만 보낼 수 있어요).</p>' +
+               '<div class="btn-col"><button class="btn btn-secondary" data-act="send">메일로 로그인 링크 받기</button></div>')) +
       (A.sent ? '<div class="info" id="sent">로그인 메일을 보냈어요. <b>메일의 링크를 이 브라우저에서</b> 누르면 이 화면으로 돌아와요. 메일에 6자리 숫자가 있으면 아래에 넣어도 돼요.</div>' +
         '<div class="field"><label for="otp">메일의 숫자 (있을 때만)</label><input id="otp" class="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" value="' + esc(A.code) + '"></div>' +
         '<div class="btn-col"><button class="btn btn-secondary" data-act="verify">숫자로 들어가기</button><button class="linkbtn" data-act="reset">다른 이메일로</button></div>' : "") +
       '<!--ERR--></div>' +
-      (A.sent ? "" : '<div class="bottombar"><button class="btn btn-primary" data-act="send">' + (local ? "들어가기" : "로그인 메일 받기") + '</button></div>');
+      (A.sent || !local ? "" : '<div class="bottombar"><button class="btn btn-primary" data-act="send">들어가기</button></div>');
   }
   function vNotAdmin() {
     return '<div class="content"><h2>교수 계정이 아니에요</h2><p id="not-admin">' + esc(A.email || "이 계정") + ' 은(는) 교수 계정으로 등록되어 있지 않아 반 전체 정보를 볼 수 없어요.</p>' +
@@ -408,7 +428,11 @@
     if (e.target.id === "otp") A.code = e.target.value;
   });
   root.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && e.target.id === "email") act("send");
+    if (e.key === "Enter" && e.target.id === "email") {
+      var pw = document.getElementById("password");
+      if (pw) pw.focus(); else act("send");
+    }
+    if (e.key === "Enter" && e.target.id === "password") act("password");
     if (e.key === "Enter" && e.target.id === "otp") act("verify");
   });
   root.addEventListener("change", function (e) {
@@ -433,6 +457,17 @@
             if (r && r.instant) return afterLogin();
             A.sent = true; go("login");
           });
+        });
+      case "password":
+        var pemail = String(A.email || "").trim();
+        var pel = document.getElementById("password");
+        var pw = pel ? pel.value : "";
+        if (!validEmail(pemail)) { A.err = "이메일 주소 모양이 아니에요. 다시 확인해 주세요."; return render(); }
+        if (!pw) { A.err = "비밀번호를 넣어 주세요."; return render(); }
+        A.email = pemail; A.err = "";
+        return guard(function () {
+          var p = ADM.passwordLogin(pemail, pw); pw = ""; if (pel) pel.value = "";
+          return p.then(function () { return afterLogin(); });
         });
       case "verify":
         var code = String(A.code || "").replace(/\s/g, "");

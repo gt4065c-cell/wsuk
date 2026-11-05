@@ -297,6 +297,19 @@
             if (!known && p.options && p.options.shouldCreateUser === false) return Promise.resolve({ data: null, error: { message: "Signups not allowed for otp", status: 422, code: "otp_disabled" } });
             ls("mock_otp_pending", e); return ok({ user: null, session: null });
           },
+          // [M2 로그인 보강] 이메일+비밀번호 흉내: 등록된 이메일(adminUsers) + 비밀번호 D.adminPassword(기본 'fake-pass-1234')
+          //   비밀번호는 기록하지 않음(로그에는 길이만). 틀리면 진짜 서버처럼 400 invalid_credentials (이메일 미등록도 같은 오류)
+          signInWithPassword: function (p) {
+            use(); var pw = String((p && p.password) || "");
+            log({ t: "signInWithPassword", email: p && p.email, pwLen: pw.length, keys: Object.keys(p || {}).sort() });
+            var f = fail().signInWithPassword; if (f) return Promise.resolve({ data: { user: null, session: null }, error: { message: f, status: 429, code: "over_request_rate_limit" } });
+            var e = String((p && p.email) || "").toLowerCase();
+            var known = (D.adminUsers || []).map(function (y) { return y.toLowerCase(); }).indexOf(e) >= 0;
+            if (!known || pw !== (D.adminPassword || "fake-pass-1234"))
+              return Promise.resolve({ data: { user: null, session: null }, error: { message: "Invalid login credentials", status: 400, code: "invalid_credentials" } });
+            var s = { uid: "user-" + e, access_token: "fake", user: { id: "user-" + e, email: e, is_anonymous: false } };
+            ls(SKEY, s); return ok({ user: s.user, session: s });
+          },
           verifyOtp: function (p) {
             use(); log({ t: "verifyOtp", email: p && p.email, token: p && p.token, type: p && p.type });
             if (String(p.token) !== "123456" || ls("mock_otp_pending") !== String(p.email).toLowerCase())
