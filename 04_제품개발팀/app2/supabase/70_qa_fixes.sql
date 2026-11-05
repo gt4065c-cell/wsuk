@@ -1,7 +1,7 @@
 -- =====================================================================
 -- 레벨업 캠퍼스 2단계 — 결재3 전 QA "낮음" 지적 정리 (QA #5 ~ #11)
 --
--- 상태: ⏳ 실DB 미적용 (2026-11-03 앱 개발자 작성). 적용은 비서실장이 합니다.
+-- 상태: ✅ 실DB 적용 완료 (2026-11-05, 캡틴이 SQL Editor에서 실행 — md5 대조, 개념 카드 30장 포함). 비서실장 실DB 시험 통과
 -- 실행 순서: schema.sql → 30_m2_teams_admin.sql → 40_ox_fix.sql → 50_ai_tutor.sql → 60_m2_weekly_explainer.sql → 이 파일
 --           여러 번 실행해도 같은 결과(create or replace / revoke·grant 만). 표·데이터는 바꾸지 않습니다.
 -- 내 컴퓨터 시험: supabase/local_test/run_qa_fixes_local.sh (임시 PostgreSQL, 진짜 DB 아님)
