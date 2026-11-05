@@ -1,7 +1,7 @@
 -- =====================================================================
 -- 레벨업 캠퍼스 2단계 — ① 지워진 익명 계정으로 코드 입력 시 오류(student_devices FK) 막기 ② 강의 노트(lectures) 표
 --
--- 상태: ⏳ 실DB 미적용 (비서실장이 SQL Editor 에서 적용). 작성 2026-11-05 앱 개발자
+-- 상태: ✅ 실DB 적용 완료 (2026-11-05 비서실장, apply_migration). 작성 2026-11-05 앱 개발자
 -- 실행 순서: schema.sql → 30 → 40 → 50 → 60 → 70_qa_fixes.sql → 이 파일
 --           여러 번 실행해도 같은 결과(create or replace / if not exists / drop policy if exists). 기존 데이터는 바꾸지 않음
 -- 내 컴퓨터 시험: supabase/local_test/run_session_fix_local.sh (임시 PostgreSQL, 진짜 DB 아님)
