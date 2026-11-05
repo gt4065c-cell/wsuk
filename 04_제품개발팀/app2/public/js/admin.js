@@ -467,7 +467,7 @@
         A.email = pemail; A.err = "";
         return guard(function () {
           var p = ADM.passwordLogin(pemail, pw); pw = ""; if (pel) pel.value = "";
-          return p.then(function () { return afterLogin(); });
+          return p.then(function (d) { if (d && d.user && d.user.email) A.email = d.user.email; return afterLogin(); });
         });
       case "verify":
         var code = String(A.code || "").replace(/\s/g, "");

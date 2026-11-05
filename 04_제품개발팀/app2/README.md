@@ -163,7 +163,7 @@ bash supabase/local_test/run_m2_local.sh   # [M2 1차] SQL만 따로 시험 (임
    - 다시 짜기: `admin_assign_teams('2027-1', true)` · 한 명 옮기기: `select admin_move_student('코드', '3팀');` · 1인 목표 바꾸기: `update teams set goal_per_member = 10 where cohort = '2027-1';`
    - 결과에 나오는 코드는 교수님 화면에서만 봅니다.
 
-교수 화면 로그인: `admin.html?mode=supabase` → 교수 이메일 → 메일의 링크를 **같은 브라우저에서** 누름(메일에 6자리 숫자가 있으면 숫자로도 가능). 서버 함수가 매번 "admins 표의 이메일 + 메일 확인 끝난 계정 + 익명 아님"을 다시 확인하므로, 학생 기기로 열면 "교수 계정이 아니에요"가 나옵니다.
+교수 화면 로그인: `admin.html?mode=supabase` → **교수 이메일 + 비밀번호 → [로그인]**(기본, 메일을 보내지 않음). 비밀번호가 생각나지 않을 때만 [메일로 로그인 링크 받기] → 메일의 링크를 **같은 브라우저에서** 누름(메일에 6자리 숫자가 있으면 숫자로도 가능). Supabase 기본 메일은 시간당 몇 통만 보낼 수 있어서(429 over_email_send_rate_limit) 메일 방식은 보조로만 씁니다. 비밀번호는 화면이 어디에도 저장·기록하지 않습니다(브라우저 비밀번호 저장 기능은 허용). 테스트: `node tests/run_e2e_admin_login.js`. 서버 함수가 매번 "admins 표의 이메일 + 메일 확인 끝난 계정 + 익명 아님"을 다시 확인하므로, 학생 기기로 열면 "교수 계정이 아니에요"가 나옵니다.
 
 ### 6-4. 서버 함수 (30_m2_teams_admin.sql)
 | 함수 | 누가 | 하는 일 |

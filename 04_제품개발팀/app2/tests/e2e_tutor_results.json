@@ -4,21 +4,21 @@
   "name": "진단 12문항 화면에는 AI 튜터 버튼이 한 번도 안 보임",
   "status": "pass",
   "note": "",
-  "ms": 1079
+  "ms": 1034
  },
  {
   "id": "U-02",
   "name": "미리 만든 힌트가 있는 문항: L0~L2 에서는 AI 튜터 없음 → L3 본 뒤 [AI 튜터에게 물어보기] + \"오늘 5번 남음\"",
   "status": "pass",
   "note": "L01-Q1",
-  "ms": 799
+  "ms": 775
  },
  {
   "id": "U-13",
   "name": "빈 질문 칸: 버튼 위 \"궁금한 점을 한 줄 쓰면 버튼이 켜져요\" 안내 + 예시 placeholder → 글 쓰면 안내 사라지고 버튼 켜짐 (360·390px)",
   "status": "pass",
   "note": "",
-  "ms": 321
+  "ms": 299
  },
  {
   "id": "U-03",
@@ -32,7 +32,7 @@
   "name": "정답 노출 차단(blocked) → 안전 문구 + 힌트 2단계 다시 보기 + 횟수 그대로(4번)",
   "status": "pass",
   "note": "",
-  "ms": 235
+  "ms": 222
  },
  {
   "id": "U-05",
@@ -46,84 +46,84 @@
   "name": "AI 오류 → \"횟수는 줄지 않았어요\" 안내, 질문 글은 칸에 그대로",
   "status": "pass",
   "note": "",
-  "ms": 166
+  "ms": 151
  },
  {
   "id": "U-07",
   "name": "오늘 남은 횟수 0 → 버튼 회색 + \"내일 다시 열려요. 팀원에게 물어보는 것도 좋아요\"",
   "status": "pass",
   "note": "",
-  "ms": 1000
+  "ms": 979
  },
  {
   "id": "U-08",
   "name": "문항을 끝내면(정답과 해설) 질문 칸은 사라지고 주고받은 답은 남음",
   "status": "pass",
   "note": "",
-  "ms": 30197
+  "ms": 30215
  },
  {
   "id": "U-09",
   "name": "미리 만든 힌트가 없는 문항: 답 전에는 없음 → 오답 1번 낸 뒤 AI 튜터 열림",
   "status": "pass",
   "note": "L01-E1",
-  "ms": 1149
+  "ms": 1113
  },
  {
   "id": "U-10",
   "name": "꺼짐 흉내(BUDGET) → \"이번 달 AI 튜터 사용량이 다 찼어요\" + 버튼 회색",
   "status": "pass",
   "note": "",
-  "ms": 172
+  "ms": 181
  },
  {
   "id": "U-11",
   "name": "O/X 문항(힌트 없음)은 1번 내면 끝나므로 AI 튜터가 열리지 않음",
   "status": "pass",
   "note": "힌트 없는 O/X 문항 없음 — 건너뜀",
-  "ms": 3
+  "ms": 4
  },
  {
   "id": "U-12",
   "name": "로컬 모드: 인터넷 요청 0건(Anthropic·Supabase), 자바스크립트 오류 0건",
   "status": "pass",
   "note": "",
-  "ms": 1
+  "ms": 0
  },
  {
   "id": "V-01",
   "name": "서버 남은 횟수(tutor_status) 표시 → 질문은 Edge Function ai-tutor 로, 보내는 것은 문항 번호·힌트 단계·오답 번호·질문 글뿐",
   "status": "pass",
   "note": "",
-  "ms": 633
+  "ms": 547
  },
  {
   "id": "V-02",
   "name": "서버가 꺼짐(BUDGET)이라고 하면 쉬운 안내 + 버튼 회색, Edge Function 은 부르지 않음",
   "status": "pass",
   "note": "",
-  "ms": 486
+  "ms": 378
  },
  {
   "id": "V-03",
   "name": "질문 중 서버가 거절(NOT_PRACTICE 등) → 서버 안내 한 줄 표시",
   "status": "pass",
   "note": "",
-  "ms": 517
+  "ms": 486
  },
  {
   "id": "V-04",
   "name": "서버에 AI 튜터가 아직 없으면(SQL 적용 전) 버튼을 조용히 숨김 — 문제 풀이는 그대로",
   "status": "pass",
   "note": "",
-  "ms": 528
+  "ms": 446
  },
  {
   "id": "V-05",
   "name": "진짜 supabase-js: POST /functions/v1/ai-tutor, 학생 로그인 토큰(Bearer)·공개 열쇠(apikey), Anthropic 직접 요청 0건",
   "status": "pass",
   "note": "",
-  "ms": 670
+  "ms": 589
  },
  {
   "id": "V-06",
