@@ -49,12 +49,12 @@
     let mem;
     if (due.length) {
       const first = lecs[due[0]];
-      mem = '<div class="card vis memo due" id="memAlert"><div class="lbl">🧠 기억 다지기 <span class="r">' + due.length + '개 강</span></div>' +
+      mem = '<div class="card vis memcard due" id="memAlert"><div class="lbl">🧠 기억 다지기 <span class="r">' + due.length + '개 강</span></div>' +
         '<p class="memsay">"팀장님, ' + due[0] + '강 \'' + esc(first ? first.teach || first.title : '') + '\' 기술이 가물가물해요…"</p>' +
         '<div class="membtns">' + due.map(n => '<button class="btn primary" id="revBtn' + n + '">' + n + '강 기억 다지기 (2문제) ▶</button>').join('') + '</div>' +
         '<div class="note">다시 꺼낼 때가 된 기술이에요. 틀려도 잃는 것은 없어요.</div></div>';
     } else {
-      mem = '<div class="card vis memo" id="memAlert"><div class="lbl">🧠 기억 다지기</div>' +
+      mem = '<div class="card vis memcard" id="memAlert"><div class="lbl">🧠 기억 다지기</div>' +
         (nx ? '<p>오늘은 없어요. 다음: <b>' + nx.n + '강 · ' + RK.dayLabel(nx.due) + '</b>' + (nx.due - today === 1 ? ' (내일)' : '') + '</p>' : '<p>모든 강 복습 완료 — 단단한 카드!</p>') + '</div>';
     }
     // 수첩 요약: 강별 규칙 수 + 가장 최근 강 규칙
@@ -131,7 +131,7 @@
       $('#rkStage').innerHTML = RK.rookieSVG(RK.stageFor(st.lv), 'think');
       $('#bubble .who').textContent = st.name;
       const hud = k => {
-        $('#hudLv').textContent = 'Lv.' + st.lv; $('#hudTitle').textContent = n + '강 기억 다지기'; $('#hudXp').textContent = 'XP ' + st.xp;
+        $('#hudLv').textContent = 'Lv.' + st.lv; $('#hudTitle').textContent = n + '강 복습'; $('#hudXp').textContent = 'XP ' + st.xp;
         $('#hudCards').textContent = '🧠 ' + k + '/' + qs.length; $('#hudBar').style.width = Math.round(k / qs.length * 100) + '%';
       };
       hud(0); window.scrollTo(0, 0);

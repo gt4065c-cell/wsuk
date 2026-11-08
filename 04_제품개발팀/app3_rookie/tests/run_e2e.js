@@ -214,6 +214,7 @@ async function play(page, S, opts = {}) {
       if (a.dragOrd != null) {
         const ids = () => page.evaluate(() => [...document.querySelectorAll('#ordList .ord')].map(r => r.dataset.i));
         const before = await ids();
+        await page.evaluate(() => document.getElementById('ordList').scrollIntoView({ block: 'center' }));
         const s = await page.locator('#ordList .ord .tx').nth(a.dragOrd).boundingBox(), d = await page.locator('#ordList .ord').nth(a.to).boundingBox();
         const x = s.x + s.width / 2, y0 = s.y + s.height / 2, y1 = d.y + 4;
         await page.mouse.move(x, y0); await page.mouse.down();
@@ -532,6 +533,7 @@ function estimateMinutes(log) {
     return { ctx, page };
   };
   const goDay = async (page, d) => {
+    if (!page.url().startsWith(BASE)) await page.goto(BASE + '?office=1');
     await page.evaluate(d => sessionStorage.setItem('rkShiftDays', String(d)), d);
     await page.goto(BASE + '?office=1');
     await page.waitForFunction(() => window.RK && RK.cur && RK.cur.type === 'office', null, { timeout: 8000 });

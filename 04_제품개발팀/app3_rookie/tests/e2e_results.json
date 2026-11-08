@@ -1,21 +1,21 @@
 {
-  "at": "2026-11-08T09:58:07.123Z",
-  "pass": 33,
+  "at": "2026-11-08T10:26:41.832Z",
+  "pass": 42,
   "fail": 0,
   "results": [
     {
       "id": "S1",
       "name": "가짜 학생 ① 맞게 가르친 학생(또롱이) 360x740 끝까지",
       "status": "pass",
-      "note": "장면 46개, 26초(연출 실측)",
-      "ms": 26417
+      "note": "장면 49개, 26초(연출 실측)",
+      "ms": 26863
     },
     {
       "id": "S2",
       "name": "가짜 학생 ② 틀리게 가르친 학생(삐삐) 360x640·빠른 진행 끝까지",
       "status": "pass",
-      "note": "장면 59개, 8초",
-      "ms": 8633
+      "note": "장면 60개, 8초",
+      "ms": 8701
     },
     {
       "id": "K1",
@@ -56,50 +56,57 @@
       "id": "K6",
       "name": "오류 0 · 외부 요청 0 · 가로 넘침 0 · 14px 미만 글자 0 (두 학생 모두)",
       "status": "pass",
-      "note": "두 학생 모든 장면 점검 (105번)",
+      "note": "두 학생 모든 장면 점검 (109번)",
       "ms": 0
     },
     {
       "id": "K7",
       "name": "재미 규칙: 손 조작 3번 이상, 글만 있는 화면 2개 연속 없음, 손가락 끌기",
       "status": "pass",
-      "note": "또롱이 손 조작 18번 / 대사 넘기기 19번 / 평가 3 / 카드 6, 글만 있는 화면 최대 연속 0개",
+      "note": "또롱이 손 조작 19번 / 대사 넘기기 21번 / 평가 3 / 카드 6, 글만 있는 화면 최대 연속 0개",
       "ms": 0
     },
     {
       "id": "K8",
       "name": "한 강 5~8분 안 (사람 속도 어림, 범위)",
       "status": "pass",
-      "note": "또롱이 빠른 사람 약 4.7분 ~ 처음 하는 사람 약 6분 (연출 실측 26초 + 대사 19×3.5초 + 조작 18×5초 + 평가 3×25초 + 카드 6×4초) · 삐삐(빠른 진행·틀리고 고침) 약 5.4분",
-      "ms": 1
+      "note": "또롱이 빠른 사람 약 4.9분 ~ 처음 하는 사람 약 6.2분 (연출 실측 26초 + 대사 21×3.5초 + 조작 19×5초 + 평가 3×25초 + 카드 6×4초) · 삐삐(빠른 진행·틀리고 고침) 약 5.5분",
+      "ms": 0
+    },
+    {
+      "id": "A1",
+      "name": "1강 눈높이 갈림길: 삐삐(2번+ 틀림) → 쉬운 예시 / 또롱이(첫 시도 다 맞힘) → 도전 업무",
+      "status": "pass",
+      "note": "삐삐: 업무 1에서 3번 틀림 → 업무 2 앞에 \"쉬운 예시 한 장면\" · 또롱이: 업무 1 뒤 도전 업무 수락·첫 선택 정답(+10 XP)",
+      "ms": 0
     },
     {
       "id": "R1",
       "name": "업무 1 끝내고 나가기 → 다시 열면 \"업무 2부터 이어 하기\"",
       "status": "pass",
       "note": "업무 2부터 이어 하기 ▶ → 업무 2/5부터, 수첩 1번 그대로",
-      "ms": 2492
+      "ms": 2768
     },
     {
       "id": "P1",
       "name": "부품 시험장: 짝 맞추기·순서 맞추기·빈칸 채우기·미니 만들기 (틀림 포함)",
       "status": "pass",
       "note": "4종 모두 끝까지, 틀린 뒤에도 진행",
-      "ms": 3321
+      "ms": 3277
     },
     {
       "id": "L2-S1",
       "name": "2강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
       "status": "pass",
-      "note": "장면 38개, 18초(연출 실측)",
-      "ms": 18258
+      "note": "장면 40개, 19초(연출 실측)",
+      "ms": 19155
     },
     {
       "id": "L2-S2",
       "name": "2강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
       "status": "pass",
-      "note": "장면 53개, 7초",
-      "ms": 7552
+      "note": "장면 54개, 7초",
+      "ms": 7459
     },
     {
       "id": "L2-K1",
@@ -119,22 +126,29 @@
       "id": "L2-K3",
       "name": "2강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
       "status": "pass",
-      "note": "손 조작 17번 · 대사 13번 · 장면 종류 home·talk·order·teach·card·fill·spot·pick·sort·exam·go·levelup · 빠른 사람 약 4.1분 ~ 처음 하는 사람 약 5.2분 · 삐삐 약 5분",
+      "note": "손 조작 17번 · 대사 15번 · 장면 종류 home·talk·order·teach·card·fill·spot·offer·pick·sort·exam·go·levelup · 빠른 사람 약 4.2분 ~ 처음 하는 사람 약 5.4분 · 삐삐 약 5.1분",
+      "ms": 0
+    },
+    {
+      "id": "L2-A",
+      "name": "2강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L02-T2: 삐삐 5번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
       "ms": 0
     },
     {
       "id": "L3-S1",
       "name": "3강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
       "status": "pass",
-      "note": "장면 35개, 41초(연출 실측)",
-      "ms": 41790
+      "note": "장면 38개, 42초(연출 실측)",
+      "ms": 42326
     },
     {
       "id": "L3-S2",
       "name": "3강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
       "status": "pass",
-      "note": "장면 49개, 7초",
-      "ms": 8281
+      "note": "장면 50개, 7초",
+      "ms": 8090
     },
     {
       "id": "L3-K1",
@@ -154,22 +168,29 @@
       "id": "L3-K3",
       "name": "3강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
       "status": "pass",
-      "note": "손 조작 19번 · 대사 9번 · 장면 종류 home·talk·pick·sort·teach·card·fill·spot·match·exam·go·levelup · 빠른 사람 약 4.3분 ~ 처음 하는 사람 약 5.4분 · 삐삐 약 4.8분",
+      "note": "손 조작 20번 · 대사 11번 · 장면 종류 home·talk·pick·sort·teach·card·offer·fill·spot·match·exam·go·levelup · 빠른 사람 약 4.5분 ~ 처음 하는 사람 약 5.6분 · 삐삐 약 4.9분",
+      "ms": 0
+    },
+    {
+      "id": "L3-A",
+      "name": "3강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L03-T1: 삐삐 4번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
       "ms": 0
     },
     {
       "id": "L4-S1",
       "name": "4강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
       "status": "pass",
-      "note": "장면 36개, 39초(연출 실측)",
-      "ms": 39879
+      "note": "장면 39개, 40초(연출 실측)",
+      "ms": 40555
     },
     {
       "id": "L4-S2",
       "name": "4강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
       "status": "pass",
-      "note": "장면 48개, 7초",
-      "ms": 7491
+      "note": "장면 49개, 7초",
+      "ms": 7742
     },
     {
       "id": "L4-K1",
@@ -189,22 +210,29 @@
       "id": "L4-K3",
       "name": "4강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
       "status": "pass",
-      "note": "손 조작 17번 · 대사 12번 · 장면 종류 home·talk·reply·match·teach·card·spot·sort·exam·go·levelup · 빠른 사람 약 4.3분 ~ 처음 하는 사람 약 5.4분 · 삐삐 약 4.6분",
+      "note": "손 조작 18번 · 대사 14번 · 장면 종류 home·talk·reply·match·teach·card·offer·pick·spot·sort·exam·go·levelup · 빠른 사람 약 4.5분 ~ 처음 하는 사람 약 5.7분 · 삐삐 약 4.7분",
+      "ms": 0
+    },
+    {
+      "id": "L4-A",
+      "name": "4강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L04-T1: 삐삐 3번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
       "ms": 0
     },
     {
       "id": "L5-S1",
       "name": "5강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
       "status": "pass",
-      "note": "장면 38개, 40초(연출 실측)",
-      "ms": 40667
+      "note": "장면 40개, 41초(연출 실측)",
+      "ms": 41663
     },
     {
       "id": "L5-S2",
       "name": "5강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
       "status": "pass",
-      "note": "장면 53개, 7초",
-      "ms": 7890
+      "note": "장면 54개, 7초",
+      "ms": 7989
     },
     {
       "id": "L5-K1",
@@ -224,8 +252,15 @@
       "id": "L5-K3",
       "name": "5강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
       "status": "pass",
-      "note": "손 조작 18번 · 대사 13번 · 장면 종류 home·talk·sort·teach·card·build·go·pick·order·reply·exam·levelup · 빠른 사람 약 4.4분 ~ 처음 하는 사람 약 5.5분 · 삐삐 약 5분",
-      "ms": 1
+      "note": "손 조작 18번 · 대사 15번 · 장면 종류 home·talk·sort·teach·card·build·go·offer·pick·order·reply·exam·levelup · 빠른 사람 약 4.6분 ~ 처음 하는 사람 약 5.8분 · 삐삐 약 5.1분",
+      "ms": 0
+    },
+    {
+      "id": "L5-A",
+      "name": "5강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L05-T2: 삐삐 4번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
+      "ms": 0
     },
     {
       "id": "L5-P",
@@ -233,23 +268,52 @@
       "status": "pass",
       "note": "Lv.5 · 사원 · 헤드셋",
       "ms": 0
+    },
+    {
+      "id": "D1",
+      "name": "순서 맞추기 부품: 손가락으로 줄 끌어 옮기기 (▲▼ 버튼도 그대로)",
+      "status": "pass",
+      "note": "L2 0123→2013 · L5 0123→2013 (줄 번호 순서), 나머지는 ▲▼ 버튼",
+      "ms": 0
+    },
+    {
+      "id": "O1",
+      "name": "루키 사무실: 내 루키(직급·장식)·수첩 요약·카드 모음·기억 다지기 알림·30강 지도 입구·팀(예시)",
+      "status": "pass",
+      "note": "Lv.1 · 수습 · 사원증 · 장식 가슴 명찰 · 수첩 3개 · 카드 5장 · \"오늘은 없어요. 다음: 1강 · 11월 9일 (내일)\" · 지도 30칸 · 2강 입구",
+      "ms": 622
+    },
+    {
+      "id": "M1",
+      "name": "기억 다지기: 1·3·7·14일 뒤에만 열림, 2문제(평가 문항 재사용·순서 섞기), 다 맞히면 별 +1 → 단단한 카드",
+      "status": "pass",
+      "note": "1일:열림 2일:- 3일:열림 5일:- 7일:열림 14일:열림 15일:- · 4번 다 맞힘 → 기억 ★★★★ 단단한 카드 · 회당 +15 XP · 순서 섞임 4/4번",
+      "ms": 2448
+    },
+    {
+      "id": "M2",
+      "name": "기억 다지기 틀림: 카드·별·Lv 그대로, 상자 처음으로 → 다음 날 다시",
+      "status": "pass",
+      "note": "2문제 틀림 → 카드 5장·Lv.1 그대로, +10 XP, 다음 날(4일째) 다시 열림",
+      "ms": 649
     }
   ],
   "good": {
-    "steps": 46,
-    "ms": 25773,
+    "steps": 49,
+    "ms": 26259,
     "kinds": {
       "go": 4,
       "type:home": 1,
-      "talk": 15,
-      "type:talk": 15,
-      "hand": 18,
+      "talk": 17,
+      "type:talk": 16,
+      "hand": 19,
       "type:swipe": 5,
-      "type:pick": 2,
+      "type:pick": 3,
       "type:go": 3,
       "type:teach": 2,
       "card": 6,
       "type:card": 5,
+      "type:offer": 1,
       "type:spot": 2,
       "type:reply": 1,
       "type:give": 1,
@@ -286,13 +350,14 @@
           "to": "학사 문의",
           "note": "1"
         },
+        "lec": 1,
         "history": [
           {
             "k": "exact",
             "ok": true,
             "rule": "'과목을 바꾸'가 있으면 → 학사 문의",
             "where": "처음 가르침",
-            "at": 1794131679509
+            "at": 1794133386574
           }
         ]
       },
@@ -302,13 +367,14 @@
         "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
         "no": 2,
         "apply": null,
+        "lec": 1,
         "history": [
           {
             "k": "check",
             "ok": true,
             "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
             "where": "처음 가르침",
-            "at": 1794131685959
+            "at": 1794133393557
           }
         ]
       },
@@ -318,21 +384,22 @@
         "rule": "도구는 → 그 일에 필요한 것만 쓴다",
         "no": 3,
         "apply": null,
+        "lec": 1,
         "history": [
           {
             "k": "record",
             "ok": true,
             "rule": "도구는 → 그 일에 필요한 것만 쓴다",
             "where": "처음 가르침(건네기)",
-            "at": 1794131691986
+            "at": 1794133399490
           }
         ]
       }
     },
     "estimate": {
-      "minutes": 4.7,
-      "talk": 19,
-      "hand": 18,
+      "minutes": 4.9,
+      "talk": 21,
+      "hand": 19,
       "exam": 3,
       "card": 6,
       "animSec": 26
@@ -341,29 +408,30 @@
       "good_000_home.png",
       "good_002_swipe.png",
       "good_008_talk.png",
-      "good_014_go.png",
+      "good_014_offer.png",
       "good_022_card.png",
-      "good_030_sort.png",
-      "good_040_exam.png"
+      "good_030_talk.png",
+      "good_040_talk.png"
     ]
   },
   "lectures2to5": {
     "L2good": {
-      "steps": 38,
-      "ms": 17670,
+      "steps": 40,
+      "ms": 18552,
       "kinds": {
         "go": 2,
         "type:home": 1,
-        "talk": 11,
-        "type:talk": 11,
+        "talk": 13,
+        "type:talk": 12,
         "hand": 17,
-        "type:order": 5,
+        "type:order": 4,
         "type:teach": 3,
         "card": 5,
         "type:card": 4,
         "type:fill": 2,
         "type:spot": 1,
-        "type:pick": 1,
+        "type:offer": 1,
+        "type:pick": 2,
         "type:sort": 5,
         "exam": 3,
         "type:exam": 3,
@@ -393,12 +461,12 @@
         "stageName": "사원증"
       },
       "estimate": {
-        "minutes": 4.1,
-        "talk": 13,
+        "minutes": 4.2,
+        "talk": 15,
         "hand": 17,
         "exam": 3,
         "card": 5,
-        "animSec": 18
+        "animSec": 19
       },
       "notebook": {
         "L2R1": {
@@ -407,13 +475,14 @@
           "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
           "no": 1,
           "apply": null,
+          "lec": 2,
           "history": [
             {
               "k": "use",
               "ok": true,
               "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
               "where": "처음 가르침",
-              "at": 1794131716776
+              "at": 1794133424763
             }
           ]
         },
@@ -423,13 +492,14 @@
           "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
           "no": 2,
           "apply": null,
+          "lec": 2,
           "history": [
             {
               "k": "narrow",
               "ok": true,
               "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
               "where": "처음 가르침",
-              "at": 1794131720792
+              "at": 1794133428724
             }
           ]
         },
@@ -439,25 +509,26 @@
           "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
           "no": 3,
           "apply": null,
+          "lec": 2,
           "history": [
             {
               "k": "measure",
               "ok": true,
               "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
               "where": "처음 가르침",
-              "at": 1794131728711
+              "at": 1794133437190
             }
           ]
         }
       }
     },
     "L2bad": {
-      "steps": 53,
-      "ms": 6851,
+      "steps": 54,
+      "ms": 6805,
       "kinds": {
         "go": 2,
         "type:home": 1,
-        "talk": 15,
+        "talk": 16,
         "type:talk": 15,
         "hand": 28,
         "type:order": 6,
@@ -466,6 +537,7 @@
         "type:card": 4,
         "type:fill": 3,
         "type:spot": 3,
+        "type:easy": 1,
         "type:pick": 3,
         "type:sort": 6,
         "exam": 3,
@@ -502,8 +574,8 @@
         "stageName": "사원증"
       },
       "estimate": {
-        "minutes": 5,
-        "talk": 17,
+        "minutes": 5.1,
+        "talk": 18,
         "hand": 28,
         "exam": 3,
         "card": 5,
@@ -516,27 +588,28 @@
           "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
           "no": 1,
           "apply": null,
+          "lec": 2,
           "history": [
             {
               "k": "count",
               "ok": false,
               "rule": "일이 끝나는 때는 → 문항 개수를 채웠을 때",
               "where": "처음 가르침",
-              "at": 1794131734658
+              "at": 1794133443271
             },
             {
               "k": "draft",
               "ok": false,
               "rule": "일이 끝나는 때는 → 초안이 완성됐을 때",
               "where": "업무 3에서 결과 보고 고침",
-              "at": 1794131737074
+              "at": 1794133445692
             },
             {
               "k": "use",
               "ok": true,
               "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
               "where": "업무 3에서 결과 보고 고침",
-              "at": 1794131737489
+              "at": 1794133446105
             }
           ]
         },
@@ -546,20 +619,21 @@
           "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
           "no": 2,
           "apply": null,
+          "lec": 2,
           "history": [
             {
               "k": "pass",
               "ok": false,
               "rule": "메모 밖 문항도 → 개수를 채웠으니 통과",
               "where": "처음 가르침",
-              "at": 1794131735824
+              "at": 1794133444388
             },
             {
               "k": "narrow",
               "ok": true,
               "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
               "where": "업무 3에서 결과 보고 고침",
-              "at": 1794131736389
+              "at": 1794133445006
             }
           ]
         },
@@ -569,39 +643,41 @@
           "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
           "no": 3,
           "apply": null,
+          "lec": 2,
           "history": [
             {
               "k": "guess",
               "ok": false,
               "rule": "성과 보고는 → 느낌대로 '절반으로 줄었다'",
               "where": "처음 가르침",
-              "at": 1794131738925
+              "at": 1794133447504
             },
             {
               "k": "measure",
               "ok": true,
               "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
               "where": "새 사례 결과 보고 고침",
-              "at": 1794131739925
+              "at": 1794133448555
             }
           ]
         }
       }
     },
     "L3good": {
-      "steps": 35,
-      "ms": 41209,
+      "steps": 38,
+      "ms": 41705,
       "kinds": {
         "go": 2,
         "type:home": 1,
-        "talk": 7,
-        "type:talk": 7,
-        "hand": 19,
-        "type:pick": 1,
+        "talk": 9,
+        "type:talk": 8,
+        "hand": 20,
+        "type:pick": 2,
         "type:sort": 6,
         "type:teach": 3,
         "card": 4,
         "type:card": 3,
+        "type:offer": 1,
         "type:fill": 4,
         "type:spot": 1,
         "type:match": 4,
@@ -633,12 +709,12 @@
         "stageName": "사원증"
       },
       "estimate": {
-        "minutes": 4.3,
-        "talk": 9,
-        "hand": 19,
+        "minutes": 4.5,
+        "talk": 11,
+        "hand": 20,
         "exam": 3,
         "card": 4,
-        "animSec": 41
+        "animSec": 42
       },
       "notebook": {
         "L3R1": {
@@ -647,13 +723,14 @@
           "rule": "요청문에는 → 목표·자료·제약·완료 기준",
           "no": 1,
           "apply": null,
+          "lec": 3,
           "history": [
             {
               "k": "four",
               "ok": true,
               "rule": "요청문에는 → 목표·자료·제약·완료 기준",
               "where": "처음 가르침",
-              "at": 1794131766806
+              "at": 1794133475303
             }
           ]
         },
@@ -663,13 +740,14 @@
           "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
           "no": 2,
           "apply": null,
+          "lec": 3,
           "history": [
             {
               "k": "part",
               "ok": true,
               "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
               "where": "처음 가르침",
-              "at": 1794131770891
+              "at": 1794133480188
             }
           ]
         },
@@ -679,25 +757,26 @@
           "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
           "no": 3,
           "apply": null,
+          "lec": 3,
           "history": [
             {
               "k": "verify",
               "ok": true,
               "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
               "where": "처음 가르침",
-              "at": 1794131778106
+              "at": 1794133487238
             }
           ]
         }
       }
     },
     "L3bad": {
-      "steps": 49,
-      "ms": 7457,
+      "steps": 50,
+      "ms": 7350,
       "kinds": {
         "go": 2,
         "type:home": 1,
-        "talk": 11,
+        "talk": 12,
         "type:talk": 11,
         "hand": 29,
         "type:pick": 2,
@@ -705,6 +784,7 @@
         "type:teach": 7,
         "card": 4,
         "type:card": 3,
+        "type:easy": 1,
         "type:fill": 6,
         "type:spot": 2,
         "type:match": 5,
@@ -742,8 +822,8 @@
         "stageName": "사원증"
       },
       "estimate": {
-        "minutes": 4.8,
-        "talk": 13,
+        "minutes": 4.9,
+        "talk": 14,
         "hand": 29,
         "exam": 3,
         "card": 4,
@@ -756,20 +836,21 @@
           "rule": "요청문에는 → 목표·자료·제약·완료 기준",
           "no": 1,
           "apply": null,
+          "lec": 3,
           "history": [
             {
               "k": "short",
               "ok": false,
               "rule": "요청문은 → 짧게 한 줄로",
               "where": "처음 가르침",
-              "at": 1794131784622
+              "at": 1794133493786
             },
             {
               "k": "four",
               "ok": true,
               "rule": "요청문에는 → 목표·자료·제약·완료 기준",
               "where": "업무 3에서 결과 보고 고침",
-              "at": 1794131787656
+              "at": 1794133496855
             }
           ]
         },
@@ -779,27 +860,28 @@
           "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
           "no": 2,
           "apply": null,
+          "lec": 3,
           "history": [
             {
               "k": "redo",
               "ok": false,
               "rule": "빠진 곳이 있으면 → 전부 다시 만들게 한다",
               "where": "처음 가르침",
-              "at": 1794131785940
+              "at": 1794133495136
             },
             {
               "k": "longer",
               "ok": false,
               "rule": "빠진 곳이 있으면 → 더 길고 자세하게 써 달라",
               "where": "업무 2에서 결과 보고 고침",
-              "at": 1794131786455
+              "at": 1794133495652
             },
             {
               "k": "part",
               "ok": true,
               "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
               "where": "업무 2에서 결과 보고 고침",
-              "at": 1794131786973
+              "at": 1794133496170
             }
           ]
         },
@@ -809,39 +891,42 @@
           "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
           "no": 3,
           "apply": null,
+          "lec": 3,
           "history": [
             {
               "k": "trust",
               "ok": false,
               "rule": "요청문이 좋으면 → 내용도 맞다고 본다",
               "where": "처음 가르침",
-              "at": 1794131788820
+              "at": 1794133497989
             },
             {
               "k": "verify",
               "ok": true,
               "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
               "where": "새 사례 결과 보고 고침",
-              "at": 1794131789888
+              "at": 1794133498971
             }
           ]
         }
       }
     },
     "L4good": {
-      "steps": 36,
-      "ms": 39233,
+      "steps": 39,
+      "ms": 39910,
       "kinds": {
         "go": 2,
         "type:home": 1,
-        "talk": 10,
-        "type:talk": 10,
-        "hand": 17,
+        "talk": 12,
+        "type:talk": 11,
+        "hand": 18,
         "type:reply": 1,
         "type:match": 6,
         "type:teach": 3,
         "card": 4,
         "type:card": 3,
+        "type:offer": 1,
+        "type:pick": 1,
         "type:spot": 1,
         "type:sort": 6,
         "exam": 3,
@@ -872,12 +957,12 @@
         "stageName": "사원증"
       },
       "estimate": {
-        "minutes": 4.3,
-        "talk": 12,
-        "hand": 17,
+        "minutes": 4.5,
+        "talk": 14,
+        "hand": 18,
         "exam": 3,
         "card": 4,
-        "animSec": 39
+        "animSec": 40
       },
       "notebook": {
         "L4R1": {
@@ -886,13 +971,14 @@
           "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
           "no": 1,
           "apply": null,
+          "lec": 4,
           "history": [
             {
               "k": "source",
               "ok": true,
               "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
               "where": "처음 가르침",
-              "at": 1794131795571
+              "at": 1794133504570
             }
           ]
         },
@@ -902,13 +988,14 @@
           "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
           "no": 2,
           "apply": null,
+          "lec": 4,
           "history": [
             {
               "k": "hold",
               "ok": true,
               "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
               "where": "처음 가르침",
-              "at": 1794131799704
+              "at": 1794133509386
             }
           ]
         },
@@ -918,25 +1005,26 @@
           "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
           "no": 3,
           "apply": null,
+          "lec": 4,
           "history": [
             {
               "k": "prof",
               "ok": true,
               "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
               "where": "처음 가르침",
-              "at": 1794131826154
+              "at": 1794133535836
             }
           ]
         }
       }
     },
     "L4bad": {
-      "steps": 48,
-      "ms": 6768,
+      "steps": 49,
+      "ms": 7051,
       "kinds": {
         "go": 2,
         "type:home": 1,
-        "talk": 14,
+        "talk": 15,
         "type:talk": 14,
         "hand": 25,
         "type:reply": 3,
@@ -944,6 +1032,7 @@
         "type:teach": 7,
         "card": 4,
         "type:card": 3,
+        "type:easy": 1,
         "type:spot": 1,
         "type:sort": 6,
         "exam": 3,
@@ -980,8 +1069,8 @@
         "stageName": "사원증"
       },
       "estimate": {
-        "minutes": 4.6,
-        "talk": 16,
+        "minutes": 4.7,
+        "talk": 17,
         "hand": 25,
         "exam": 3,
         "card": 4,
@@ -994,20 +1083,21 @@
           "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
           "no": 1,
           "apply": null,
+          "lec": 4,
           "history": [
             {
               "k": "ask",
               "ok": false,
               "rule": "AI 결과 확인은 → '확실해?'라고 다시 묻기",
               "where": "처음 가르침",
-              "at": 1794131832520
+              "at": 1794133542285
             },
             {
               "k": "source",
               "ok": true,
               "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
               "where": "업무 2에서 결과 보고 고침",
-              "at": 1794131833086
+              "at": 1794133542900
             }
           ]
         },
@@ -1017,27 +1107,28 @@
           "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
           "no": 2,
           "apply": null,
+          "lec": 4,
           "history": [
             {
               "k": "false",
               "ok": false,
               "rule": "근거 없는 문장은 → 거짓으로 단정, AI 사용 중단",
               "where": "처음 가르침",
-              "at": 1794131834170
+              "at": 1794133544050
             },
             {
               "k": "keep",
               "ok": false,
               "rule": "근거 없는 문장도 → 그럴듯하면 그대로",
               "where": "업무 3에서 결과 보고 고침",
-              "at": 1794131834736
+              "at": 1794133544668
             },
             {
               "k": "hold",
               "ok": true,
               "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
               "where": "업무 3에서 결과 보고 고침",
-              "at": 1794131835153
+              "at": 1794133545086
             }
           ]
         },
@@ -1047,33 +1138,34 @@
           "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
           "no": 3,
           "apply": null,
+          "lec": 4,
           "history": [
             {
               "k": "ai",
               "ok": false,
               "rule": "최종 판단은 → AI 검토 결과대로",
               "where": "처음 가르침",
-              "at": 1794131836352
+              "at": 1794133546285
             },
             {
               "k": "prof",
               "ok": true,
               "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
               "where": "새 사례 결과 보고 고침",
-              "at": 1794131837354
+              "at": 1794133547301
             }
           ]
         }
       }
     },
     "L5good": {
-      "steps": 38,
-      "ms": 40096,
+      "steps": 40,
+      "ms": 41071,
       "kinds": {
         "go": 3,
         "type:home": 1,
-        "talk": 10,
-        "type:talk": 10,
+        "talk": 12,
+        "type:talk": 11,
         "hand": 18,
         "type:sort": 6,
         "type:teach": 3,
@@ -1081,8 +1173,9 @@
         "type:card": 3,
         "type:build": 3,
         "type:go": 2,
-        "type:pick": 1,
-        "type:order": 4,
+        "type:offer": 1,
+        "type:pick": 2,
+        "type:order": 3,
         "type:reply": 1,
         "exam": 3,
         "type:exam": 3,
@@ -1111,12 +1204,12 @@
         "stageName": "헤드셋"
       },
       "estimate": {
-        "minutes": 4.4,
-        "talk": 13,
+        "minutes": 4.6,
+        "talk": 15,
         "hand": 18,
         "exam": 3,
         "card": 4,
-        "animSec": 40
+        "animSec": 41
       },
       "notebook": {
         "L5R1": {
@@ -1125,13 +1218,14 @@
           "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
           "no": 1,
           "apply": null,
+          "lec": 5,
           "history": [
             {
               "k": "area",
               "ok": true,
               "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
               "where": "처음 가르침",
-              "at": 1794131861469
+              "at": 1794133571386
             }
           ]
         },
@@ -1141,13 +1235,14 @@
           "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
           "no": 2,
           "apply": null,
+          "lec": 5,
           "history": [
             {
               "k": "scope",
               "ok": true,
               "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
               "where": "처음 가르침",
-              "at": 1794131867734
+              "at": 1794133577783
             }
           ]
         },
@@ -1157,25 +1252,26 @@
           "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
           "no": 3,
           "apply": null,
+          "lec": 5,
           "history": [
             {
               "k": "server",
               "ok": true,
               "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
               "where": "처음 가르침",
-              "at": 1794131874301
+              "at": 1794133585200
             }
           ]
         }
       }
     },
     "L5bad": {
-      "steps": 53,
-      "ms": 7205,
+      "steps": 54,
+      "ms": 7353,
       "kinds": {
         "go": 3,
         "type:home": 1,
-        "talk": 14,
+        "talk": 15,
         "type:talk": 14,
         "hand": 29,
         "type:sort": 6,
@@ -1184,6 +1280,7 @@
         "type:card": 3,
         "type:build": 6,
         "type:go": 2,
+        "type:easy": 1,
         "type:pick": 2,
         "type:order": 5,
         "type:reply": 3,
@@ -1222,8 +1319,8 @@
         "stageName": "헤드셋"
       },
       "estimate": {
-        "minutes": 5,
-        "talk": 17,
+        "minutes": 5.1,
+        "talk": 18,
         "hand": 29,
         "exam": 3,
         "card": 4,
@@ -1236,20 +1333,21 @@
           "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
           "no": 1,
           "apply": null,
+          "lec": 5,
           "history": [
             {
               "k": "vague",
               "ok": false,
               "rule": "민원이 오면 → '게임이 이상해요'라고 넘긴다",
               "where": "처음 가르침",
-              "at": 1794131880369
+              "at": 1794133591416
             },
             {
               "k": "area",
               "ok": true,
               "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
               "where": "업무 2에서 결과 보고 고침",
-              "at": 1794131880951
+              "at": 1794133591999
             }
           ]
         },
@@ -1259,20 +1357,21 @@
           "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
           "no": 2,
           "apply": null,
+          "lec": 5,
           "history": [
             {
               "k": "wide",
               "ok": false,
               "rule": "고칠 때는 → 다른 영역도 같이 고친다",
               "where": "처음 가르침",
-              "at": 1794131882350
+              "at": 1794133593383
             },
             {
               "k": "scope",
               "ok": true,
               "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
               "where": "업무 3에서 결과 보고 고침",
-              "at": 1794131882951
+              "at": 1794133594016
             }
           ]
         },
@@ -1282,27 +1381,28 @@
           "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
           "no": 3,
           "apply": null,
+          "lec": 5,
           "history": [
             {
               "k": "screen",
               "ok": false,
               "rule": "공식 점수는 → 화면에 보이는 숫자",
               "where": "처음 가르침",
-              "at": 1794131884300
+              "at": 1794133595381
             },
             {
               "k": "self",
               "ok": false,
               "rule": "공식 점수는 → 학생이 입력한 숫자",
               "where": "새 사례 결과 보고 고침",
-              "at": 1794131885368
+              "at": 1794133596450
             },
             {
               "k": "server",
               "ok": true,
               "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
               "where": "새 사례 결과 보고 고침",
-              "at": 1794131885934
+              "at": 1794133597016
             }
           ]
         }
@@ -1310,12 +1410,12 @@
     }
   },
   "bad": {
-    "steps": 59,
-    "ms": 7946,
+    "steps": 60,
+    "ms": 7951,
     "kinds": {
       "go": 5,
       "type:home": 1,
-      "talk": 17,
+      "talk": 18,
       "type:talk": 17,
       "hand": 28,
       "type:swipe": 5,
@@ -1324,6 +1424,7 @@
       "type:teach": 5,
       "card": 6,
       "type:card": 5,
+      "type:easy": 1,
       "type:spot": 4,
       "type:reply": 2,
       "type:give": 2,
@@ -1365,20 +1466,21 @@
           "to": "학사 문의",
           "note": "1"
         },
+        "lec": 1,
         "history": [
           {
             "k": "all",
             "ok": false,
             "rule": "모르는 말은 전부 → 학사 문의",
             "where": "처음 가르침",
-            "at": 1794131702526
+            "at": 1794133409988
           },
           {
             "k": "exact",
             "ok": true,
             "rule": "'과목을 바꾸'가 있으면 → 학사 문의",
             "where": "업무 2에서 결과 보고 고침",
-            "at": 1794131703193
+            "at": 1794133410673
           }
         ]
       },
@@ -1388,20 +1490,21 @@
         "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
         "no": 2,
         "apply": null,
+        "lec": 1,
         "history": [
           {
             "k": "direct",
             "ok": false,
             "rule": "AI가 낸 결과는 → 확인 없이 바로 쓴다",
             "where": "처음 가르침",
-            "at": 1794131704426
+            "at": 1794133411940
           },
           {
             "k": "check",
             "ok": true,
             "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
             "where": "업무 3에서 결과 보고 고침",
-            "at": 1794131705375
+            "at": 1794133412956
           }
         ]
       },
@@ -1411,27 +1514,28 @@
         "rule": "도구는 → 그 일에 필요한 것만 쓴다",
         "no": 3,
         "apply": null,
+        "lec": 1,
         "history": [
           {
             "k": "master",
             "ok": false,
             "rule": "도구는 → 다 열리는 마스터키로 쓴다",
             "where": "처음 가르침(건네기)",
-            "at": 1794131706090
+            "at": 1794133413591
           },
           {
             "k": "record",
             "ok": true,
             "rule": "도구는 → 그 일에 필요한 것만 쓴다",
             "where": "새 사례 결과 보고 고침",
-            "at": 1794131708274
+            "at": 1794133415793
           }
         ]
       }
     },
     "estimate": {
-      "minutes": 5.4,
-      "talk": 22,
+      "minutes": 5.5,
+      "talk": 23,
       "hand": 28,
       "exam": 3,
       "card": 6,
@@ -1440,10 +1544,10 @@
     "shots": [
       "bad_000_home.png",
       "bad_010_go.png",
-      "bad_020_talk.png",
-      "bad_030_spot.png",
+      "bad_020_go.png",
+      "bad_030_teach.png",
       "bad_040_sort.png",
-      "bad_050_talk.png"
+      "bad_050_exam.png"
     ]
   }
 }

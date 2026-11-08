@@ -378,8 +378,8 @@ body.fast .confetti{display:none}
 .office-me .rkc-name{font-size:22px;font-weight:900}
 .me-st{font-size:15px;font-weight:800;color:var(--gold)}
 .me-deco{font-size:14px;color:var(--text-2);font-weight:700;margin-top:2px}
-.card.memo.due{border:2px solid var(--ok)}
-.card.memo p{font-size:15.5px}
+.card.memcard.due{border:2px solid var(--ok)}
+.card.memcard p{font-size:15.5px}
 .memsay{font-weight:800}
 .membtns{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .nbsub{font-size:14px;font-weight:800;color:#6B5600;margin-top:6px}
