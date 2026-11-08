@@ -1,4 +1,4 @@
-// 루키 1강 끝까지 자동 시험 (Playwright, 휴대폰 360px)
+// 루키 1~5강 끝까지 자동 시험 (Playwright, 휴대폰 360px)
 // 실행: node 04_제품개발팀/app3_rookie/tests/run_e2e.js
 // - 컴퓨터 안에서만 열리는 임시 서버(127.0.0.1)를 띄워 시험하고 끝나면 끕니다. 외부 공개 없음.
 // - 가짜 학생 2명: ① 맞게 가르친 학생(또롱이, 보통 속도, 손가락 끌기 1번)
@@ -75,7 +75,7 @@ async function inspect(page) {
       const r = b.getBoundingClientRect(); if (r.width && r.right > W + 1 && !b.closest('#toast')) over.push('버튼 밖으로: ' + (b.textContent || '').trim().slice(0, 15) + ' ' + Math.round(r.right));
     });
     const nlog = document.getElementById('nlog');
-    return { over, small: small.slice(0, 5), nlog: nlog ? nlog.innerText : null, together: !!document.querySelector('.together'), hint: !!document.querySelector('.hintme'), cmp: (document.getElementById('cmpN') || {}).innerText || null };
+    return { promo: !!document.querySelector('#overlay .promo'), over, small: small.slice(0, 5), nlog: nlog ? nlog.innerText : null, together: !!document.querySelector('.together'), hint: !!document.querySelector('.hintme'), cmp: (document.getElementById('cmpN') || {}).innerText || null };
   });
 }
 
@@ -104,7 +104,8 @@ function planInPage(S) {
     }
     case 'teach': {
       const opts = m.opts, note = m.note;
-      const want = m.attempt ? S.reteach : (S.teach[note] || 'ok');
+      // reteach: 'ok' 또는 { '수첩칸:몇번째': 보기 k } (두 번째도 틀리게 고쳐서 도움 2단계 확인)
+      const want = m.attempt ? (typeof S.reteach === 'object' ? (S.reteach[note + ':' + m.attempt] || 'ok') : S.reteach) : (S.teach[note] || 'ok');
       let i = want === 'ok' ? opts.findIndex(o => o.ok) : opts.findIndex(o => o.k === want);
       const b = sel('#actions .choice[data-i="' + i + '"]');
       if (i < 0 || !b || b.disabled) i = opts.findIndex(o => o.ok);
@@ -189,7 +190,7 @@ async function play(page, S, opts = {}) {
     insp.over.forEach(o => log.over.push(o)); insp.small.forEach(o => log.small.push(o));
     if (insp.nlog && log.nlog[log.nlog.length - 1] !== insp.nlog) log.nlog.push(insp.nlog);
     if (insp.cmp && log.cmp[log.cmp.length - 1] !== insp.cmp) log.cmp.push(insp.cmp);
-    log.together = log.together || insp.together; log.hint = log.hint || insp.hint;
+    log.together = log.together || insp.together; log.hint = log.hint || insp.hint; log.promo = log.promo || insp.promo;
     if (await stopAt(page)) { log.stopped = true; break; }
     const plan = await page.evaluate(planInPage, S);
     if (plan.done) break;
@@ -377,10 +378,99 @@ function estimateMinutes(log) {
     return '4종 모두 끝까지, 틀린 뒤에도 진행';
   });
 
+  /* ⑤ 2~5강: 강마다 가짜 학생 2명(맞게/틀리게 가르침). 앞 강은 수료한 것으로 미리 넣어 둠(Lv = 수료한 강 수) */
+  const PLANS = {
+    2: { teach: { L2R1: 'count', L2R2: 'pass', L2R3: 'guess' }, reteach: { 'L2R1:1': 'draft' }, exam: { 'L02-Q1': 2, 'L02-N1': 0 },
+      wrong: { 'L02-T1-order': 1, 'L02-T2-fill': 1, 'L02-T2-spot': 3, 'L02-T3-why': 2, 'L02-T4-sort': 1 } },
+    3: { teach: { L3R1: 'short', L3R2: 'redo', L3R3: 'trust' }, reteach: { 'L3R2:1': 'longer' }, exam: { 'L03-Q1': 3, 'L03-N1': 0 },
+      wrong: { 'L03-T1-why': 1, 'L03-T1-sort': 2, 'L03-T2-fill': 2, 'L03-T2-spot': 1, 'L03-T3-match': 1 } },
+    4: { teach: { L4R1: 'ask', L4R2: 'false', L4R3: 'ai' }, reteach: { 'L4R2:1': 'keep' }, exam: { 'L04-Q1': 1, 'L04-N1': 0 },
+      wrong: { 'L04-T1-ask': 2, 'L04-T2-match': 2, 'L04-T3-sort': 1 } },
+    5: { teach: { L5R1: 'vague', L5R2: 'wide', L5R3: 'screen' }, reteach: { 'L5R3:1': 'self' }, exam: { 'L05-Q1': 0, 'L05-N1': 0 },
+      wrong: { 'L05-T1-sort': 1, 'L05-T2-build': 3, 'L05-T3-save': 1, 'L05-T3-order': 1, 'L05-T3-num': 2 } }
+  };
+  const more = {};
+  for (const n of [2, 3, 4, 5]) {
+    const L = JSON.parse(fs.readFileSync(path.join(APP, 'content', 'lecture0' + n + '.json'), 'utf8'));
+    const P = PLANS[n], tag = 'L' + n;
+    const seed = name => ({ v: 1, name, lv: n - 1, xp: 0, cleared: Object.fromEntries([...Array(n - 1)].map((_, i) => [String(i + 1), { stars: 3, best: 3, at: 1, plays: 1 }])), cards: [], notebook: {}, records: [], progress: null });
+    const runOne = async (S, viewport, fast) => {
+      const { ctx, page } = await newPage(viewport);
+      await ctx.addInitScript(sd => { if (!localStorage.getItem('rk3.save.v1')) localStorage.setItem('rk3.save.v1', JSON.stringify(sd)); }, seed(S.name));
+      await page.goto(BASE + '?lecture=' + n);
+      if (fast) await page.click('#fastSwitch');
+      const log = await play(page, S, { shotsAt: [0, 20, 40] });
+      await page.screenshot({ path: path.join(SHOTS, `${S.label}_final.png`), fullPage: true });
+      log.errors = page._errors; log.external = page._external;
+      log.status = await page.evaluate(() => ({ text: RK.statusText(RK.state.lv), rank: RK.rankFor(RK.state.lv), stage: RK.stageFor(RK.state.lv), stageName: RK.STAGES[RK.stageFor(RK.state.lv)].name }));
+      await ctx.close();
+      return log;
+    };
+    const G = { label: tag + 'good', name: '또롱이', teach: {}, give: {}, reteach: 'ok', exam: {}, wrong: {}, drag: true };
+    const B = Object.assign({ label: tag + 'bad', name: '삐삐', give: {}, drag: false }, P);
+    await test(tag + '-S1', n + '강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지', async () => {
+      const log = await runOne(G, { width: 360, height: 740 }, false); more[tag + 'good'] = log;
+      ok(log.state && log.state.cleared && log.state.cleared[String(n)], n + '강 수료 기록 없음');
+      return `장면 ${log.steps}개, ${Math.round(log.ms / 1000)}초(연출 실측)`;
+    });
+    await test(tag + '-S2', n + '강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지', async () => {
+      const log = await runOne(B, { width: 360, height: 640 }, true); more[tag + 'bad'] = log;
+      ok(log.state && log.state.cleared && log.state.cleared[String(n)], n + '강 수료 기록 없음');
+      return `장면 ${log.steps}개, ${Math.round(log.ms / 1000)}초`;
+    });
+    const g2 = more[tag + 'good'], b2 = more[tag + 'bad'];
+    await test(tag + '-K1', n + '강 수첩: 틀리게 가르치면 뒤 업무·새 사례에서 그대로 틀리고 다시 고침', async () => {
+      ok(g2 && b2, '실행 기록 없음');
+      const out = [];
+      L.notebook.forEach(sl => {
+        const gn = g2.state.notebook[sl.key], bn = b2.state.notebook[sl.key];
+        ok(gn && gn.ok && gn.history.length === 1, '맞게 가르친 학생 수첩 ' + sl.key + ': ' + JSON.stringify(gn && gn.history));
+        ok(bn && bn.history[0].k === P.teach[sl.key] && !bn.history[0].ok, '틀리게 가르친 처음 규칙 저장 안 됨 ' + sl.key);
+        const extra = Object.keys(P.reteach).filter(k => k.startsWith(sl.key + ':')).length;
+        ok(bn.ok && bn.history.length === 2 + extra, sl.key + ' 고친 횟수 ' + bn.history.length + ' (기대 ' + (2 + extra) + ')');
+        ok(/업무|새 사례/.test(bn.history[bn.history.length - 1].where), sl.key + ' 고친 곳 표시 없음');
+        out.push(sl.no + '번 ' + bn.history.map(h => h.k).join('→') + ' (' + bn.history[bn.history.length - 1].where + ')');
+      });
+      ok(b2.nlog.length >= 2 && b2.nlog[0] !== b2.nlog[b2.nlog.length - 1], '새 사례에서 루키 행동이 바뀌지 않음');
+      ok(g2.nlog.length === 1, '맞게 가르친 학생은 새 사례를 한 번에 처리해야 함');
+      ok(b2.hint, '다시 가르칠 때 도움 2단계(자리 표시)가 안 보임');
+      return '삐삐: ' + out.join(' / ') + ' | 새 사례 처음 "' + b2.nlog[0].split('\n').slice(-1)[0] + '" → 고친 뒤 "' + b2.nlog[b2.nlog.length - 1].split('\n').slice(-1)[0] + '"';
+    });
+    await test(tag + '-K2', n + '강 별(첫 선택)·Lv·오류 0·외부 요청 0·넘침 0·작은 글자 0·틀려도 진행', async () => {
+      ok(g2.state.cleared[String(n)].stars === 3 && b2.state.cleared[String(n)].stars === 1, '별 ' + g2.state.cleared[String(n)].stars + '/' + b2.state.cleared[String(n)].stars);
+      ok(g2.state.lv === n && b2.state.lv === n, 'Lv ' + g2.state.lv + '/' + b2.state.lv);
+      [g2, b2].forEach((r, i) => {
+        const who = i ? '삐삐' : '또롱이';
+        ok(!r.errors.length, who + ' 오류: ' + r.errors.join(' | '));
+        ok(!r.external.length, who + ' 외부 요청: ' + r.external.join(' '));
+        ok(!r.over.length, who + ' 가로 넘침: ' + [...new Set(r.over)].slice(0, 5).join(' | '));
+        ok(!r.small.length, who + ' 작은 글자: ' + [...new Set(r.small)].slice(0, 5).join(' | '));
+      });
+      Object.keys(P.wrong).forEach(id => { const r = b2.state.records.find(x => x.id === id); ok(r && r.firstTry === false, id + ' 틀린 기록 없음'); });
+      return `또롱이 ★★★ · 삐삐 ★☆☆ · 둘 다 Lv.${n} (${g2.status.text}) · 일부러 틀린 부품 ${Object.keys(P.wrong).length}곳 모두 진행`;
+    });
+    await test(tag + '-K3', n + '강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분', async () => {
+      const gm = estimateMinutes(g2), bm = estimateMinutes(b2);
+      ok(gm.hand >= 3, '손 조작 ' + gm.hand);
+      const tr = Math.max(textOnlyRuns(g2.screens), textOnlyRuns(b2.screens));
+      ok(tr < 2, '글만 있는 화면 ' + tr + '개 연속');
+      const first = Math.round((gm.animSec + (gm.minutes * 60 - gm.animSec) * 1.3) / 6) / 10;
+      ok(first >= 5 && first <= 8 && gm.minutes <= 8, '처음 하는 사람 어림 ' + first + '분 / 빠른 사람 ' + gm.minutes + '분');
+      const used = Object.keys(g2.kinds).filter(k => k.startsWith('type:')).map(k => k.slice(5));
+      return `손 조작 ${gm.hand}번 · 대사 ${gm.talk}번 · 장면 종류 ${used.join('·')} · 빠른 사람 약 ${gm.minutes}분 ~ 처음 하는 사람 약 ${first}분 · 삐삐 약 ${bm.minutes}분`;
+    });
+    if (n === 5) await test('L5-P', '5강 승진: 수습 → 사원, 헤드셋 (승진 화면 표시)', async () => {
+      ok(g2.promo && b2.promo, '승진(겉모습 바뀜) 화면이 안 보임');
+      ok(g2.status.rank === '사원' && g2.status.stageName === '헤드셋', '직급/장식: ' + JSON.stringify(g2.status));
+      return g2.status.text;
+    });
+  }
+
   await browser.close(); server.close();
   const pass = results.filter(r => r.status === 'pass').length;
   const summary = { at: new Date().toISOString(), pass, fail: results.length - pass, results,
     good: g && { steps: g.steps, ms: g.ms, kinds: g.kinds, teach: g.teach, exam: g.exam, newCaseLog: g.nlog, compare: g.cmp, notebook: g.state.notebook, estimate: estimateMinutes(g), shots: g.shots },
+    lectures2to5: Object.fromEntries(Object.entries(more).map(([k, r]) => [k, { steps: r.steps, ms: r.ms, kinds: r.kinds, teach: r.teach, exam: r.exam, newCaseLog: r.nlog, compare: r.cmp, status: r.status, estimate: estimateMinutes(r), notebook: r.state && r.state.notebook }])),
     bad: b && { steps: b.steps, ms: b.ms, kinds: b.kinds, teach: b.teach, exam: b.exam, newCaseLog: b.nlog, compare: b.cmp, notebook: b.state.notebook, estimate: estimateMinutes(b), shots: b.shots } };
   fs.writeFileSync(path.join(__dirname, 'e2e_results.json'), JSON.stringify(summary, null, 2));
   console.log(`\n결과: ${pass}/${results.length} 통과 → tests/e2e_results.json`);

@@ -26,6 +26,7 @@ function check(file) {
   const ids = new Set();
   const types = {};
   let teach = 0;
+  const noteKs = {}, branches = [];
   function walk(step, where) {
     if (!step || typeof step !== 'object') return;
     if (Array.isArray(step)) { step.forEach((s, i) => walk(s, where + '[' + i + ']')); return; }
@@ -49,7 +50,11 @@ function check(file) {
         if (oks !== 1) errors.push(`${where}: 수첩 가르치기는 맞는 규칙이 정확히 1개여야 함 (지금 ${oks})`);
         if (!list.some(o => !o.ok && !o.reject)) errors.push(`${where}: 틀리게 가르칠 수 있는 보기가 없음 (루키 규칙 수첩 효과가 안 생김)`);
         if (!step.note) errors.push(`${where}: note(수첩 칸 이름) 없음`);
+        // 2강부터: 보기 3개 이상 (다시 가르칠 때 도움 2·3단계가 의미 있게)
+        if (L.lecture >= 2 && list.filter(o => !o.reject).length < 3) errors.push(`${where}: 수첩 보기 ${list.length}개 (2강부터 3개 이상)`);
+        noteKs[step.note] = new Set([...(noteKs[step.note] || []), ...list.filter(o => !o.reject).map(o => o.k)]);
       }
+      if (step.type === 'branch' && step.cases) branches.push({ where, note: step.note, cases: step.cases, ok: step.ok, bad: step.bad });
       if (step.type === 'apply' && !step.reteach) errors.push(`${where}: apply 에 reteach 없음`);
       if (step.fbByBin) Object.entries(step.fbByBin).forEach(([k, v]) => bubble(v, where + '.fbByBin.' + k));
       if (step.items && step.type === 'give') step.items.forEach((o, i) => { bubble(o.fb, where + '.items[' + i + '].fb'); bubble(o.then, where + '.items[' + i + '].then'); });
@@ -75,6 +80,8 @@ function check(file) {
   (L.examSay || []).forEach((s, i) => bubble(s, 'examSay[' + i + ']'));
   Object.entries(L.examResult || {}).forEach(([k, s]) => bubble(s, 'examResult.' + k));
   if (!teach) errors.push('수첩에 가르치는 장면(teach)이 없음');
+  // 갈래(cases)가 수첩 보기를 빠짐없이 다루는지 (빠지면 루키가 아무 일도 안 함)
+  branches.forEach(b => { (noteKs[b.note] ? [...noteKs[b.note]] : []).forEach(k => { if (!b.cases[k] && !(b.ok && b.bad)) errors.push(`${b.where}: 갈래에 수첩 보기 "${k}" 경우가 없음`); }); if (!noteKs[b.note]) errors.push(`${b.where}: 가르친 적 없는 수첩 칸 ${b.note}`); });
   const kinds = PARTS.filter(p => types[p]);
   if (kinds.length < 3) errors.push(`부품 종류 ${kinds.length}가지 (최소 3가지)`);
   return { file: path.basename(file), errors, warns, partsUsed: kinds, teach, tasks: (L.tasks || []).length };
