@@ -69,6 +69,33 @@ function check(file) {
     if (!t.card || !(L.cards || []).some(c => c.id === t.card)) errors.push(`업무 ${i + 1}: 능력 카드 ${t.card} 없음`);
     walk(t.steps, 'tasks[' + i + ']');
   });
+  // 눈높이 갈림길: 2번 틀리면 쉬운 예시(easy), 첫 시도에 다 맞히면 도전 업무(hard) — 강마다 최소 1곳씩
+  let easyN = 0, hardN = 0;
+  (L.tasks || []).forEach((t, i) => {
+    const w = '업무 ' + (i + 1) + ' (' + t.id + ')';
+    if (t.easy) {
+      easyN++; const E = t.easy;
+      if (!E.title) errors.push(`${w}.easy: 제목(title) 없음`); else short(E.title, 14, '쉬운 예시 제목', w + '.easy');
+      if (!Array.isArray(E.lines) || E.lines.length < 2 || E.lines.length > 4) errors.push(`${w}.easy: 줄 수 ${E.lines && E.lines.length} (2~4줄)`);
+      (E.lines || []).forEach((l, k) => short(l, 26, '쉬운 예시 줄', w + '.easy.lines[' + k + ']'));
+      bubble(E.say, w + '.easy.say');
+      if (!E.src) errors.push(`${w}.easy: 대본 근거 줄(src) 없음 (없으면 "(미확인)")`);
+    }
+    if (t.hard) {
+      hardN++; const H = t.hard;
+      if (!H.q) errors.push(`${w}.hard: 문제(q) 없음`); else short(H.q, 50, '도전 문제', w + '.hard');
+      if (!Array.isArray(H.opts) || H.opts.length < 2 || H.opts.length > 4) errors.push(`${w}.hard: 보기 ${H.opts && H.opts.length}개 (2~4개)`);
+      else if (H.opts.filter(o => o.ok).length !== 1) errors.push(`${w}.hard: 정답 보기는 정확히 1개`);
+      (H.opts || []).forEach((o, k) => { short(o.t, 22, '도전 보기', w + '.hard.opts[' + k + ']'); bubble(o.fb, w + '.hard.opts[' + k + '].fb'); });
+      if (!H.e) errors.push(`${w}.hard: 해설(e) 없음`); else short(H.e, 70, '도전 해설', w + '.hard');
+      if (!H.src) errors.push(`${w}.hard: 대본 근거 줄(src) 없음 (없으면 "(미확인)")`);
+    }
+  });
+  if (!easyN) errors.push('눈높이 갈림길: 쉬운 예시(easy)가 있는 업무가 없음 (최소 1곳)');
+  if (!hardN) errors.push('눈높이 갈림길: 도전 업무(hard)가 있는 업무가 없음 (최소 1곳)');
+  // 기억 다지기: 장면 없이 혼자 읽히는 평가 문항 2개 이상 (순서·보기를 섞어 다시 물음)
+  const revPool = (L.exam || []).filter(q => !q.scene && !q.after).length;
+  if (revPool < 2) errors.push(`기억 다지기용 평가 문항(장면 없음) ${revPool}개 (2개 이상)`);
   (L.cards || []).forEach(c => { (c.pts || []).forEach(p => short(p, 22, '카드 줄', c.id)); if (!c.src) warns.push(`${c.id}: 카드 근거 줄 없음`); });
   if (!Array.isArray(L.exam) || L.exam.length !== 3) errors.push(`평가 문제 ${L.exam && L.exam.length}개 (3개)`);
   if (!(L.exam || []).some(q => q.newCase)) errors.push('평가 3문제 중 새 사례 문제(newCase) 없음');
@@ -84,14 +111,14 @@ function check(file) {
   branches.forEach(b => { (noteKs[b.note] ? [...noteKs[b.note]] : []).forEach(k => { if (!b.cases[k] && !(b.ok && b.bad)) errors.push(`${b.where}: 갈래에 수첩 보기 "${k}" 경우가 없음`); }); if (!noteKs[b.note]) errors.push(`${b.where}: 가르친 적 없는 수첩 칸 ${b.note}`); });
   const kinds = PARTS.filter(p => types[p]);
   if (kinds.length < 3) errors.push(`부품 종류 ${kinds.length}가지 (최소 3가지)`);
-  return { file: path.basename(file), errors, warns, partsUsed: kinds, teach, tasks: (L.tasks || []).length };
+  return { file: path.basename(file), errors, warns, partsUsed: kinds, teach, tasks: (L.tasks || []).length, easy: easyN, hard: hardN, revPool };
 }
 
 const files = process.argv.slice(2).length ? process.argv.slice(2).map(f => path.resolve(f)) : fs.readdirSync(DIR).filter(f => /^lecture\d+\.json$/.test(f)).map(f => path.join(DIR, f));
 let bad = 0;
 const out = files.map(check);
 out.forEach(r => {
-  console.log(`[${r.errors.length ? '실패' : '통과'}] ${r.file} — 업무 ${r.tasks}개, 부품 ${r.partsUsed.join('·')}, 수첩 가르치기 ${r.teach}번`);
+  console.log(`[${r.errors.length ? '실패' : '통과'}] ${r.file} — 업무 ${r.tasks}개, 부품 ${r.partsUsed.join('·')}, 수첩 가르치기 ${r.teach}번, 쉬운 예시 ${r.easy}곳·도전 업무 ${r.hard}곳, 기억 다지기 문항 ${r.revPool}개`);
   r.errors.forEach(e => console.log('   ✗ ' + e));
   r.warns.forEach(e => console.log('   △ ' + e));
   bad += r.errors.length;

@@ -95,6 +95,7 @@
       btns.forEach(b => b.onclick = async () => {
         if (b.disabled) return;
         const o = opts[+b.dataset.i];
+        if (!o.ok) RK.miss++;
         btns.forEach(x => x.disabled = true);
         b.classList.add('mine'); b.querySelector('.mk').textContent = '📒';
         RK.writeNote(step.note, o, ctx.where || (attempt ? '다시 가르침' : '처음 가르침'));
@@ -298,7 +299,7 @@
   /* ================= 부품 3. 순서 맞추기 (order) ================= */
   P.order = async step => {
     let list = step.items.map((x, i) => Object.assign({ _i: i }, x));
-    RK.panelAdd('<div class="card vis" id="orderCard"><div class="lbl">🔢 ' + esc(step.prompt || '차례대로 줄 세워요') + '</div><div id="ordList"></div><div class="hint">▲▼ 버튼으로 옮긴 뒤 [다 놓았어요]</div></div>');
+    RK.panelAdd('<div class="card vis" id="orderCard"><div class="lbl">🔢 ' + esc(step.prompt || '차례대로 줄 세워요') + '</div><div id="ordList"></div><div class="hint">손가락으로 끌어 옮기거나 ▲▼ 버튼 → [다 놓았어요]</div></div>');
     const draw = (marks) => {
       $('#ordList').innerHTML = list.map((x, i) => '<div class="ord' + (marks ? (x.ord === i + 1 ? ' ok' : ' bad') : '') + '" data-i="' + x._i + '"><span class="n">' + (i + 1) + '</span><span class="tx">' + fmt(x.t) + '</span>' +
         '<button aria-label="위로" data-mv="-1" data-p="' + i + '"' + (i === 0 ? ' disabled' : '') + '>▲</button><button aria-label="아래로" data-mv="1" data-p="' + i + '"' + (i === list.length - 1 ? ' disabled' : '') + '>▼</button></div>').join('');
@@ -306,6 +307,34 @@
         const p = +b.dataset.p, q = p + (+b.dataset.mv);
         if (q < 0 || q >= list.length) return;
         [list[p], list[q]] = [list[q], list[p]]; draw(false);
+      });
+      // 손가락으로 줄 끌어 옮기기 (8px 넘게 움직여야 끌기, ▲▼ 버튼은 그대로)
+      $$('#ordList .ord').forEach((row, p) => {
+        let sy = 0, pid = null, dragging = false;
+        row.addEventListener('pointerdown', e => {
+          if (e.target.closest('button')) return;
+          pid = e.pointerId; sy = e.clientY; dragging = false;
+          try { row.setPointerCapture(pid); } catch (_) { }
+        });
+        row.addEventListener('pointermove', e => {
+          if (pid !== e.pointerId) return;
+          const dy = e.clientY - sy;
+          if (!dragging && Math.abs(dy) > 8) { dragging = true; row.classList.add('dragging'); }
+          if (dragging) row.style.transform = 'translateY(' + dy + 'px) scale(1.02)';
+        });
+        const end = (e, cancel) => {
+          if (pid !== e.pointerId) return;
+          pid = null; row.style.transform = ''; row.classList.remove('dragging');
+          if (cancel || !dragging) return;
+          // 손가락 위치보다 위에 있는 다른 줄 수 = 새 자리
+          const others = $$('#ordList .ord').filter(r => r !== row);
+          const q = others.filter(r => { const b = r.getBoundingClientRect(); return b.top + b.height / 2 < e.clientY; }).length;
+          if (q === p) { draw(false); return; }
+          const [it] = list.splice(p, 1); list.splice(q, 0, it);
+          RK.buzz(); draw(false);
+        };
+        row.addEventListener('pointerup', e => end(e, false));
+        row.addEventListener('pointercancel', e => end(e, true));
       });
     };
     draw(false);

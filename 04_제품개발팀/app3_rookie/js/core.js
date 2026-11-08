@@ -17,7 +17,9 @@ window.RK = window.RK || {};
     cards: [],            // 받은 능력 카드 id
     notebook: {},         // 루키 규칙 수첩 { R1: { k, ok, rule, no, history:[{k,ok,rule,at,where}] } }
     records: [],          // 부품 기록 { id, firstTry, tries, sec, lecture } — 점수 아님, 맞춤학습 재료
-    progress: null        // { lecture, task, startedAt, notebookAtStart }
+    progress: null,       // { lecture, task, startedAt, notebookAtStart }
+    review: {},           // 기억 다지기 { "1": { box:0~4, stars:0~4, due:날짜번호, hist:[] } } — 수료한 강마다 1·3·7·14일 뒤
+    adapt: []             // 눈높이 갈림길 기록 { lec, task, kind:'easy'|'hard', miss, took, ok, at }
   };
   function read(key, def) {
     try { const v = JSON.parse(localStorage.getItem(key)); return v ? Object.assign(clone(def), v) : clone(def); }
@@ -32,6 +34,11 @@ window.RK = window.RK || {};
     RK.state.records.push({ id, firstTry: !!firstTry, tries, sec: Math.round(sec || 0), lecture: RK.lectureNo || 0 });
     if (RK.state.records.length > 400) RK.state.records.splice(0, RK.state.records.length - 400);
   };
+
+  /* ---------- 날짜 (기억 다지기용, 휴대폰 시계의 '날' 단위) ---------- */
+  RK.now = () => Date.now();
+  RK.dayNo = ms => { const t = ms == null ? RK.now() : ms; return Math.floor((t - new Date(t).getTimezoneOffset() * 60000) / 864e5); };
+  RK.dayLabel = d => { const t = new Date(d * 864e5); return (t.getUTCMonth() + 1) + '월 ' + t.getUTCDate() + '일'; };
 
   /* ---------- 빠른 진행(연출 줄이기) ---------- */
   RK.applyFast = () => { document.body.classList.toggle('fast', !!RK.settings.fast); };
@@ -101,7 +108,9 @@ window.RK = window.RK || {};
 
   /* ---------- 도움 3단계 (틀림 1: 그 보기 전용 힌트 → 2: 직접 힌트 + 자리 표시 → 3: 같이 하기) ---------- */
   RK.HELP_DEFAULT = ['음… 그건 아닌 것 같아요.|다시 봐 주세요.', '노랗게 깜빡이는 곳을|봐 주세요!', '같이 해 봐요!|제가 옮길게요.'];
+  RK.miss = 0; // 지금 업무에서 틀린 횟수 (눈높이 갈림길: 2번 이상 → 쉬운 예시, 0번 → 도전 업무 제안)
   RK.helpStep = (n, fb, hint2, target) => {
+    RK.miss++;
     if (n === 1) { RK.say(fb || RK.HELP_DEFAULT[0], 'confused'); return false; }
     if (n === 2) { RK.say(hint2 || RK.HELP_DEFAULT[1], 'think'); RK.hintMe(target); return false; }
     RK.say(RK.HELP_DEFAULT[2], 'happy'); return true; // 3번째: 같이 하기
@@ -152,7 +161,7 @@ window.RK = window.RK || {};
   RK.writeNote = (key, opt, where) => {
     const nb = RK.state.notebook;
     const prev = nb[key];
-    const entry = { k: opt.k, ok: !!opt.ok, rule: opt.rule || opt.t, no: opt.no || (prev && prev.no) || Object.keys(nb).length + 1, apply: opt.apply || null };
+    const entry = { k: opt.k, ok: !!opt.ok, rule: opt.rule || opt.t, no: opt.no || (prev && prev.no) || Object.keys(nb).length + 1, apply: opt.apply || null, lec: RK.lectureNo || (prev && prev.lec) || 0 };
     entry.history = (prev && prev.history ? prev.history : []).concat([{ k: opt.k, ok: !!opt.ok, rule: entry.rule, where: where || '', at: Date.now() }]);
     nb[key] = entry;
     RK.save();

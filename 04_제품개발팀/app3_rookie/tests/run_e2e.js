@@ -94,6 +94,10 @@ function planInPage(S) {
     case 'card': return { acts: [{ click: '#cardBtn' }], kind: 'card' };
     case 'levelup': return { acts: [{ click: '#lvBtn' }], kind: 'card' };
     case 'final': return { done: true };
+    case 'easy': return vis('#actBtn') ? { acts: [{ click: '#actBtn' }], kind: 'talk', easy: m.task } : { wait: true };
+    case 'offer': return { acts: [{ click: S.hard ? '#hardGo' : '#hardSkip' }], kind: 'talk', offer: m.task + ':' + (S.hard ? 'go' : 'skip') };
+    case 'office': case 'reviewDone': case 'map': return { done: true };
+    case 'review': { const q = m.q; const j = S.reviewWrong ? (q.a + 1) % q.c.length : q.a; return { acts: [{ click: '#quizCard .choice[data-j="' + j + '"]' }], kind: 'exam', review: q.id + ':' + (j === q.a) }; }
     case 'pick': case 'reply': {
       const host = m.inSwipe ? '#swQuiz' : '#actions';
       const opts = m.opts; const id = m.step && m.step.id;
@@ -148,6 +152,8 @@ function planInPage(S) {
       const st = m.step;
       if (wantWrong(st.id)) return { acts: [{ click: '#actBtn' }], tagWrong: st.id, kind: 'hand' };
       const rows = [...document.querySelectorAll('#ordList .ord')].map(r => st.items[+r.dataset.i].ord);
+      // 손가락 끌기 1번: 첫 번째 자리에 와야 할 줄을 맨 위로 끌어 올림
+      if (S.drag && !S.ordDragged) { const from = rows.indexOf(1); if (from > 0) return { acts: [{ dragOrd: from, to: 0 }], kind: 'hand', again: true }; }
       for (let p = 0; p < rows.length - 1; p++) if (rows[p] > rows[p + 1]) return { acts: [{ click: '#ordList button[data-mv="1"][data-p="' + p + '"]' }], kind: 'hand', again: true };
       return { acts: [{ click: '#actBtn' }], kind: 'hand' };
     }
@@ -205,8 +211,24 @@ async function play(page, S, opts = {}) {
         for (let i = 1; i <= 8; i++) await page.mouse.move(s.x + s.width / 2 + (d.x + d.width / 2 - s.x - s.width / 2) * i / 8, s.y + s.height / 2 + (d.y + d.height / 2 - s.y - s.height / 2) * i / 8);
         await page.mouse.up(); S.dragged = true; log.dragged = true; continue;
       }
+      if (a.dragOrd != null) {
+        const ids = () => page.evaluate(() => [...document.querySelectorAll('#ordList .ord')].map(r => r.dataset.i));
+        const before = await ids();
+        const s = await page.locator('#ordList .ord .tx').nth(a.dragOrd).boundingBox(), d = await page.locator('#ordList .ord').nth(a.to).boundingBox();
+        const x = s.x + s.width / 2, y0 = s.y + s.height / 2, y1 = d.y + 4;
+        await page.mouse.move(x, y0); await page.mouse.down();
+        for (let i = 1; i <= 10; i++) await page.mouse.move(x, y0 + (y1 - y0) * i / 10);
+        await page.mouse.up();
+        const after = await ids();
+        const want = before.slice(); const [it] = want.splice(a.dragOrd, 1); want.splice(a.to, 0, it);
+        S.ordDragged = true; log.ordDrag = { before, after, ok: JSON.stringify(after) === JSON.stringify(want) };
+        lastSeq = seq; continue;
+      }
       await page.locator(a.click).first().click({ timeout: 5000 });
     }
+    if (plan.easy) (log.easy = log.easy || []).push(plan.easy);
+    if (plan.offer) (log.offer = log.offer || []).push(plan.offer);
+    if (plan.review) (log.review = log.review || []).push(plan.review);
     if (plan.tagWrong) S.wrongDone[plan.tagWrong] = (S.wrongDone[plan.tagWrong] || 0) + 1;
     if (plan.teach) log.teach.push(plan.teach);
     if (plan.exam) log.exam.push(plan.exam);
@@ -243,7 +265,7 @@ function estimateMinutes(log) {
   browser = await chromium.launch();
   console.log('루키 1강 자동 시험 — ' + BASE);
 
-  const GOOD = { label: 'good', name: '또롱이', teach: { R1: 'exact', R2: 'check' }, give: { 'L01-T4-give': 'record' }, reteach: 'ok', exam: {}, wrong: {}, drag: true };
+  const GOOD = { label: 'good', name: '또롱이', teach: { R1: 'exact', R2: 'check' }, give: { 'L01-T4-give': 'record' }, reteach: 'ok', exam: {}, wrong: {}, drag: true, hard: true };
   const BAD = { label: 'bad', name: '삐삐', teach: { R1: 'all', R2: 'direct' }, give: { 'L01-T4-give': 'master' }, reteach: 'ok', exam: { 'L01-Q4': 3, 'L01-N1': 0 },
     wrong: { 'L01-T1-why': 2, 'L01-T2-spot': 3, 'L01-T5-sort': 1, 'L01-T4-give': 1, 'L01-T2-old': 1, 'L01-I-swipe': 0 }, drag: false };
   const runs = {};
@@ -342,6 +364,23 @@ function estimateMinutes(log) {
     return `또롱이 빠른 사람 약 ${gm.minutes}분 ~ 처음 하는 사람 약 ${first}분 (연출 실측 ${gm.animSec}초 + 대사 ${gm.talk}×3.5초 + 조작 ${gm.hand}×5초 + 평가 ${gm.exam}×25초 + 카드 ${gm.card}×4초) · 삐삐(빠른 진행·틀리고 고침) 약 ${bm.minutes}분`;
   });
 
+  /* 눈높이 갈림길: 2번 틀리면 다음 업무 앞에 쉬운 예시, 첫 시도에 다 맞히면 도전 업무 제안 */
+  const adaptCheck = (gl, bl, task) => {
+    ok(bl && (bl.easy || []).includes(task), '틀리게 한 학생에게 ' + task + ' 쉬운 예시가 안 나옴: ' + JSON.stringify(bl && bl.easy));
+    const be = (bl.state.adapt || []).find(x => x.kind === 'easy' && x.task === task);
+    ok(be && be.miss >= 2, '쉬운 예시 기록(2번 이상 틀림) 없음: ' + JSON.stringify(be));
+    ok(!(gl.easy || []).length, '다 맞힌 학생에게 쉬운 예시가 나옴: ' + JSON.stringify(gl.easy));
+    ok((gl.offer || []).includes(task + ':go'), '다 맞힌 학생에게 ' + task + ' 도전 업무 제안이 없음: ' + JSON.stringify(gl.offer));
+    const hr = gl.state.records.find(r => r.id === task + '-hard');
+    ok(hr && hr.firstTry, '도전 업무 기록 없음');
+    ok(!(bl.offer || []).some(o => o.startsWith(task + ':')), '틀린 업무인데 도전 업무가 제안됨');
+    return be.miss;
+  };
+  await test('A1', '1강 눈높이 갈림길: 삐삐(2번+ 틀림) → 쉬운 예시 / 또롱이(첫 시도 다 맞힘) → 도전 업무', async () => {
+    const miss = adaptCheck(g, b, 'L01-T1');
+    return '삐삐: 업무 1에서 ' + miss + '번 틀림 → 업무 2 앞에 "쉬운 예시 한 장면" · 또롱이: 업무 1 뒤 도전 업무 수락·첫 선택 정답(+10 XP)';
+  });
+
   /* ③ 중간에 나갔다 이어 하기 */
   await test('R1', '업무 1 끝내고 나가기 → 다시 열면 "업무 2부터 이어 하기"', async () => {
     const { ctx, page } = await newPage({ width: 360, height: 740 });
@@ -406,7 +445,7 @@ function estimateMinutes(log) {
       await ctx.close();
       return log;
     };
-    const G = { label: tag + 'good', name: '또롱이', teach: {}, give: {}, reteach: 'ok', exam: {}, wrong: {}, drag: true };
+    const G = { label: tag + 'good', name: '또롱이', teach: {}, give: {}, reteach: 'ok', exam: {}, wrong: {}, drag: true, hard: true };
     const B = Object.assign({ label: tag + 'bad', name: '삐삐', give: {}, drag: false }, P);
     await test(tag + '-S1', n + '강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지', async () => {
       const log = await runOne(G, { width: 360, height: 740 }, false); more[tag + 'good'] = log;
@@ -459,12 +498,133 @@ function estimateMinutes(log) {
       const used = Object.keys(g2.kinds).filter(k => k.startsWith('type:')).map(k => k.slice(5));
       return `손 조작 ${gm.hand}번 · 대사 ${gm.talk}번 · 장면 종류 ${used.join('·')} · 빠른 사람 약 ${gm.minutes}분 ~ 처음 하는 사람 약 ${first}분 · 삐삐 약 ${bm.minutes}분`;
     });
+    await test(tag + '-A', n + '강 눈높이 갈림길 (쉬운 예시 · 도전 업무)', async () => {
+      const t = { 2: 'L02-T2', 3: 'L03-T1', 4: 'L04-T1', 5: 'L05-T2' }[n];
+      const miss = adaptCheck(g2, b2, t);
+      return t + ': 삐삐 ' + miss + '번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답';
+    });
     if (n === 5) await test('L5-P', '5강 승진: 수습 → 사원, 헤드셋 (승진 화면 표시)', async () => {
       ok(g2.promo && b2.promo, '승진(겉모습 바뀜) 화면이 안 보임');
       ok(g2.status.rank === '사원' && g2.status.stageName === '헤드셋', '직급/장식: ' + JSON.stringify(g2.status));
       return g2.status.text;
     });
   }
+
+  /* ⑥ 순서 맞추기: 손가락 끌어 옮기기 (2강·5강 또롱이가 1번씩) */
+  await test('D1', '순서 맞추기 부품: 손가락으로 줄 끌어 옮기기 (▲▼ 버튼도 그대로)', async () => {
+    const out = [];
+    ['L2good', 'L5good'].forEach(k => {
+      const r = more[k]; ok(r && r.ordDrag, k + ' 끌기 시험 안 됨');
+      ok(r.ordDrag.ok, k + ' 끌어 놓은 자리가 틀림: ' + JSON.stringify(r.ordDrag));
+      out.push(k.slice(0, 2) + ' ' + r.ordDrag.before.join('') + '→' + r.ordDrag.after.join(''));
+    });
+    const P1r = results.find(x => x.id === 'P1');
+    ok(P1r && P1r.status === 'pass', '▲▼ 버튼 시험(P1) 실패');
+    return out.join(' · ') + ' (줄 번호 순서), 나머지는 ▲▼ 버튼';
+  });
+
+  /* ⑦ 루키 사무실 + 기억 다지기 (날짜를 가짜로 넘김: 시험 때만 시계를 n일 앞으로) */
+  const seedOffice = g && JSON.parse(JSON.stringify(g.state));
+  const officePage = async () => {
+    const { ctx, page } = await newPage({ width: 360, height: 740 });
+    await ctx.addInitScript(sd => { if (!localStorage.getItem('rk3.save.v1')) localStorage.setItem('rk3.save.v1', JSON.stringify(sd)); }, seedOffice);
+    await ctx.addInitScript(() => { try { const d = +sessionStorage.getItem('rkShiftDays') || 0; if (d) { const real = Date.now.bind(Date); Date.now = () => real() + d * 864e5; } } catch (e) { } });
+    return { ctx, page };
+  };
+  const goDay = async (page, d) => {
+    await page.evaluate(d => sessionStorage.setItem('rkShiftDays', String(d)), d);
+    await page.goto(BASE + '?office=1');
+    await page.waitForFunction(() => window.RK && RK.cur && RK.cur.type === 'office', null, { timeout: 8000 });
+  };
+  const checkView = async (page, where) => { const i = await inspect(page); ok(!i.over.length, where + ' 가로 넘침: ' + i.over.join(' | ')); ok(!i.small.length, where + ' 작은 글자: ' + i.small.join(' | ')); };
+  await test('O1', '루키 사무실: 내 루키(직급·장식)·수첩 요약·카드 모음·기억 다지기 알림·30강 지도 입구·팀(예시)', async () => {
+    ok(seedOffice, '1강 수료 기록 없음');
+    const { ctx, page } = await officePage();
+    await page.goto(BASE);
+    await page.waitForFunction(() => window.RK && RK.cur && RK.cur.type === 'office', null, { timeout: 8000 });
+    await page.screenshot({ path: path.join(SHOTS, 'office_day0.png'), fullPage: true });
+    const v = await page.evaluate(() => ({
+      me: document.querySelector('.office-me').innerText, st: RK.statusText(RK.state.lv), deco: RK.STAGES[RK.stageFor(RK.state.lv)].deco,
+      notes: document.querySelectorAll('#nbSum li').length, cards: document.querySelectorAll('#cardsAll .rkc-cards span').length, own: RK.state.cards.length,
+      mem: document.getElementById('memAlert').innerText, rev: !!document.getElementById('revBtn1'), team: !!document.querySelector('.teamprev'), go: document.getElementById('goLecture').innerText
+    }));
+    ok(v.me.includes('또롱이') && v.me.includes(v.st) && v.me.includes(v.deco), '내 루키 칸: ' + v.me);
+    ok(v.notes === 3, '수첩 요약 규칙 ' + v.notes + '개');
+    ok(v.cards === v.own && v.own === 5, '카드 모음 ' + v.cards + '/' + v.own);
+    ok(!v.rev && /내일/.test(v.mem), '수료 당일엔 기억 다지기 없음 + 내일 예고여야 함: ' + v.mem);
+    ok(v.team, '팀 예시 없음');
+    ok(/2강 입구/.test(v.go), '다음 강 입구: ' + v.go);
+    await checkView(page, '사무실');
+    await page.click('#mapBtn');
+    await page.waitForSelector('#overlay .bld', { timeout: 3000 });
+    const rooms = await page.locator('#overlay .room').count();
+    ok(rooms === 30, '지도 방 ' + rooms + '개');
+    await checkView(page, '지도');
+    await page.click('#closeMap');
+    await page.click('#goLecture');
+    await page.waitForFunction(() => /lecture=2/.test(location.search) && RK.cur && RK.cur.type === 'home', null, { timeout: 8000 });
+    ok(await page.$('#officeBtn'), '강 입구에 사무실로 버튼 없음');
+    ok(!page._errors.length, '오류: ' + page._errors.join(' | ')); ok(!page._external.length, '외부 요청: ' + page._external.join(' '));
+    await ctx.close();
+    return v.st + ' · 장식 ' + v.deco + ' · 수첩 3개 · 카드 5장 · "' + v.mem.split('\n').pop() + '" · 지도 30칸 · 2강 입구';
+  });
+  await test('M1', '기억 다지기: 1·3·7·14일 뒤에만 열림, 2문제(평가 문항 재사용·순서 섞기), 다 맞히면 별 +1 → 단단한 카드', async () => {
+    const { ctx, page } = await officePage();
+    const L1ids = L1.exam.filter(q => !q.scene && !q.after).map(q => q.id);
+    const days = [1, 2, 3, 5, 7, 14, 15], seen = [], mixed = [];
+    let xp0 = seedOffice.xp, over = [], small = [];
+    for (const d of days) {
+      await goDay(page, d);
+      const due = !!(await page.$('#revBtn1'));
+      seen.push(d + '일:' + (due ? '열림' : '-'));
+      ok(due === [1, 3, 7, 14].includes(d), d + '일째 기억 다지기 ' + (due ? '열림' : '안 열림'));
+      if (d === 1) { await page.screenshot({ path: path.join(SHOTS, 'office_day1_due.png'), fullPage: true }); await checkView(page, '사무실(알림)'); }
+      if (!due) continue;
+      await page.click('#revBtn1');
+      await page.waitForFunction(() => RK.cur && RK.cur.type === 'review', null, { timeout: 5000 });
+      const lr = await page.evaluate(() => RK.lastReview);
+      ok(lr.ids.length === 2 && new Set(lr.ids).size === 2 && lr.ids.every(id => L1ids.includes(id)), '복습 문항: ' + lr.ids);
+      mixed.push(lr.ids.join('') !== L1ids.join('') || lr.orders.some(o => o.join('') !== o.slice().sort().join('')));
+      const log = await play(page, { label: 'rev' + d, name: '또롱이', teach: {}, give: {}, wrong: {}, exam: {}, reteach: 'ok' }, { shotsAt: d === 1 ? [0] : [] });
+      over = over.concat(log.over); small = small.concat(log.small);
+      ok((log.review || []).length === 2 && log.review.every(x => /true$/.test(x)), '복습 답: ' + JSON.stringify(log.review));
+      ok(await page.evaluate(() => RK.cur.type === 'reviewDone'), '결과 화면 안 나옴');
+      const r = log.state.review['1'];
+      const k = [1, 3, 7, 14].indexOf(d) + 1;
+      ok(r.box === k && r.stars === k, d + '일째 뒤 상자/별 ' + r.box + '/' + r.stars);
+      ok(log.state.xp === xp0 + 15, 'XP ' + xp0 + ' → ' + log.state.xp + ' (15 늘어야 함)');
+      xp0 = log.state.xp;
+      if (d === 14) await page.screenshot({ path: path.join(SHOTS, 'review_day14_done.png') });
+    }
+    ok(mixed.some(Boolean), '4번 모두 문항·보기 순서가 원래 그대로 (섞이지 않음)');
+    await goDay(page, 15);
+    const fin = await page.evaluate(() => document.querySelector('#cardsAll .crow[data-lec="1"]').innerText);
+    ok(/★★★★/.test(fin) && /단단한 카드/.test(fin), '카드 모음에 단단한 카드 표시 없음: ' + fin);
+    ok(!over.length, '가로 넘침: ' + over.slice(0, 3).join(' | ')); ok(!small.length, '작은 글자: ' + small.slice(0, 3).join(' | '));
+    ok(!page._errors.length, '오류: ' + page._errors.join(' | ')); ok(!page._external.length, '외부 요청');
+    await ctx.close();
+    return seen.join(' ') + ' · 4번 다 맞힘 → 기억 ★★★★ 단단한 카드 · 회당 +15 XP · 순서 섞임 ' + mixed.filter(Boolean).length + '/4번';
+  });
+  await test('M2', '기억 다지기 틀림: 카드·별·Lv 그대로, 상자 처음으로 → 다음 날 다시', async () => {
+    const { ctx, page } = await officePage();
+    await goDay(page, 3); // 늦게 와도 열림 (1일째 상자)
+    ok(await page.$('#revBtn1'), '3일째(늦게 옴)에 1일째 상자가 열리지 않음');
+    await page.click('#revBtn1');
+    await page.waitForFunction(() => RK.cur && RK.cur.type === 'review', null, { timeout: 5000 });
+    const log = await play(page, { label: 'revbad', name: '또롱이', teach: {}, give: {}, wrong: {}, exam: {}, reteach: 'ok', reviewWrong: true });
+    const r = log.state.review['1'];
+    ok(r.box === 0 && r.stars === 0, '상자/별 ' + r.box + '/' + r.stars);
+    ok(log.state.cards.length === seedOffice.cards.length && log.state.lv === seedOffice.lv, '카드·Lv가 줄어듦');
+    ok(log.state.xp === seedOffice.xp + 10, 'XP ' + log.state.xp);
+    await goDay(page, 3);
+    ok(!(await page.$('#revBtn1')), '같은 날 다시 열림');
+    await goDay(page, 4);
+    ok(await page.$('#revBtn1'), '다음 날 다시 안 열림');
+    ok(!log.over.length && !log.small.length, '넘침/작은 글자: ' + log.over.concat(log.small).slice(0, 3).join(' | '));
+    ok(!page._errors.length, '오류: ' + page._errors.join(' | '));
+    await ctx.close();
+    return '2문제 틀림 → 카드 5장·Lv.1 그대로, +10 XP, 다음 날(4일째) 다시 열림';
+  });
 
   await browser.close(); server.close();
   const pass = results.filter(r => r.status === 'pass').length;

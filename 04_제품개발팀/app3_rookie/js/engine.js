@@ -73,7 +73,9 @@
       RK.setTitle('업무 ' + (i + 1) + '/' + L.tasks.length, T.name, T.concept);
       RK.panel('');
       window.scrollTo(0, 0);
+      RK.miss = 0;
       await RK.runSteps(T.steps);
+      const miss = RK.miss;
       const card = (L.cards || []).find(c => c.id === T.card);
       if (card) {
         await RK.cardGet(card, L.taskXp || 30);
@@ -83,10 +85,52 @@
         st.progress.cards = RK.run.cards;
       }
       RK.run.unit = i + 2; st.progress.task = i + 1; RK.save(); RK.hud();
+      // 눈높이 갈림길: 이 업무에서 2번 이상 틀림 → 다음 업무 앞에 쉬운 예시 / 한 번도 안 틀림 → 도전 업무 제안
+      if (T.easy && miss >= (L.easyAt || 2)) await RK.showEasy(L, T, miss);
+      else if (T.hard && miss === 0) await RK.offerHard(L, T);
     }
     const stars = await RK.runExam(L);
     RK.run.unit = L.tasks.length + 2; RK.hud();
     await RK.finishLecture(L, stars);
+  };
+
+  /* ---------- 눈높이 갈림길 ---------- */
+  const adaptLog = o => { const st = RK.state; st.adapt = st.adapt || []; st.adapt.push(Object.assign({ lec: RK.lectureNo, at: RK.now() }, o)); if (st.adapt.length > 200) st.adapt.splice(0, st.adapt.length - 200); RK.save(); };
+  RK.showEasy = async (L, T, miss) => {
+    const E = T.easy;
+    RK.setTitle('쉬운 예시', E.title || T.name, '눈높이 맞춤');
+    RK.panel('<div class="card vis easy" id="easyCard"><div class="lbl">💡 쉬운 예시 한 장면 <span class="r">' + esc(T.name) + '</span></div>' +
+      '<ul class="easylines">' + (E.lines || []).map(l => '<li>' + fmt(l) + '</li>').join('') + '</ul>' +
+      (E.src ? '<div class="note src">근거: 강의대본 ' + esc(E.src) + '줄</div>' : '') + '</div>');
+    window.scrollTo(0, 0);
+    RK.sayObj(E.say || { t: '헷갈렸죠?|쉬운 예로 볼게요.', m: 'think' });
+    adaptLog({ task: T.id, kind: 'easy', miss });
+    await RK.act(E.btn || '이해했어요 ▶', 'primary', { kind: 'easy', task: T.id });
+  };
+  RK.offerHard = async (L, T) => {
+    const H = T.hard, st = RK.state;
+    RK.setTitle('도전 업무', T.name, '선택');
+    RK.panel('<div class="card vis hardoffer" id="hardCard"><div class="lbl">🔥 도전 업무 (선택) <span class="r">+10 XP</span></div>' +
+      '<p>첫 시도에 모두 맞혔어요. 한 문제만 더 어렵게 풀어 볼까요? 건너뛰어도 잃는 것은 없어요.</p></div>');
+    window.scrollTo(0, 0);
+    RK.say(H.offerSay || '팀장님, 한 단계|어려운 것도 해 볼까요?', 'happy');
+    const go = await new Promise(res => {
+      RK.actions('<button class="btn gold" id="hardGo">🔥 도전해 볼게요</button><button class="btn ghost" id="hardSkip">다음으로 넘어가기</button>');
+      RK.signal('offer', { task: T.id });
+      $('#hardGo').onclick = () => { RK.actions(''); res(true); };
+      $('#hardSkip').onclick = () => { RK.actions(''); res(false); };
+    });
+    if (!go) { adaptLog({ task: T.id, kind: 'hard', took: false }); return; }
+    RK.panel('<div class="card vis quiz" id="hardQ"><div class="qno">🔥 도전 업무</div><div class="qtext">' + fmt(H.q) + '</div><div id="hexp"></div></div>');
+    RK.sayObj(H.say || { t: '어려운 문제예요.|천천히 골라 주세요.', m: 'think' });
+    const t0 = Date.now();
+    const r = await RK.choose({ opts: H.opts, hint2: H.hint2, fbDefault: H.fbDefault, type: 'pick', meta: { step: { id: T.id + '-hard' }, hard: true } });
+    RK.record(T.id + '-hard', r.firstTry, r.tries, (Date.now() - t0) / 1000);
+    $('#hexp').innerHTML = '<div class="exp" role="status">' + (r.firstTry ? '✓ 첫 선택 정답. ' : '✓ 같이 찾았어요. ') + fmt(H.e) + (H.src ? '<span class="note" style="display:block">근거: 강의대본 ' + esc(H.src) + '줄</span>' : '') + '</div>';
+    st.xp += 10; RK.save(); RK.hud();
+    RK.say(r.firstTry ? '도전 성공!|+10 XP 받았어요.' : '어려웠죠?|+10 XP는 그대로예요.', 'happy');
+    adaptLog({ task: T.id, kind: 'hard', took: true, ok: r.firstTry });
+    await RK.act('계속하기 ▶', 'primary', { kind: 'talk' });
   };
 
   /* ---------- 업무 평가 3문제 (별 = 첫 선택만) ---------- */
@@ -150,7 +194,11 @@
     const fromLv = st.lv, fromStage = RK.stageFor(st.lv);
     if (firstClear) st.lv = Object.keys(st.cleared).length + 1;
     st.cleared[L.lecture] = { stars, best: Math.max(stars, prev ? prev.best || 0 : 0), at: Date.now(), plays: (prev ? prev.plays || 1 : 0) + 1, minutes: Math.round((Date.now() - RK.run.t0) / 6000) / 10 };
-    st.progress = null; RK.save();
+    st.progress = null;
+    // 기억 다지기 예약: 처음 수료한 날 기준 1·3·7·14일 뒤
+    st.review = st.review || {};
+    if (!st.review[L.lecture]) st.review[L.lecture] = { box: 0, stars: 0, due: RK.dayNo() + RK.REVIEW_DAYS[0], hist: [] };
+    RK.save();
     const toStage = RK.stageFor(st.lv);
     if (firstClear) {
       await new Promise(res => {
@@ -221,6 +269,7 @@
     f.innerHTML = '<div class="fin-h">' + L.lecture + '강 수료</div><div class="fin-s">' + esc(RK.statusText(st.lv)) + (firstClear ? '' : ' · 다시 하기 기록') + '</div>' +
       RK.rkCardHTML(L, stars) +
       '<div class="fin-btns"><button class="btn gold" id="shareBtn">📤 내 루키 카드 미리 보기</button></div>' +
+      (st.review && st.review[L.lecture] && st.review[L.lecture].box < 4 ? '<div class="note memnote">🧠 기억 다지기 예약: ' + RK.dayLabel(st.review[L.lecture].due) + ' ' + L.lecture + '강 복습 2문제 (사무실에서 알려 줘요)</div>' : '') +
       '<div class="sec-h">📒 가르친 규칙</div>' + RK.historyHTML(L) +
       '<div class="sec-h">🗺️ 30강 지도 <small>' + Object.keys(st.cleared).length + '/30강 수료</small></div>' + RK.mapHTML() +
       '<div class="sec-h">👥 다음에 만날 팀원 루키</div>' + RK.W.team({ t: '내 수첩대로 일하는 루키가|팀원 루키를 만나요', s: '팀 연결·도전장은 다음 업데이트 (지금은 예시)' }) +
@@ -232,7 +281,7 @@
     $('#shareBtn').onclick = RK.openShare.bind(null, L, stars);
     $('#nextBtn').onclick = () => { if (nextReady) location.href = '?lecture=' + next; else RK.toast(next + '강은 다음 조각에서 열려요'); };
     $('#againBtn').onclick = () => RK.startLecture(L.lecture, 0);
-    $('#homeBtn').onclick = () => { location.href = location.pathname; };
+    $('#homeBtn').onclick = () => { location.href = location.pathname + '?office=1'; };
   };
   RK.openShare = (L, stars) => {
     const ov = $('#overlay');
@@ -266,7 +315,9 @@
         ? '<button class="btn primary" id="startBtn">업무 ' + (prog.task + 1) + '부터 이어 하기 ▶</button><button class="btn ghost" id="restartBtn">처음부터</button>'
         : '<button class="btn primary" id="startBtn">' + (cleared ? '↺ ' + L.lecture + '강 다시 하기' : '팀장으로 출근하기 ▶') + '</button>') + '</div>' +
       (Object.keys(st.cleared).length ? '<div class="sec-h" style="align-self:stretch">🗺️ 30강 지도</div><div style="align-self:stretch;text-align:left">' + RK.mapHTML() + '</div>' : '') +
+      (Object.keys(st.cleared).length ? '<button class="btn ghost" id="officeBtn" style="margin-top:12px">🏢 루키 사무실로</button>' : '') +
       '<button class="linkbtn" id="wipeBtn">이 휴대폰의 기록 지우기</button>';
+    const ob = $('#officeBtn'); if (ob) ob.onclick = () => { location.href = location.pathname + '?office=1'; };
     $('#fastSwitch').onclick = RK.toggleFast;
     $('#wipeBtn').onclick = () => { if (confirm('이 휴대폰에 저장된 루키 기록을 모두 지울까요?')) { RK.resetAll(); location.href = location.pathname; } };
     const start = from => {
@@ -288,7 +339,7 @@
       await RK.runLecture(L, from || 0);
     } catch (e) { RK.fatal(e); }
   };
-  RK.exitLecture = () => { RK.save(); location.href = location.pathname + (RK.lectureNo && RK.lectureNo !== 1 ? '?lecture=' + RK.lectureNo : ''); };
+  RK.exitLecture = () => { RK.save(); if (RK.mode === 'review') { location.href = location.pathname + '?office=1'; return; } location.href =location.pathname + (RK.lectureNo && RK.lectureNo !== 1 ? '?lecture=' + RK.lectureNo : ''); };
 
   RK.fatal = e => {
     console.error(e);
@@ -303,7 +354,10 @@
     try {
       RK.course = await RK.loadJSON('content/course.json');
       const q = new URLSearchParams(location.search);
-      const n = +(q.get('lecture') || 0) || (RK.state.progress && RK.state.progress.lecture) || Math.min((RK.course.ready || [1]).filter(x => !RK.state.cleared[x])[0] || 1, 30);
+      RK.migrateReview();
+      // 루키 사무실(로비): ?office=1, 또는 수료한 강이 있고 하던 강이 없을 때 첫 화면
+      if (!q.get('lecture') && (q.get('office') || (Object.keys(RK.state.cleared).length && !RK.state.progress))) { await RK.showOffice(); return; }
+      const n =+(q.get('lecture') || 0) || (RK.state.progress && RK.state.progress.lecture) || Math.min((RK.course.ready || [1]).filter(x => !RK.state.cleared[x])[0] || 1, 30);
       const L = await RK.loadLecture(n);
       RK.lecture = L; RK.lectureNo = L.lecture;
       RK.showHome(L);

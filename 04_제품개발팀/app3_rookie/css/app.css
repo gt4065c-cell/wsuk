@@ -192,6 +192,8 @@ button:focus-visible,[role=button]:focus-visible,input:focus-visible{outline:3px
 .mi .pn{display:inline-block;min-width:22px;font-weight:900;color:var(--ok)}
 /* 순서 맞추기 */
 .ord{display:flex;align-items:center;gap:6px;min-height:52px;padding:6px 6px 6px 10px;border-radius:12px;background:var(--surface-2);border:2px solid var(--line-2);margin-top:7px;font-size:15.5px;font-weight:700}
+.ord{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;position:relative}
+.ord.dragging{z-index:50;box-shadow:0 12px 26px rgba(0,0,0,.45);border-color:var(--violet);transition:none}
 .ord .n{flex:none;width:26px;font-weight:900;color:var(--violet)}
 .ord .tx{flex:1;min-width:0}
 .ord button{flex:none;width:44px;height:44px;border-radius:10px;background:#232D63;font-size:16px}
@@ -357,3 +359,34 @@ button:focus-visible,[role=button]:focus-visible,input:focus-visible{outline:3px
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 body.fast *{animation-duration:.01s!important;animation-iteration-count:1!important;transition:none!important}
 body.fast .confetti{display:none}
+
+/* ---------- 눈높이 갈림길 (쉬운 예시 · 도전 업무) ---------- */
+.card.easy{border:2px solid var(--blue)}
+.easylines{list-style:none;padding:0}
+.easylines li{font-size:15.5px;font-weight:700;padding:7px 0;border-top:1px dashed var(--line-2)}
+.easylines li:first-child{border-top:0}
+.card.hardoffer{border:2px solid var(--gold)}
+.card.hardoffer p{font-size:15.5px}
+
+/* ---------- 루키 사무실(로비) ---------- */
+#home.office{text-align:left;align-items:stretch}
+#home.office .badge-day{align-self:center}
+.office-me{display:flex;gap:12px;align-items:center;background:linear-gradient(150deg,#2A2370,#14306A 60%,#0F4A5A);border:2px solid var(--gold);border-radius:20px;padding:12px;margin:12px 0}
+.office-me .rkm{flex:none;width:92px;height:96px}
+.office-me .rkm svg{width:100%;height:100%}
+.office-me .me-tx{min-width:0}
+.office-me .rkc-name{font-size:22px;font-weight:900}
+.me-st{font-size:15px;font-weight:800;color:var(--gold)}
+.me-deco{font-size:14px;color:var(--text-2);font-weight:700;margin-top:2px}
+.card.memo.due{border:2px solid var(--ok)}
+.card.memo p{font-size:15.5px}
+.memsay{font-weight:800}
+.membtns{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.nbsub{font-size:14px;font-weight:800;color:#6B5600;margin-top:6px}
+.cards-all .crow{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.cards-all .crow.fade .rkc-cards{opacity:.5;filter:grayscale(.5)}
+.crow-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;flex-wrap:wrap}
+.crow-h .mem{color:var(--gold);font-weight:800;font-size:14px}
+.rkc-cards span.core{outline:2px solid var(--gold)}
+.memnote{text-align:center}
+.mapov{max-width:420px}
