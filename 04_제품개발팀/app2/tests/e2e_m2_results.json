@@ -1,0 +1,212 @@
+[
+ {
+  "id": "N-01",
+  "name": "팀 참여 목표: 진행 = Σ min(문항 수, 1인 목표), 쉼 제외, 활동 0명이면 미달성",
+  "status": "pass",
+  "note": "",
+  "ms": 0
+ },
+ {
+  "id": "N-02",
+  "name": "이번 주 문항 수: 월~일 · 경험치 받은 기록만(XP 0 다시 풀기 제외)",
+  "status": "pass",
+  "note": "",
+  "ms": 0
+ },
+ {
+  "id": "N-03",
+  "name": "홈 팀 카드: 7팀 · 별명 가나다순(나 표시) · 이번 주 30 / 45 · 도전 중 · 달성 팀 목록 · 가짜 팀원 표시",
+  "status": "pass",
+  "note": "",
+  "ms": 1271
+ },
+ {
+  "id": "N-04",
+  "name": "팀원 개인 숫자 비공개: 팀 카드에 XP·개인 문항 수 없음, 창구가 돌려주는 팀원 칸은 별명·나·쉼 3개뿐",
+  "status": "pass",
+  "note": "",
+  "ms": 8
+ },
+ {
+  "id": "N-05",
+  "name": "문제 1개를 끝까지 풀면 팀 진행 31 / 45, 내 이번 주 1문항",
+  "status": "pass",
+  "note": "",
+  "ms": 281
+ },
+ {
+  "id": "N-06",
+  "name": "팀 활동 쉬기: 확인 안내 → [네, 쉴게요] → \"팀 활동 쉼\" + 목표에서 빠짐(30/30) → [다시 하기] → 31/45",
+  "status": "pass",
+  "note": "",
+  "ms": 462
+ },
+ {
+  "id": "N-07",
+  "name": "내가 이번 주 15문항을 채우면 \"이번 주 팀 참여 목표 달성\" + 달성 팀 목록에 7팀",
+  "status": "pass",
+  "note": "",
+  "ms": 187
+ },
+ {
+  "id": "N-08",
+  "name": "교수 화면 로컬: 로컬 띠, 등록 안 된 이메일 거절, 가짜 교수 이메일로 바로 들어감",
+  "status": "pass",
+  "note": "",
+  "ms": 458
+ },
+ {
+  "id": "N-09",
+  "name": "대시보드: 숫자 4칸 · 많이 틀린 문항 10개(오답률 높은 순) · 강별 정답률 · 팀 13개 · 가짜 표시 · 학생 코드 없음",
+  "status": "pass",
+  "note": "",
+  "ms": 431
+ },
+ {
+  "id": "N-10",
+  "name": "지난주로 바꾸면 주 시작일이 7일 앞, 로그아웃하면 로그인 화면",
+  "status": "pass",
+  "note": "",
+  "ms": 81
+ },
+ {
+  "id": "N-11",
+  "name": "교수 화면 390px 너비: 가로 넘침 없음",
+  "status": "pass",
+  "note": "",
+  "ms": 579
+ },
+ {
+  "id": "N-12",
+  "name": "홈: my_team_summary() 1번 → 3팀 · 구름(쉼)·바다·소나무·하늘별(나) · 19 / 45(쉼 제외 3명)",
+  "status": "pass",
+  "note": "",
+  "ms": 289
+ },
+ {
+  "id": "N-13",
+  "name": "문제 1개 끝까지 → 새로고침 → 서버 값 20 / 45, 내 1문항",
+  "status": "pass",
+  "note": "",
+  "ms": 299
+ },
+ {
+  "id": "N-14",
+  "name": "팀 활동 쉬기 → set_team_off({p_off:true}) → 다시 하기 → set_team_off({p_off:false})",
+  "status": "pass",
+  "note": "",
+  "ms": 164
+ },
+ {
+  "id": "N-15",
+  "name": "서버에 팀 함수가 아직 없어도(적용 전) 홈은 그대로 열림: 팀 카드만 숨김, 오류 띠 없음",
+  "status": "pass",
+  "note": "",
+  "ms": 108
+ },
+ {
+  "id": "N-16",
+  "name": "아직 팀이 없는 학생: \"2주차부터 교수님이 정해 드려요\" + [팀 활동 안 하기]",
+  "status": "pass",
+  "note": "",
+  "ms": 417
+ },
+ {
+  "id": "N-17",
+  "name": "첫 화면: 교수용 로그인 칸(lu2_sb_admin)·주소 속 로그인 읽기 켬, 서버 함수·익명 로그인 0, 로컬 띠 없음, data/ 안 읽음",
+  "status": "pass",
+  "note": "",
+  "ms": 160
+ },
+ {
+  "id": "N-18",
+  "name": "등록 안 된 이메일: signInWithOtp(새 계정 만들지 않음, 돌아올 주소 = 이 화면) → \"등록되지 않은 이메일\"",
+  "status": "pass",
+  "note": "",
+  "ms": 97
+ },
+ {
+  "id": "N-19",
+  "name": "교수 이메일 → \"메일을 보냈어요\" → 틀린 숫자 거절 → 123456 → 대시보드 (서버 함수 3개, 인자 확인)",
+  "status": "pass",
+  "note": "",
+  "ms": 402
+ },
+ {
+  "id": "N-20",
+  "name": "기수·주 바꾸기 → admin_item_stats(p_cohort 2026-9) · admin_team_week(p_week 7일 앞)",
+  "status": "pass",
+  "note": "",
+  "ms": 46
+ },
+ {
+  "id": "N-21",
+  "name": "새로고침: 저장된 교수 로그인 재사용(메일 다시 안 보냄) · 같은 브라우저의 학생 화면은 학생 로그인과 섞이지 않음",
+  "status": "pass",
+  "note": "",
+  "ms": 303
+ },
+ {
+  "id": "N-22",
+  "name": "로그아웃 → signOut(이 기기만) → 로그인 화면",
+  "status": "pass",
+  "note": "",
+  "ms": 53
+ },
+ {
+  "id": "N-23",
+  "name": "등록은 됐지만 교수가 아닌 이메일: admin_whoami=false → \"교수 계정이 아니에요\", 통계 함수는 부르지 않음",
+  "status": "pass",
+  "note": "",
+  "ms": 178
+ },
+ {
+  "id": "N-24",
+  "name": "메일 링크가 만료돼 돌아오면(#error_code=otp_expired) 쉬운 안내 + 주소의 # 부분 지움",
+  "status": "pass",
+  "note": "",
+  "ms": 103
+ },
+ {
+  "id": "N-25",
+  "name": "서버에 교수 함수가 아직 없으면(적용 전) \"아직 설치되지 않았어요\" + [다시 시도]",
+  "status": "pass",
+  "note": "",
+  "ms": 274
+ },
+ {
+  "id": "N-26",
+  "name": "서버가 NOT_ADMIN 을 돌려주면(권한이 중간에 빠짐) 쉬운 안내",
+  "status": "pass",
+  "note": "",
+  "ms": 45
+ },
+ {
+  "id": "N-27",
+  "name": "진짜 supabase-js: POST /auth/v1/otp(create_user=false, redirect_to=교수 화면) → /auth/v1/verify → rpc admin_* 에 교수 토큰, 학생 로그인 칸은 비어 있음",
+  "status": "pass",
+  "note": "요청 7건",
+  "ms": 422
+ },
+ {
+  "id": "N-28",
+  "name": "배포용 폴더: admin.html·js/admin.js 포함, 가짜 교수 이메일 지움, noindex, data/ 없음, ?mode 없이 Supabase 모드 교수 로그인 화면",
+  "status": "pass",
+  "note": "[배포용 폴더 완성] (임시 폴더) · 파일 11개 · data/ 없음 · MODE=supabase · 업로드는 하지 않았어요",
+  "ms": 397
+ },
+ {
+  "id": "N-29",
+  "name": "schema.sql 은 next_practice(O/X 수정)만 바뀜 = 40_ox_fix.sql 과 본문 같음, 30번 파일은 next_practice·close_item 을 다시 만들지 않음, 새 함수는 모두 anon 에서 회수",
+  "status": "pass",
+  "note": "새 함수 11개",
+  "ms": 380
+ },
+ {
+  "id": "N-30",
+  "name": "임시 PostgreSQL 시험(있으면): supabase/local_test/run_m2_local.sh 실패 0",
+  "status": "pass",
+  "note": "로컬 PostgreSQL 시험(M2 1차 SQL + O/X 수정): 통과 75 · 실패 0   (임시 DB는 지웠어요)",
+  "ms": 2501
+ }
+]

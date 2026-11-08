@@ -1,0 +1,1553 @@
+{
+  "at": "2026-11-08T10:26:41.832Z",
+  "pass": 42,
+  "fail": 0,
+  "results": [
+    {
+      "id": "S1",
+      "name": "가짜 학생 ① 맞게 가르친 학생(또롱이) 360x740 끝까지",
+      "status": "pass",
+      "note": "장면 49개, 26초(연출 실측)",
+      "ms": 26863
+    },
+    {
+      "id": "S2",
+      "name": "가짜 학생 ② 틀리게 가르친 학생(삐삐) 360x640·빠른 진행 끝까지",
+      "status": "pass",
+      "note": "장면 60개, 8초",
+      "ms": 8701
+    },
+    {
+      "id": "K1",
+      "name": "루키 규칙 수첩: 고른 규칙이 저장됨",
+      "status": "pass",
+      "note": "또롱이: '과목을 바꾸'가 있으면 → 학사 문의 / AI가 낸 결과는 → 사람이 확인한 뒤 쓴다 / 도구는 → 그 일에 필요한 것만 쓴다 | 삐삐 처음: 모르는 말은 전부 → 학사 문의 / AI가 낸 결과는 → 확인 없이 바로 쓴다 / 도구는 → 다 열리는 마스터키로 쓴다",
+      "ms": 0
+    },
+    {
+      "id": "K2",
+      "name": "다음 업무에서 루키가 수첩대로 행동 → 틀리게 가르친 학생이 보고 고침",
+      "status": "pass",
+      "note": "삐삐: 업무 2(도서관 문의가 학사로 감) → 수첩 1번 고침, 업무 3(확인 없이 게시판에 올림) → 수첩 2번 고침",
+      "ms": 0
+    },
+    {
+      "id": "K3",
+      "name": "강 끝 새 사례에서 루키 행동이 달라짐 (가르친 대로)",
+      "status": "pass",
+      "note": "또롱이 루키: \"✋ 점수 바꾸기: 제 도구에 없는 일 → 거절\" / 삐삐 루키(처음): \"⚠ 학생 B 점수 72 → 95 로 바꿈\" → 고친 뒤: \"✋ 점수 바꾸기: 제 도구에 없는 일 → 거절\"",
+      "ms": 1
+    },
+    {
+      "id": "K4",
+      "name": "별은 첫 선택만, Lv = 수료한 강 수(1), 직급·장식 이름",
+      "status": "pass",
+      "note": "또롱이 ★★★ · 삐삐 ★☆☆ (틀린 뒤 다시 골라도 별은 안 바뀜) · 둘 다 Lv.1 · 수습 · 사원증",
+      "ms": 0
+    },
+    {
+      "id": "K5",
+      "name": "틀리면 도움 3단계(힌트 → 자리 표시 → 같이 하기), 막히지 않음",
+      "status": "pass",
+      "note": "틀린 줄 찾기 3번 틀림 → 같이 하기로 통과, 고르기 2번 틀림 → 자리 표시, 건네기·분류도 오답 후 계속 진행",
+      "ms": 0
+    },
+    {
+      "id": "K6",
+      "name": "오류 0 · 외부 요청 0 · 가로 넘침 0 · 14px 미만 글자 0 (두 학생 모두)",
+      "status": "pass",
+      "note": "두 학생 모든 장면 점검 (109번)",
+      "ms": 0
+    },
+    {
+      "id": "K7",
+      "name": "재미 규칙: 손 조작 3번 이상, 글만 있는 화면 2개 연속 없음, 손가락 끌기",
+      "status": "pass",
+      "note": "또롱이 손 조작 19번 / 대사 넘기기 21번 / 평가 3 / 카드 6, 글만 있는 화면 최대 연속 0개",
+      "ms": 0
+    },
+    {
+      "id": "K8",
+      "name": "한 강 5~8분 안 (사람 속도 어림, 범위)",
+      "status": "pass",
+      "note": "또롱이 빠른 사람 약 4.9분 ~ 처음 하는 사람 약 6.2분 (연출 실측 26초 + 대사 21×3.5초 + 조작 19×5초 + 평가 3×25초 + 카드 6×4초) · 삐삐(빠른 진행·틀리고 고침) 약 5.5분",
+      "ms": 0
+    },
+    {
+      "id": "A1",
+      "name": "1강 눈높이 갈림길: 삐삐(2번+ 틀림) → 쉬운 예시 / 또롱이(첫 시도 다 맞힘) → 도전 업무",
+      "status": "pass",
+      "note": "삐삐: 업무 1에서 3번 틀림 → 업무 2 앞에 \"쉬운 예시 한 장면\" · 또롱이: 업무 1 뒤 도전 업무 수락·첫 선택 정답(+10 XP)",
+      "ms": 0
+    },
+    {
+      "id": "R1",
+      "name": "업무 1 끝내고 나가기 → 다시 열면 \"업무 2부터 이어 하기\"",
+      "status": "pass",
+      "note": "업무 2부터 이어 하기 ▶ → 업무 2/5부터, 수첩 1번 그대로",
+      "ms": 2768
+    },
+    {
+      "id": "P1",
+      "name": "부품 시험장: 짝 맞추기·순서 맞추기·빈칸 채우기·미니 만들기 (틀림 포함)",
+      "status": "pass",
+      "note": "4종 모두 끝까지, 틀린 뒤에도 진행",
+      "ms": 3277
+    },
+    {
+      "id": "L2-S1",
+      "name": "2강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
+      "status": "pass",
+      "note": "장면 40개, 19초(연출 실측)",
+      "ms": 19155
+    },
+    {
+      "id": "L2-S2",
+      "name": "2강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
+      "status": "pass",
+      "note": "장면 54개, 7초",
+      "ms": 7459
+    },
+    {
+      "id": "L2-K1",
+      "name": "2강 수첩: 틀리게 가르치면 뒤 업무·새 사례에서 그대로 틀리고 다시 고침",
+      "status": "pass",
+      "note": "삐삐: 1번 count→draft→use (업무 3에서 결과 보고 고침) / 2번 pass→narrow (업무 3에서 결과 보고 고침) / 3번 guess→measure (새 사례 결과 보고 고침) | 새 사례 처음 \"⚠ 근거 숫자 없이 보고서를 보냄\" → 고친 뒤 \"✔ 다음 주부터 잼: 초안+검토 시간 · 수정 문항 수 · 수업 사용\"",
+      "ms": 1
+    },
+    {
+      "id": "L2-K2",
+      "name": "2강 별(첫 선택)·Lv·오류 0·외부 요청 0·넘침 0·작은 글자 0·틀려도 진행",
+      "status": "pass",
+      "note": "또롱이 ★★★ · 삐삐 ★☆☆ · 둘 다 Lv.2 (Lv.2 · 수습 · 사원증) · 일부러 틀린 부품 5곳 모두 진행",
+      "ms": 0
+    },
+    {
+      "id": "L2-K3",
+      "name": "2강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
+      "status": "pass",
+      "note": "손 조작 17번 · 대사 15번 · 장면 종류 home·talk·order·teach·card·fill·spot·offer·pick·sort·exam·go·levelup · 빠른 사람 약 4.2분 ~ 처음 하는 사람 약 5.4분 · 삐삐 약 5.1분",
+      "ms": 0
+    },
+    {
+      "id": "L2-A",
+      "name": "2강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L02-T2: 삐삐 5번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
+      "ms": 0
+    },
+    {
+      "id": "L3-S1",
+      "name": "3강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
+      "status": "pass",
+      "note": "장면 38개, 42초(연출 실측)",
+      "ms": 42326
+    },
+    {
+      "id": "L3-S2",
+      "name": "3강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
+      "status": "pass",
+      "note": "장면 50개, 7초",
+      "ms": 8090
+    },
+    {
+      "id": "L3-K1",
+      "name": "3강 수첩: 틀리게 가르치면 뒤 업무·새 사례에서 그대로 틀리고 다시 고침",
+      "status": "pass",
+      "note": "삐삐: 1번 short→four (업무 3에서 결과 보고 고침) / 2번 redo→longer→part (업무 2에서 결과 보고 고침) / 3번 trust→verify (새 사례 결과 보고 고침) | 새 사례 처음 \"⚠ 2번 해설의 근거 없는 문장도 그대로 나감\" → 고친 뒤 \"✔ 그 문장 표시 → 교수님께 확인 요청\"",
+      "ms": 0
+    },
+    {
+      "id": "L3-K2",
+      "name": "3강 별(첫 선택)·Lv·오류 0·외부 요청 0·넘침 0·작은 글자 0·틀려도 진행",
+      "status": "pass",
+      "note": "또롱이 ★★★ · 삐삐 ★☆☆ · 둘 다 Lv.3 (Lv.3 · 수습 · 사원증) · 일부러 틀린 부품 5곳 모두 진행",
+      "ms": 0
+    },
+    {
+      "id": "L3-K3",
+      "name": "3강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
+      "status": "pass",
+      "note": "손 조작 20번 · 대사 11번 · 장면 종류 home·talk·pick·sort·teach·card·offer·fill·spot·match·exam·go·levelup · 빠른 사람 약 4.5분 ~ 처음 하는 사람 약 5.6분 · 삐삐 약 4.9분",
+      "ms": 0
+    },
+    {
+      "id": "L3-A",
+      "name": "3강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L03-T1: 삐삐 4번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
+      "ms": 0
+    },
+    {
+      "id": "L4-S1",
+      "name": "4강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
+      "status": "pass",
+      "note": "장면 39개, 40초(연출 실측)",
+      "ms": 40555
+    },
+    {
+      "id": "L4-S2",
+      "name": "4강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
+      "status": "pass",
+      "note": "장면 49개, 7초",
+      "ms": 7742
+    },
+    {
+      "id": "L4-K1",
+      "name": "4강 수첩: 틀리게 가르치면 뒤 업무·새 사례에서 그대로 틀리고 다시 고침",
+      "status": "pass",
+      "note": "삐삐: 1번 ask→source (업무 2에서 결과 보고 고침) / 2번 false→keep→hold (업무 3에서 결과 보고 고침) / 3번 ai→prof (새 사례 결과 보고 고침) | 새 사례 처음 \"⚠ 근거 없는 문장 1개가 그대로 나감\" → 고친 뒤 \"✔ 표시해 두고 교수자 확인 대기 · 바로 올리지 않음\"",
+      "ms": 0
+    },
+    {
+      "id": "L4-K2",
+      "name": "4강 별(첫 선택)·Lv·오류 0·외부 요청 0·넘침 0·작은 글자 0·틀려도 진행",
+      "status": "pass",
+      "note": "또롱이 ★★★ · 삐삐 ★☆☆ · 둘 다 Lv.4 (Lv.4 · 수습 · 사원증) · 일부러 틀린 부품 3곳 모두 진행",
+      "ms": 0
+    },
+    {
+      "id": "L4-K3",
+      "name": "4강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
+      "status": "pass",
+      "note": "손 조작 18번 · 대사 14번 · 장면 종류 home·talk·reply·match·teach·card·offer·pick·spot·sort·exam·go·levelup · 빠른 사람 약 4.5분 ~ 처음 하는 사람 약 5.7분 · 삐삐 약 4.7분",
+      "ms": 0
+    },
+    {
+      "id": "L4-A",
+      "name": "4강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L04-T1: 삐삐 3번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
+      "ms": 0
+    },
+    {
+      "id": "L5-S1",
+      "name": "5강 가짜 학생 ① 맞게 가르친 학생 360x740 끝까지",
+      "status": "pass",
+      "note": "장면 40개, 41초(연출 실측)",
+      "ms": 41663
+    },
+    {
+      "id": "L5-S2",
+      "name": "5강 가짜 학생 ② 틀리게 가르친 학생 360x640·빠른 진행 끝까지",
+      "status": "pass",
+      "note": "장면 54개, 7초",
+      "ms": 7989
+    },
+    {
+      "id": "L5-K1",
+      "name": "5강 수첩: 틀리게 가르치면 뒤 업무·새 사례에서 그대로 틀리고 다시 고침",
+      "status": "pass",
+      "note": "삐삐: 1번 vague→area (업무 2에서 결과 보고 고침) / 2번 wide→scope (업무 3에서 결과 보고 고침) / 3번 screen→self→server (새 사례 결과 보고 고침) | 새 사례 처음 \"⚠ 실제로 맞힌 답과 다른 점수\" → 고친 뒤 \"✔ 순위표: 학생 I 60점 (화면 숫자 100은 안 씀)\"",
+      "ms": 0
+    },
+    {
+      "id": "L5-K2",
+      "name": "5강 별(첫 선택)·Lv·오류 0·외부 요청 0·넘침 0·작은 글자 0·틀려도 진행",
+      "status": "pass",
+      "note": "또롱이 ★★★ · 삐삐 ★☆☆ · 둘 다 Lv.5 (Lv.5 · 사원 · 헤드셋) · 일부러 틀린 부품 5곳 모두 진행",
+      "ms": 0
+    },
+    {
+      "id": "L5-K3",
+      "name": "5강 재미 규칙(손 조작 3번+, 글만 있는 화면 연속 없음) · 5~8분",
+      "status": "pass",
+      "note": "손 조작 18번 · 대사 15번 · 장면 종류 home·talk·sort·teach·card·build·go·offer·pick·order·reply·exam·levelup · 빠른 사람 약 4.6분 ~ 처음 하는 사람 약 5.8분 · 삐삐 약 5.1분",
+      "ms": 0
+    },
+    {
+      "id": "L5-A",
+      "name": "5강 눈높이 갈림길 (쉬운 예시 · 도전 업무)",
+      "status": "pass",
+      "note": "L05-T2: 삐삐 4번 틀림 → 쉬운 예시 · 또롱이 → 도전 업무 정답",
+      "ms": 0
+    },
+    {
+      "id": "L5-P",
+      "name": "5강 승진: 수습 → 사원, 헤드셋 (승진 화면 표시)",
+      "status": "pass",
+      "note": "Lv.5 · 사원 · 헤드셋",
+      "ms": 0
+    },
+    {
+      "id": "D1",
+      "name": "순서 맞추기 부품: 손가락으로 줄 끌어 옮기기 (▲▼ 버튼도 그대로)",
+      "status": "pass",
+      "note": "L2 0123→2013 · L5 0123→2013 (줄 번호 순서), 나머지는 ▲▼ 버튼",
+      "ms": 0
+    },
+    {
+      "id": "O1",
+      "name": "루키 사무실: 내 루키(직급·장식)·수첩 요약·카드 모음·기억 다지기 알림·30강 지도 입구·팀(예시)",
+      "status": "pass",
+      "note": "Lv.1 · 수습 · 사원증 · 장식 가슴 명찰 · 수첩 3개 · 카드 5장 · \"오늘은 없어요. 다음: 1강 · 11월 9일 (내일)\" · 지도 30칸 · 2강 입구",
+      "ms": 622
+    },
+    {
+      "id": "M1",
+      "name": "기억 다지기: 1·3·7·14일 뒤에만 열림, 2문제(평가 문항 재사용·순서 섞기), 다 맞히면 별 +1 → 단단한 카드",
+      "status": "pass",
+      "note": "1일:열림 2일:- 3일:열림 5일:- 7일:열림 14일:열림 15일:- · 4번 다 맞힘 → 기억 ★★★★ 단단한 카드 · 회당 +15 XP · 순서 섞임 4/4번",
+      "ms": 2448
+    },
+    {
+      "id": "M2",
+      "name": "기억 다지기 틀림: 카드·별·Lv 그대로, 상자 처음으로 → 다음 날 다시",
+      "status": "pass",
+      "note": "2문제 틀림 → 카드 5장·Lv.1 그대로, +10 XP, 다음 날(4일째) 다시 열림",
+      "ms": 649
+    }
+  ],
+  "good": {
+    "steps": 49,
+    "ms": 26259,
+    "kinds": {
+      "go": 4,
+      "type:home": 1,
+      "talk": 17,
+      "type:talk": 16,
+      "hand": 19,
+      "type:swipe": 5,
+      "type:pick": 3,
+      "type:go": 3,
+      "type:teach": 2,
+      "card": 6,
+      "type:card": 5,
+      "type:offer": 1,
+      "type:spot": 2,
+      "type:reply": 1,
+      "type:give": 1,
+      "type:sort": 5,
+      "exam": 3,
+      "type:exam": 3,
+      "type:levelup": 1
+    },
+    "teach": [
+      "R1:exact",
+      "R2:check"
+    ],
+    "exam": [
+      "L01-Q1:0",
+      "L01-Q4:1",
+      "L01-N1:1"
+    ],
+    "newCaseLog": [
+      "▶ 학습 기록 보기 도구 실행 (학생 B)\n◀ 받은 정보: 도구 실행 구분이 약함\n✔ 복습 문제: \"분류·생성·도구 나누기\"\n✋ 점수 바꾸기: 제 도구에 없는 일 → 거절"
+    ],
+    "compare": [
+      "평가 정답\nB · 기록만 보고, 점수는 그대로\n또롱이의 행동\n수첩 3번대로: 기록 보기 도구만 · 점수 거절"
+    ],
+    "notebook": {
+      "R1": {
+        "k": "exact",
+        "ok": true,
+        "rule": "'과목을 바꾸'가 있으면 → 학사 문의",
+        "no": 1,
+        "apply": {
+          "kw": [
+            "과목을 바꾸"
+          ],
+          "to": "학사 문의",
+          "note": "1"
+        },
+        "lec": 1,
+        "history": [
+          {
+            "k": "exact",
+            "ok": true,
+            "rule": "'과목을 바꾸'가 있으면 → 학사 문의",
+            "where": "처음 가르침",
+            "at": 1794133386574
+          }
+        ]
+      },
+      "R2": {
+        "k": "check",
+        "ok": true,
+        "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
+        "no": 2,
+        "apply": null,
+        "lec": 1,
+        "history": [
+          {
+            "k": "check",
+            "ok": true,
+            "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
+            "where": "처음 가르침",
+            "at": 1794133393557
+          }
+        ]
+      },
+      "R3": {
+        "k": "record",
+        "ok": true,
+        "rule": "도구는 → 그 일에 필요한 것만 쓴다",
+        "no": 3,
+        "apply": null,
+        "lec": 1,
+        "history": [
+          {
+            "k": "record",
+            "ok": true,
+            "rule": "도구는 → 그 일에 필요한 것만 쓴다",
+            "where": "처음 가르침(건네기)",
+            "at": 1794133399490
+          }
+        ]
+      }
+    },
+    "estimate": {
+      "minutes": 4.9,
+      "talk": 21,
+      "hand": 19,
+      "exam": 3,
+      "card": 6,
+      "animSec": 26
+    },
+    "shots": [
+      "good_000_home.png",
+      "good_002_swipe.png",
+      "good_008_talk.png",
+      "good_014_offer.png",
+      "good_022_card.png",
+      "good_030_talk.png",
+      "good_040_talk.png"
+    ]
+  },
+  "lectures2to5": {
+    "L2good": {
+      "steps": 40,
+      "ms": 18552,
+      "kinds": {
+        "go": 2,
+        "type:home": 1,
+        "talk": 13,
+        "type:talk": 12,
+        "hand": 17,
+        "type:order": 4,
+        "type:teach": 3,
+        "card": 5,
+        "type:card": 4,
+        "type:fill": 2,
+        "type:spot": 1,
+        "type:offer": 1,
+        "type:pick": 2,
+        "type:sort": 5,
+        "exam": 3,
+        "type:exam": 3,
+        "type:go": 1,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L2R1:use",
+        "L2R2:narrow",
+        "L2R3:measure"
+      ],
+      "exam": [
+        "L02-Q1:0",
+        "L02-Q3:2",
+        "L02-N1:2"
+      ],
+      "newCaseLog": [
+        "▶ 측정 기록 찾기: 없음\n✋ '절반으로 줄었다'는 쓰지 않음\n✔ 다음 주부터 잼: 초안+검토 시간 · 수정 문항 수 · 수업 사용"
+      ],
+      "compare": [
+        "평가 정답\nC · 단정하지 않고 재기 시작\n또롱이의 행동\n수첩 3번대로: 측정 전이라 단정 안 함"
+      ],
+      "status": {
+        "text": "Lv.2 · 수습 · 사원증",
+        "rank": "수습",
+        "stage": 2,
+        "stageName": "사원증"
+      },
+      "estimate": {
+        "minutes": 4.2,
+        "talk": 15,
+        "hand": 17,
+        "exam": 3,
+        "card": 5,
+        "animSec": 19
+      },
+      "notebook": {
+        "L2R1": {
+          "k": "use",
+          "ok": true,
+          "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
+          "no": 1,
+          "apply": null,
+          "lec": 2,
+          "history": [
+            {
+              "k": "use",
+              "ok": true,
+              "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
+              "where": "처음 가르침",
+              "at": 1794133424763
+            }
+          ]
+        },
+        "L2R2": {
+          "k": "narrow",
+          "ok": true,
+          "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
+          "no": 2,
+          "apply": null,
+          "lec": 2,
+          "history": [
+            {
+              "k": "narrow",
+              "ok": true,
+              "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
+              "where": "처음 가르침",
+              "at": 1794133428724
+            }
+          ]
+        },
+        "L2R3": {
+          "k": "measure",
+          "ok": true,
+          "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
+          "no": 3,
+          "apply": null,
+          "lec": 2,
+          "history": [
+            {
+              "k": "measure",
+              "ok": true,
+              "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
+              "where": "처음 가르침",
+              "at": 1794133437190
+            }
+          ]
+        }
+      }
+    },
+    "L2bad": {
+      "steps": 54,
+      "ms": 6805,
+      "kinds": {
+        "go": 2,
+        "type:home": 1,
+        "talk": 16,
+        "type:talk": 15,
+        "hand": 28,
+        "type:order": 6,
+        "type:teach": 7,
+        "card": 5,
+        "type:card": 4,
+        "type:fill": 3,
+        "type:spot": 3,
+        "type:easy": 1,
+        "type:pick": 3,
+        "type:sort": 6,
+        "exam": 3,
+        "type:exam": 3,
+        "type:go": 1,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L2R1:count",
+        "L2R2:pass",
+        "L2R2:narrow",
+        "L2R1:draft",
+        "L2R1:use",
+        "L2R3:guess",
+        "L2R3:measure"
+      ],
+      "exam": [
+        "L02-Q1:2",
+        "L02-Q3:2",
+        "L02-N1:0"
+      ],
+      "newCaseLog": [
+        "▶ 측정 기록 찾기: 없음\n✔ 보고서: \"AI 덕분에 작성 시간 절반으로 줄었음\"\n⚠ 근거 숫자 없이 보고서를 보냄",
+        "▶ 측정 기록 찾기: 없음\n✋ '절반으로 줄었다'는 쓰지 않음\n✔ 다음 주부터 잼: 초안+검토 시간 · 수정 문항 수 · 수업 사용"
+      ],
+      "compare": [
+        "평가 정답\nC · 단정하지 않고 재기 시작\n삐삐의 행동\n수첩 3번대로: 측정 없이 '절반' 단정",
+        "평가 정답\nC · 단정하지 않고 재기 시작\n삐삐의 행동\n수첩 3번대로: 측정 전이라 단정 안 함"
+      ],
+      "status": {
+        "text": "Lv.2 · 수습 · 사원증",
+        "rank": "수습",
+        "stage": 2,
+        "stageName": "사원증"
+      },
+      "estimate": {
+        "minutes": 5.1,
+        "talk": 18,
+        "hand": 28,
+        "exam": 3,
+        "card": 5,
+        "animSec": 7
+      },
+      "notebook": {
+        "L2R1": {
+          "k": "use",
+          "ok": true,
+          "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
+          "no": 1,
+          "apply": null,
+          "lec": 2,
+          "history": [
+            {
+              "k": "count",
+              "ok": false,
+              "rule": "일이 끝나는 때는 → 문항 개수를 채웠을 때",
+              "where": "처음 가르침",
+              "at": 1794133443271
+            },
+            {
+              "k": "draft",
+              "ok": false,
+              "rule": "일이 끝나는 때는 → 초안이 완성됐을 때",
+              "where": "업무 3에서 결과 보고 고침",
+              "at": 1794133445692
+            },
+            {
+              "k": "use",
+              "ok": true,
+              "rule": "일이 끝나는 때는 → 수업에서 실제로 쓰고 결과를 볼 때",
+              "where": "업무 3에서 결과 보고 고침",
+              "at": 1794133446105
+            }
+          ]
+        },
+        "L2R2": {
+          "k": "narrow",
+          "ok": true,
+          "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
+          "no": 2,
+          "apply": null,
+          "lec": 2,
+          "history": [
+            {
+              "k": "pass",
+              "ok": false,
+              "rule": "메모 밖 문항도 → 개수를 채웠으니 통과",
+              "where": "처음 가르침",
+              "at": 1794133444388
+            },
+            {
+              "k": "narrow",
+              "ok": true,
+              "rule": "메모 밖 문항은 → 원문 범위로 좁혀 고친다",
+              "where": "업무 3에서 결과 보고 고침",
+              "at": 1794133445006
+            }
+          ]
+        },
+        "L2R3": {
+          "k": "measure",
+          "ok": true,
+          "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
+          "no": 3,
+          "apply": null,
+          "lec": 2,
+          "history": [
+            {
+              "k": "guess",
+              "ok": false,
+              "rule": "성과 보고는 → 느낌대로 '절반으로 줄었다'",
+              "where": "처음 가르침",
+              "at": 1794133447504
+            },
+            {
+              "k": "measure",
+              "ok": true,
+              "rule": "성과 보고는 → 직접 잰 숫자로만 말한다",
+              "where": "새 사례 결과 보고 고침",
+              "at": 1794133448555
+            }
+          ]
+        }
+      }
+    },
+    "L3good": {
+      "steps": 38,
+      "ms": 41705,
+      "kinds": {
+        "go": 2,
+        "type:home": 1,
+        "talk": 9,
+        "type:talk": 8,
+        "hand": 20,
+        "type:pick": 2,
+        "type:sort": 6,
+        "type:teach": 3,
+        "card": 4,
+        "type:card": 3,
+        "type:offer": 1,
+        "type:fill": 4,
+        "type:spot": 1,
+        "type:match": 4,
+        "exam": 3,
+        "type:exam": 3,
+        "type:go": 1,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L3R1:four",
+        "L3R2:part",
+        "L3R3:verify"
+      ],
+      "exam": [
+        "L03-Q1:0",
+        "L03-Q2:1",
+        "L03-N1:1"
+      ],
+      "newCaseLog": [
+        "▶ 해설 문장마다 강의 메모에서 근거 찾기\n◀ 2번 해설의 한 문장: 메모에서 근거 못 찾음\n✔ 그 문장 표시 → 교수님께 확인 요청"
+      ],
+      "compare": [
+        "평가 정답\nB · 근거를 직접 확인한 뒤 사용\n또롱이의 행동\n수첩 3번대로: 근거 대조 · 빈 곳 표시"
+      ],
+      "status": {
+        "text": "Lv.3 · 수습 · 사원증",
+        "rank": "수습",
+        "stage": 2,
+        "stageName": "사원증"
+      },
+      "estimate": {
+        "minutes": 4.5,
+        "talk": 11,
+        "hand": 20,
+        "exam": 3,
+        "card": 4,
+        "animSec": 42
+      },
+      "notebook": {
+        "L3R1": {
+          "k": "four",
+          "ok": true,
+          "rule": "요청문에는 → 목표·자료·제약·완료 기준",
+          "no": 1,
+          "apply": null,
+          "lec": 3,
+          "history": [
+            {
+              "k": "four",
+              "ok": true,
+              "rule": "요청문에는 → 목표·자료·제약·완료 기준",
+              "where": "처음 가르침",
+              "at": 1794133475303
+            }
+          ]
+        },
+        "L3R2": {
+          "k": "part",
+          "ok": true,
+          "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
+          "no": 2,
+          "apply": null,
+          "lec": 3,
+          "history": [
+            {
+              "k": "part",
+              "ok": true,
+              "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
+              "where": "처음 가르침",
+              "at": 1794133480188
+            }
+          ]
+        },
+        "L3R3": {
+          "k": "verify",
+          "ok": true,
+          "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
+          "no": 3,
+          "apply": null,
+          "lec": 3,
+          "history": [
+            {
+              "k": "verify",
+              "ok": true,
+              "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
+              "where": "처음 가르침",
+              "at": 1794133487238
+            }
+          ]
+        }
+      }
+    },
+    "L3bad": {
+      "steps": 50,
+      "ms": 7350,
+      "kinds": {
+        "go": 2,
+        "type:home": 1,
+        "talk": 12,
+        "type:talk": 11,
+        "hand": 29,
+        "type:pick": 2,
+        "type:sort": 7,
+        "type:teach": 7,
+        "card": 4,
+        "type:card": 3,
+        "type:easy": 1,
+        "type:fill": 6,
+        "type:spot": 2,
+        "type:match": 5,
+        "exam": 3,
+        "type:exam": 3,
+        "type:go": 1,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L3R1:short",
+        "L3R2:redo",
+        "L3R2:longer",
+        "L3R2:part",
+        "L3R1:four",
+        "L3R3:trust",
+        "L3R3:verify"
+      ],
+      "exam": [
+        "L03-Q1:3",
+        "L03-Q2:1",
+        "L03-N1:0"
+      ],
+      "newCaseLog": [
+        "▶ 요청문 네 칸 확인: 모두 있음\n✔ 요청이 좋으니 그대로 수업에 사용\n⚠ 2번 해설의 근거 없는 문장도 그대로 나감",
+        "▶ 해설 문장마다 강의 메모에서 근거 찾기\n◀ 2번 해설의 한 문장: 메모에서 근거 못 찾음\n✔ 그 문장 표시 → 교수님께 확인 요청"
+      ],
+      "compare": [
+        "평가 정답\nB · 근거를 직접 확인한 뒤 사용\n삐삐의 행동\n수첩 3번대로: 확인 없이 그대로 사용",
+        "평가 정답\nB · 근거를 직접 확인한 뒤 사용\n삐삐의 행동\n수첩 3번대로: 근거 대조 · 빈 곳 표시"
+      ],
+      "status": {
+        "text": "Lv.3 · 수습 · 사원증",
+        "rank": "수습",
+        "stage": 2,
+        "stageName": "사원증"
+      },
+      "estimate": {
+        "minutes": 4.9,
+        "talk": 14,
+        "hand": 29,
+        "exam": 3,
+        "card": 4,
+        "animSec": 7
+      },
+      "notebook": {
+        "L3R1": {
+          "k": "four",
+          "ok": true,
+          "rule": "요청문에는 → 목표·자료·제약·완료 기준",
+          "no": 1,
+          "apply": null,
+          "lec": 3,
+          "history": [
+            {
+              "k": "short",
+              "ok": false,
+              "rule": "요청문은 → 짧게 한 줄로",
+              "where": "처음 가르침",
+              "at": 1794133493786
+            },
+            {
+              "k": "four",
+              "ok": true,
+              "rule": "요청문에는 → 목표·자료·제약·완료 기준",
+              "where": "업무 3에서 결과 보고 고침",
+              "at": 1794133496855
+            }
+          ]
+        },
+        "L3R2": {
+          "k": "part",
+          "ok": true,
+          "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
+          "no": 2,
+          "apply": null,
+          "lec": 3,
+          "history": [
+            {
+              "k": "redo",
+              "ok": false,
+              "rule": "빠진 곳이 있으면 → 전부 다시 만들게 한다",
+              "where": "처음 가르침",
+              "at": 1794133495136
+            },
+            {
+              "k": "longer",
+              "ok": false,
+              "rule": "빠진 곳이 있으면 → 더 길고 자세하게 써 달라",
+              "where": "업무 2에서 결과 보고 고침",
+              "at": 1794133495652
+            },
+            {
+              "k": "part",
+              "ok": true,
+              "rule": "빠진 곳이 있으면 → 그 부분만 짚어 다시 부탁",
+              "where": "업무 2에서 결과 보고 고침",
+              "at": 1794133496170
+            }
+          ]
+        },
+        "L3R3": {
+          "k": "verify",
+          "ok": true,
+          "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
+          "no": 3,
+          "apply": null,
+          "lec": 3,
+          "history": [
+            {
+              "k": "trust",
+              "ok": false,
+              "rule": "요청문이 좋으면 → 내용도 맞다고 본다",
+              "where": "처음 가르침",
+              "at": 1794133497989
+            },
+            {
+              "k": "verify",
+              "ok": true,
+              "rule": "요청문이 좋아도 → 근거를 직접 읽고 확인",
+              "where": "새 사례 결과 보고 고침",
+              "at": 1794133498971
+            }
+          ]
+        }
+      }
+    },
+    "L4good": {
+      "steps": 39,
+      "ms": 39910,
+      "kinds": {
+        "go": 2,
+        "type:home": 1,
+        "talk": 12,
+        "type:talk": 11,
+        "hand": 18,
+        "type:reply": 1,
+        "type:match": 6,
+        "type:teach": 3,
+        "card": 4,
+        "type:card": 3,
+        "type:offer": 1,
+        "type:pick": 1,
+        "type:spot": 1,
+        "type:sort": 6,
+        "exam": 3,
+        "type:exam": 3,
+        "type:go": 1,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L4R1:source",
+        "L4R2:hold",
+        "L4R3:prof"
+      ],
+      "exam": [
+        "L04-Q1:0",
+        "L04-Q2:1",
+        "L04-N1:1"
+      ],
+      "newCaseLog": [
+        "▶ 고친 해설을 메모와 다시 대조\n◀ 고친 문장 1개: 메모에서 근거 못 찾음\n✔ 표시해 두고 교수자 확인 대기 · 바로 올리지 않음"
+      ],
+      "compare": [
+        "평가 정답\nB · 다시 대조, 판단은 교수자\n또롱이의 행동\n수첩 3번대로: 다시 대조 · 교수자 확인 대기"
+      ],
+      "status": {
+        "text": "Lv.4 · 수습 · 사원증",
+        "rank": "수습",
+        "stage": 2,
+        "stageName": "사원증"
+      },
+      "estimate": {
+        "minutes": 4.5,
+        "talk": 14,
+        "hand": 18,
+        "exam": 3,
+        "card": 4,
+        "animSec": 40
+      },
+      "notebook": {
+        "L4R1": {
+          "k": "source",
+          "ok": true,
+          "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
+          "no": 1,
+          "apply": null,
+          "lec": 4,
+          "history": [
+            {
+              "k": "source",
+              "ok": true,
+              "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
+              "where": "처음 가르침",
+              "at": 1794133504570
+            }
+          ]
+        },
+        "L4R2": {
+          "k": "hold",
+          "ok": true,
+          "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
+          "no": 2,
+          "apply": null,
+          "lec": 4,
+          "history": [
+            {
+              "k": "hold",
+              "ok": true,
+              "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
+              "where": "처음 가르침",
+              "at": 1794133509386
+            }
+          ]
+        },
+        "L4R3": {
+          "k": "prof",
+          "ok": true,
+          "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
+          "no": 3,
+          "apply": null,
+          "lec": 4,
+          "history": [
+            {
+              "k": "prof",
+              "ok": true,
+              "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
+              "where": "처음 가르침",
+              "at": 1794133535836
+            }
+          ]
+        }
+      }
+    },
+    "L4bad": {
+      "steps": 49,
+      "ms": 7051,
+      "kinds": {
+        "go": 2,
+        "type:home": 1,
+        "talk": 15,
+        "type:talk": 14,
+        "hand": 25,
+        "type:reply": 3,
+        "type:match": 8,
+        "type:teach": 7,
+        "card": 4,
+        "type:card": 3,
+        "type:easy": 1,
+        "type:spot": 1,
+        "type:sort": 6,
+        "exam": 3,
+        "type:exam": 3,
+        "type:go": 1,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L4R1:ask",
+        "L4R1:source",
+        "L4R2:false",
+        "L4R2:keep",
+        "L4R2:hold",
+        "L4R3:ai",
+        "L4R3:prof"
+      ],
+      "exam": [
+        "L04-Q1:1",
+        "L04-Q2:1",
+        "L04-N1:0"
+      ],
+      "newCaseLog": [
+        "▶ AI 검토 결과: 문제없음\n✔ 결과대로 수업 게시판에 바로 올림\n⚠ 근거 없는 문장 1개가 그대로 나감",
+        "▶ 고친 해설을 메모와 다시 대조\n◀ 고친 문장 1개: 메모에서 근거 못 찾음\n✔ 표시해 두고 교수자 확인 대기 · 바로 올리지 않음"
+      ],
+      "compare": [
+        "평가 정답\nB · 다시 대조, 판단은 교수자\n삐삐의 행동\n수첩 3번대로: AI 말만 믿고 올림",
+        "평가 정답\nB · 다시 대조, 판단은 교수자\n삐삐의 행동\n수첩 3번대로: 다시 대조 · 교수자 확인 대기"
+      ],
+      "status": {
+        "text": "Lv.4 · 수습 · 사원증",
+        "rank": "수습",
+        "stage": 2,
+        "stageName": "사원증"
+      },
+      "estimate": {
+        "minutes": 4.7,
+        "talk": 17,
+        "hand": 25,
+        "exam": 3,
+        "card": 4,
+        "animSec": 7
+      },
+      "notebook": {
+        "L4R1": {
+          "k": "source",
+          "ok": true,
+          "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
+          "no": 1,
+          "apply": null,
+          "lec": 4,
+          "history": [
+            {
+              "k": "ask",
+              "ok": false,
+              "rule": "AI 결과 확인은 → '확실해?'라고 다시 묻기",
+              "where": "처음 가르침",
+              "at": 1794133542285
+            },
+            {
+              "k": "source",
+              "ok": true,
+              "rule": "AI 결과 확인은 → 원문·출처와 직접 대조",
+              "where": "업무 2에서 결과 보고 고침",
+              "at": 1794133542900
+            }
+          ]
+        },
+        "L4R2": {
+          "k": "hold",
+          "ok": true,
+          "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
+          "no": 2,
+          "apply": null,
+          "lec": 4,
+          "history": [
+            {
+              "k": "false",
+              "ok": false,
+              "rule": "근거 없는 문장은 → 거짓으로 단정, AI 사용 중단",
+              "where": "처음 가르침",
+              "at": 1794133544050
+            },
+            {
+              "k": "keep",
+              "ok": false,
+              "rule": "근거 없는 문장도 → 그럴듯하면 그대로",
+              "where": "업무 3에서 결과 보고 고침",
+              "at": 1794133544668
+            },
+            {
+              "k": "hold",
+              "ok": true,
+              "rule": "근거 없는 문장은 → 보류, 지우거나 근거 있게 고침",
+              "where": "업무 3에서 결과 보고 고침",
+              "at": 1794133545086
+            }
+          ]
+        },
+        "L4R3": {
+          "k": "prof",
+          "ok": true,
+          "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
+          "no": 3,
+          "apply": null,
+          "lec": 4,
+          "history": [
+            {
+              "k": "ai",
+              "ok": false,
+              "rule": "최종 판단은 → AI 검토 결과대로",
+              "where": "처음 가르침",
+              "at": 1794133546285
+            },
+            {
+              "k": "prof",
+              "ok": true,
+              "rule": "최종 판단은 → 교수자가 근거를 직접 보고",
+              "where": "새 사례 결과 보고 고침",
+              "at": 1794133547301
+            }
+          ]
+        }
+      }
+    },
+    "L5good": {
+      "steps": 40,
+      "ms": 41071,
+      "kinds": {
+        "go": 3,
+        "type:home": 1,
+        "talk": 12,
+        "type:talk": 11,
+        "hand": 18,
+        "type:sort": 6,
+        "type:teach": 3,
+        "card": 4,
+        "type:card": 3,
+        "type:build": 3,
+        "type:go": 2,
+        "type:offer": 1,
+        "type:pick": 2,
+        "type:order": 3,
+        "type:reply": 1,
+        "exam": 3,
+        "type:exam": 3,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L5R1:area",
+        "L5R2:scope",
+        "L5R3:server"
+      ],
+      "exam": [
+        "L05-Q1:2",
+        "L05-Q2:1",
+        "L05-N1:2"
+      ],
+      "newCaseLog": [
+        "▶ 받은 것: 학생 I의 선택 답 + 화면 점수 100\n▶ 서버가 선택 답을 정답과 비교해 다시 채점\n✔ 순위표: 학생 I 60점 (화면 숫자 100은 안 씀)"
+      ],
+      "compare": [
+        "평가 정답\nC · 서버가 다시 채점한 점수\n또롱이의 행동\n수첩 3번대로: 서버 채점 60점"
+      ],
+      "status": {
+        "text": "Lv.5 · 사원 · 헤드셋",
+        "rank": "사원",
+        "stage": 3,
+        "stageName": "헤드셋"
+      },
+      "estimate": {
+        "minutes": 4.6,
+        "talk": 15,
+        "hand": 18,
+        "exam": 3,
+        "card": 4,
+        "animSec": 41
+      },
+      "notebook": {
+        "L5R1": {
+          "k": "area",
+          "ok": true,
+          "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
+          "no": 1,
+          "apply": null,
+          "lec": 5,
+          "history": [
+            {
+              "k": "area",
+              "ok": true,
+              "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
+              "where": "처음 가르침",
+              "at": 1794133571386
+            }
+          ]
+        },
+        "L5R2": {
+          "k": "scope",
+          "ok": true,
+          "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
+          "no": 2,
+          "apply": null,
+          "lec": 5,
+          "history": [
+            {
+              "k": "scope",
+              "ok": true,
+              "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
+              "where": "처음 가르침",
+              "at": 1794133577783
+            }
+          ]
+        },
+        "L5R3": {
+          "k": "server",
+          "ok": true,
+          "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
+          "no": 3,
+          "apply": null,
+          "lec": 5,
+          "history": [
+            {
+              "k": "server",
+              "ok": true,
+              "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
+              "where": "처음 가르침",
+              "at": 1794133585200
+            }
+          ]
+        }
+      }
+    },
+    "L5bad": {
+      "steps": 54,
+      "ms": 7353,
+      "kinds": {
+        "go": 3,
+        "type:home": 1,
+        "talk": 15,
+        "type:talk": 14,
+        "hand": 29,
+        "type:sort": 6,
+        "type:teach": 7,
+        "card": 4,
+        "type:card": 3,
+        "type:build": 6,
+        "type:go": 2,
+        "type:easy": 1,
+        "type:pick": 2,
+        "type:order": 5,
+        "type:reply": 3,
+        "exam": 3,
+        "type:exam": 3,
+        "type:levelup": 1
+      },
+      "teach": [
+        "L5R1:vague",
+        "L5R1:area",
+        "L5R2:wide",
+        "L5R2:scope",
+        "L5R3:screen",
+        "L5R3:self",
+        "L5R3:server"
+      ],
+      "exam": [
+        "L05-Q1:0",
+        "L05-Q2:1",
+        "L05-N1:0"
+      ],
+      "newCaseLog": [
+        "▶ 받은 것: 학생 I의 화면 점수 100\n✔ 순위표: 학생 I 100점 · 1등\n⚠ 실제로 맞힌 답과 다른 점수",
+        "▶ 학생 I에게 점수 입력 요청\n◀ 입력: 100점\n✔ 순위표: 학생 I 100점 · 1등\n⚠ 확인하지 않은 숫자로 1등",
+        "▶ 받은 것: 학생 I의 선택 답 + 화면 점수 100\n▶ 서버가 선택 답을 정답과 비교해 다시 채점\n✔ 순위표: 학생 I 60점 (화면 숫자 100은 안 씀)"
+      ],
+      "compare": [
+        "평가 정답\nC · 서버가 다시 채점한 점수\n삐삐의 행동\n수첩 3번대로: 화면 숫자 100점",
+        "평가 정답\nC · 서버가 다시 채점한 점수\n삐삐의 행동\n수첩 3번대로: 학생이 입력한 100점",
+        "평가 정답\nC · 서버가 다시 채점한 점수\n삐삐의 행동\n수첩 3번대로: 서버 채점 60점"
+      ],
+      "status": {
+        "text": "Lv.5 · 사원 · 헤드셋",
+        "rank": "사원",
+        "stage": 3,
+        "stageName": "헤드셋"
+      },
+      "estimate": {
+        "minutes": 5.1,
+        "talk": 18,
+        "hand": 29,
+        "exam": 3,
+        "card": 4,
+        "animSec": 7
+      },
+      "notebook": {
+        "L5R1": {
+          "k": "area",
+          "ok": true,
+          "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
+          "no": 1,
+          "apply": null,
+          "lec": 5,
+          "history": [
+            {
+              "k": "vague",
+              "ok": false,
+              "rule": "민원이 오면 → '게임이 이상해요'라고 넘긴다",
+              "where": "처음 가르침",
+              "at": 1794133591416
+            },
+            {
+              "k": "area",
+              "ok": true,
+              "rule": "민원이 오면 → 화면·처리·저장 중 어디인지 먼저",
+              "where": "업무 2에서 결과 보고 고침",
+              "at": 1794133591999
+            }
+          ]
+        },
+        "L5R2": {
+          "k": "scope",
+          "ok": true,
+          "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
+          "no": 2,
+          "apply": null,
+          "lec": 5,
+          "history": [
+            {
+              "k": "wide",
+              "ok": false,
+              "rule": "고칠 때는 → 다른 영역도 같이 고친다",
+              "where": "처음 가르침",
+              "at": 1794133593383
+            },
+            {
+              "k": "scope",
+              "ok": true,
+              "rule": "고칠 때는 → 그 영역만 고치고 다시 눌러 확인",
+              "where": "업무 3에서 결과 보고 고침",
+              "at": 1794133594016
+            }
+          ]
+        },
+        "L5R3": {
+          "k": "server",
+          "ok": true,
+          "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
+          "no": 3,
+          "apply": null,
+          "lec": 5,
+          "history": [
+            {
+              "k": "screen",
+              "ok": false,
+              "rule": "공식 점수는 → 화면에 보이는 숫자",
+              "where": "처음 가르침",
+              "at": 1794133595381
+            },
+            {
+              "k": "self",
+              "ok": false,
+              "rule": "공식 점수는 → 학생이 입력한 숫자",
+              "where": "새 사례 결과 보고 고침",
+              "at": 1794133596450
+            },
+            {
+              "k": "server",
+              "ok": true,
+              "rule": "공식 점수는 → 서버가 채점해 남긴 기록",
+              "where": "새 사례 결과 보고 고침",
+              "at": 1794133597016
+            }
+          ]
+        }
+      }
+    }
+  },
+  "bad": {
+    "steps": 60,
+    "ms": 7951,
+    "kinds": {
+      "go": 5,
+      "type:home": 1,
+      "talk": 18,
+      "type:talk": 17,
+      "hand": 28,
+      "type:swipe": 5,
+      "type:pick": 4,
+      "type:go": 4,
+      "type:teach": 5,
+      "card": 6,
+      "type:card": 5,
+      "type:easy": 1,
+      "type:spot": 4,
+      "type:reply": 2,
+      "type:give": 2,
+      "type:sort": 6,
+      "exam": 3,
+      "type:exam": 3,
+      "type:levelup": 1
+    },
+    "teach": [
+      "R1:all",
+      "R1:exact",
+      "R2:direct",
+      "R2:check",
+      "R3:record"
+    ],
+    "exam": [
+      "L01-Q1:0",
+      "L01-Q4:3",
+      "L01-N1:0"
+    ],
+    "newCaseLog": [
+      "▶ 마스터키로 자료 창고 전체 열기\n◀ 학생 B 기록 + 성적표 열림\n✔ 복습 문제: \"분류·생성·도구 나누기\"\n⚠ 학생 B 점수 72 → 95 로 바꿈",
+      "▶ 학습 기록 보기 도구 실행 (학생 B)\n◀ 받은 정보: 도구 실행 구분이 약함\n✔ 복습 문제: \"분류·생성·도구 나누기\"\n✋ 점수 바꾸기: 제 도구에 없는 일 → 거절"
+    ],
+    "compare": [
+      "평가 정답\nB · 기록만 보고, 점수는 그대로\n삐삐의 행동\n수첩 3번대로: 마스터키 · 점수를 바꿈",
+      "평가 정답\nB · 기록만 보고, 점수는 그대로\n삐삐의 행동\n수첩 3번대로: 기록 보기 도구만 · 점수 거절"
+    ],
+    "notebook": {
+      "R1": {
+        "k": "exact",
+        "ok": true,
+        "rule": "'과목을 바꾸'가 있으면 → 학사 문의",
+        "no": 1,
+        "apply": {
+          "kw": [
+            "과목을 바꾸"
+          ],
+          "to": "학사 문의",
+          "note": "1"
+        },
+        "lec": 1,
+        "history": [
+          {
+            "k": "all",
+            "ok": false,
+            "rule": "모르는 말은 전부 → 학사 문의",
+            "where": "처음 가르침",
+            "at": 1794133409988
+          },
+          {
+            "k": "exact",
+            "ok": true,
+            "rule": "'과목을 바꾸'가 있으면 → 학사 문의",
+            "where": "업무 2에서 결과 보고 고침",
+            "at": 1794133410673
+          }
+        ]
+      },
+      "R2": {
+        "k": "check",
+        "ok": true,
+        "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
+        "no": 2,
+        "apply": null,
+        "lec": 1,
+        "history": [
+          {
+            "k": "direct",
+            "ok": false,
+            "rule": "AI가 낸 결과는 → 확인 없이 바로 쓴다",
+            "where": "처음 가르침",
+            "at": 1794133411940
+          },
+          {
+            "k": "check",
+            "ok": true,
+            "rule": "AI가 낸 결과는 → 사람이 확인한 뒤 쓴다",
+            "where": "업무 3에서 결과 보고 고침",
+            "at": 1794133412956
+          }
+        ]
+      },
+      "R3": {
+        "k": "record",
+        "ok": true,
+        "rule": "도구는 → 그 일에 필요한 것만 쓴다",
+        "no": 3,
+        "apply": null,
+        "lec": 1,
+        "history": [
+          {
+            "k": "master",
+            "ok": false,
+            "rule": "도구는 → 다 열리는 마스터키로 쓴다",
+            "where": "처음 가르침(건네기)",
+            "at": 1794133413591
+          },
+          {
+            "k": "record",
+            "ok": true,
+            "rule": "도구는 → 그 일에 필요한 것만 쓴다",
+            "where": "새 사례 결과 보고 고침",
+            "at": 1794133415793
+          }
+        ]
+      }
+    },
+    "estimate": {
+      "minutes": 5.5,
+      "talk": 23,
+      "hand": 28,
+      "exam": 3,
+      "card": 6,
+      "animSec": 8
+    },
+    "shots": [
+      "bad_000_home.png",
+      "bad_010_go.png",
+      "bad_020_go.png",
+      "bad_030_teach.png",
+      "bad_040_sort.png",
+      "bad_050_exam.png"
+    ]
+  }
+}

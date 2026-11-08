@@ -1,0 +1,107 @@
+[
+ {
+  "id": "P-01",
+  "name": "로컬 모드: 비밀번호 칸 없음, 가짜 교수 이메일 + [들어가기] 로 그대로 들어감",
+  "status": "pass",
+  "note": "",
+  "ms": 436
+ },
+ {
+  "id": "P-02",
+  "name": "첫 화면: 이메일 · 비밀번호(type=password, autocomplete=current-password, 값 없음) · [로그인] 먼저, 아래에 [메일로 로그인 링크 받기]",
+  "status": "pass",
+  "note": "",
+  "ms": 275
+ },
+ {
+  "id": "P-03",
+  "name": "빈 비밀번호 → \"비밀번호를 넣어 주세요\", 서버 요청 없음 · 이메일 모양 틀림도 막음",
+  "status": "pass",
+  "note": "",
+  "ms": 160
+ },
+ {
+  "id": "P-04",
+  "name": "틀린 비밀번호 → 쉬운 말 안내(개발 용어 없음) + 비밀번호 칸 비움, 메일은 보내지 않음",
+  "status": "pass",
+  "note": "",
+  "ms": 75
+ },
+ {
+  "id": "P-05",
+  "name": "등록 안 된 이메일 + 비밀번호 → 같은 안내(서버가 구분해 주지 않음)",
+  "status": "pass",
+  "note": "",
+  "ms": 69
+ },
+ {
+  "id": "P-06",
+  "name": "교수 이메일 + 맞는 비밀번호 → admin_whoami 판정 → 대시보드, 비밀번호는 저장소·화면·콘솔 어디에도 없음",
+  "status": "pass",
+  "note": "",
+  "ms": 225
+ },
+ {
+  "id": "P-07",
+  "name": "등록은 됐지만 admins 표에 없는 계정: 비밀번호 로그인 성공해도 \"교수 계정이 아니에요\", 통계 함수 안 부름",
+  "status": "pass",
+  "note": "",
+  "ms": 126
+ },
+ {
+  "id": "P-08",
+  "name": "엔터키: 이메일 칸에서 엔터 → 비밀번호 칸으로(메일 안 보냄), 비밀번호 칸에서 엔터 → 로그인",
+  "status": "pass",
+  "note": "",
+  "ms": 135
+ },
+ {
+  "id": "P-09",
+  "name": "비밀번호 로그인을 너무 자주 시도(429) → \"몇 분 뒤에 다시\"",
+  "status": "pass",
+  "note": "",
+  "ms": 74
+ },
+ {
+  "id": "P-10",
+  "name": "메일 한도 초과(429 email rate limit) → \"한 시간에 몇 통만 … 비밀번호로 로그인하거나 한 시간쯤 뒤에\"",
+  "status": "pass",
+  "note": "",
+  "ms": 70
+ },
+ {
+  "id": "P-11",
+  "name": "등록 안 된 이메일로 메일 요청 → \"교수 계정으로 등록되지 않은 이메일이에요. 비서실장에게 등록을 부탁하세요.\" (README 없음)",
+  "status": "pass",
+  "note": "",
+  "ms": 58
+ },
+ {
+  "id": "P-12",
+  "name": "메일 링크 흐름은 그대로: 메일 보냄 → 6자리 숫자 → 대시보드, 돌아올 주소 = 지금 페이지 주소",
+  "status": "pass",
+  "note": "",
+  "ms": 179
+ },
+ {
+  "id": "P-13",
+  "name": "390px 휴대폰 너비: 로그인 화면 가로 넘침 없음, 두 버튼 모두 보임",
+  "status": "pass",
+  "note": "",
+  "ms": 167
+ },
+ {
+  "id": "P-14",
+  "name": "진짜 라이브러리: POST /auth/v1/token?grant_type=password {email,password} → 400 invalid_credentials 쉬운 안내 → 맞으면 rpc admin_whoami 에 교수 토큰 · /otp 429 over_email_send_rate_limit 쉬운 안내",
+  "status": "pass",
+  "note": "요청 8건",
+  "ms": 482
+ },
+ {
+  "id": "P-15",
+  "name": "배포용 복사본 admin.js 에도 비밀번호 로그인·쉬운 문구가 들어감, 로그인 문구에 README 없음",
+  "status": "pass",
+  "note": "",
+  "ms": 62
+ }
+]
