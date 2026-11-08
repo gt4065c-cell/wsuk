@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1026">
+<title>루키 키우기 — 레벨업 캠퍼스</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="wrap">
+  <!-- 사무실(홈) = 다음 강 입구 -->
+  <section id="home"></section>
+
+  <!-- 스테이지 -->
+  <section id="game" class="hidden">
+    <header id="hud">
+      <span class="lv" id="hudLv">Lv.0</span>
+      <div class="hud-mid">
+        <div class="t"><span id="hudTitle">진행</span><span id="hudXp">XP 0</span></div>
+        <div class="bar"><i id="hudBar"></i></div>
+      </div>
+      <span class="cardcnt" id="hudCards" aria-label="이 강에서 받은 카드">🃏 0/5</span>
+      <button class="hudbtn" id="fastBtn" aria-pressed="false" aria-label="빠른 진행 (연출 줄이기)" title="빠른 진행">⏩</button>
+      <button class="hudbtn" id="exitBtn" aria-label="나가기 (여기까지 저장)" title="나가기">✕</button>
+    </header>
+    <div id="stage">
+      <div class="mtitle" id="mtitle"></div>
+      <div id="rkStage"></div>
+      <div id="bubble" role="status" aria-live="polite"><span class="who">루키</span><p id="btext"></p></div>
+    </div>
+    <div id="panel"></div>
+    <div id="actions"></div>
+  </section>
+
+  <!-- 결과 화면 -->
+  <section id="final" class="hidden"></section>
+</div>
+<div id="overlay" class="hidden"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/core.js"></script>
+<script src="js/rookie.js"></script>
+<script src="js/parts.js"></script>
+<script src="js/engine.js"></script>
+<script>RK.boot();</script>
+</body>
+</html>
