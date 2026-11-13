@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0d0c">
+<title>조선 100인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* 레이아웃: 먹빛 바탕 위 넷플릭스식 가로 줄. 시대마다 단청 색 한 가지로 포스터를 칠한다. */
+:root{
+  --ink:#0f0d0c;        /* 먹 */
+  --ink-2:#1b1816;      /* 한지 그늘 */
+  --ink-3:#2a2522;
+  --paper:#f1e9dc;      /* 한지 */
+  --paper-dim:#b9ad9c;
+  --cinnabar:#c8402e;   /* 주홍(단청) */
+  --gold:#d9a441;
+  --display:"Gowun Batang","Nanum Myeongjo",serif;
+  --body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);-webkit-font-smoothing:antialiased}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* 상단 바 */
+header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding-block:12px;
+  padding-top:calc(12px + env(safe-area-inset-top,0px));
+  background:var(--ink);border-bottom:1px solid var(--ink-2)}
+.brand{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.02em;white-space:nowrap}
+.brand b{color:var(--cinnabar)}
+.search{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--ink-2);border:1px solid var(--ink-3);
+  border-radius:999px;padding:6px 12px;min-width:0;flex:0 1 260px}
+.search input{background:none;border:0;color:var(--paper);font:inherit;font-size:14px;width:100%;min-width:0;outline:none}
+.search svg{flex:none;opacity:.6}
+
+/* 히어로 */
+.hero{position:relative;padding-block:28px 24px;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(120% 90% at 85% 10%,var(--hc,#7a1f1f) 0%,transparent 60%),
+  linear-gradient(180deg,transparent 60%,var(--ink));opacity:.85;z-index:-1}
+.hero .hanja{position:absolute;right:max(8px,4vw);top:8px;font-family:var(--display);font-size:clamp(120px,28vw,260px);
+  line-height:1;color:var(--paper);opacity:.08;pointer-events:none;writing-mode:vertical-rl}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--gold);font-weight:700}
+.hero h1{font-family:var(--display);font-size:clamp(40px,9vw,72px);margin:8px 0 4px;line-height:1.05}
+.hero .role{color:var(--paper-dim);font-size:14px}
+.hero p{font-family:var(--display);font-size:clamp(17px,3.6vw,22px);line-height:1.55;max-width:30em;margin:14px 0 20px;text-wrap:balance}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;font-weight:700;font-size:15px}
+.btn.primary{background:var(--paper);color:var(--ink)}
+.btn.ghost{background:rgba(241,233,220,.16)}
+.btn:active{transform:scale(.97)}
+
+/* 주제 칩 */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-block:4px 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:7px 14px;border-radius:999px;border:1px solid var(--ink-3);font-size:13px;color:var(--paper-dim);background:var(--ink-2)}
+.chip[aria-pressed="true"]{background:var(--cinnabar);border-color:var(--cinnabar);color:#fff}
+
+/* 가로 줄 */
+.row{margin-top:22px}
+.row h2{font-size:17px;font-weight:700;margin:0 0 10px;display:flex;align-items:baseline;gap:10px}
+.row h2 small{font-weight:400;font-size:12px;color:var(--paper-dim)}
+.rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;scrollbar-width:none;
+  scroll-padding-left:max(16px,env(safe-area-inset-left,0px))}
+.rail::-webkit-scrollbar{display:none}
+.rail::after{content:"";flex:0 0 6px}
+
+/* 포스터 카드 */
+.card{flex:none;width:clamp(118px,30vw,168px);scroll-snap-align:start;text-align:left;position:relative}
+.poster{aspect-ratio:2/3;max-width:100%;border-radius:6px;position:relative;overflow:hidden;
+  /* 인물 그림(img/NNN.jpg)이 있으면 배경으로, 없으면 시대 색만 보인다 */
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 22%,transparent 45%,rgba(0,0,0,.82) 100%),
+    var(--img,none) center/cover no-repeat,
+    repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px),
+    linear-gradient(160deg,var(--c1) 0%,var(--c2) 100%);
+  box-shadow:0 6px 18px rgba(0,0,0,.45);transition:transform .2s}
+.card:hover .poster{transform:translateY(-3px)}
+.poster .no{position:absolute;top:8px;left:9px;font-size:11px;letter-spacing:.08em;opacity:.75;font-variant-numeric:tabular-nums}
+.poster .nm{position:absolute;left:9px;right:9px;bottom:30px;font-family:var(--display);font-weight:700;
+  font-size:clamp(20px,5vw,26px);line-height:1.15;text-wrap:balance;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.poster .rl{position:absolute;left:9px;right:9px;bottom:10px;font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poster .seal{position:absolute;right:9px;bottom:30px;width:22px;height:22px;border:1.5px solid rgba(241,233,220,.5);
+  border-radius:3px;font-family:var(--display);font-size:13px;display:grid;place-items:center;opacity:.7}
+.prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(0,0,0,.4)}
+.prog i{display:block;height:100%;background:var(--cinnabar)}
+
+/* 검색 결과 격자 */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:12px;margin-top:16px}
+.grid .card{width:auto}
+.empty{color:var(--paper-dim);padding:40px 0;text-align:center}
+
+/* 상세 시트 */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.sheet-bg.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;max-height:92vh;overflow-y:auto;background:var(--ink-2);
+  border-radius:16px 16px 0 0;transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
+  padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+.sheet.on{transform:none}
+@media(min-width:760px){.sheet{left:50%;width:640px;margin-left:-320px}}
+.sheet-top{position:relative;padding-block:28px 22px;background:linear-gradient(160deg,var(--c1),var(--c2));border-radius:16px 16px 0 0;overflow:hidden}
+.sheet-top .hanja{position:absolute;right:12px;top:-6px;font-family:var(--display);font-size:150px;opacity:.1;writing-mode:vertical-rl;line-height:1}
+.close{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right,0px));width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.4);font-size:20px;line-height:36px}
+.sheet h3{font-family:var(--display);font-size:38px;margin:6px 0 2px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:12px;padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.3)}
+.sheet .copy{font-family:var(--display);font-size:19px;line-height:1.6;margin:18px 0}
+.sheet .sec{padding-block:18px 0}
+.sheet .sec h4{font-size:14px;color:var(--paper-dim);margin:0 0 10px;font-weight:500}
+.pair{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none}
+.pair .card{width:110px}
+
+/* 하단 플레이어 */
+.player{position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(27,24,22,.97);backdrop-filter:blur(10px);
+  border-top:1px solid var(--ink-3);padding-block:8px calc(8px + env(safe-area-inset-bottom,0px));transform:translateY(110%);transition:transform .25s}
+.player.on{transform:none}
+.pl-row{display:flex;align-items:center;gap:12px}
+.thumb{width:40px;height:56px;border-radius:4px;flex:none;background:linear-gradient(160deg,var(--c1),var(--c2));
+  font-family:var(--display);font-weight:700;display:grid;place-items:center;font-size:15px}
+.pl-info{min-width:0;flex:1}
+.pl-info b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-info span{font-size:12px;color:var(--paper-dim);font-variant-numeric:tabular-nums}
+.ctl{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none}
+.ctl.play{background:var(--paper);color:var(--ink);width:46px;height:46px}
+.ctl small{font-size:10px;position:absolute;margin-top:2px}
+.speed{font-size:13px;font-weight:700;padding:6px 8px;border-radius:6px;background:var(--ink-3);flex:none;font-variant-numeric:tabular-nums}
+.bar{margin-top:8px;height:18px;display:flex;align-items:center;cursor:pointer;touch-action:none}
+.bar .track{height:4px;width:100%;background:var(--ink-3);border-radius:2px;position:relative}
+.bar .fill{position:absolute;inset:0 auto 0 0;background:var(--cinnabar);border-radius:2px}
+.bar .buf{position:absolute;inset:0 auto 0 0;background:rgba(241,233,220,.15);border-radius:2px}
+.status{font-size:12px;color:var(--gold);margin-top:2px;min-height:0}
+@media(max-width:420px){.hide-sm{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+footer{color:var(--paper-dim);font-size:12px;padding-block:40px 20px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<header class="gutter">
+  <div class="brand">조선 <b>100</b>人</div>
+  <label class="search" for="q">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="이름·신분·주제 검색" autocomplete="off">
+  </label>
+</header>
+
+<main>
+  <section class="hero gutter" id="hero"></section>
+  <div class="gutter"><div class="chips" id="chips" role="toolbar" aria-label="주제로 고르기"></div></div>
+  <div id="rows"></div>
+  <div class="gutter" id="results" hidden></div>
+  <footer class="gutter">
+    조선왕조 인물 100선 — 역사의 뒤안길에서 오늘을 비추다<br>
+    영웅화나 단죄보다 시대적 조건, 선택의 대가, 오늘의 질문을 함께 듣는 인문 오디오북입니다.
+  </footer>
+</main>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="인물 상세"></section>
+
+<div class="player" id="player">
+  <div class="gutter">
+    <div class="pl-row">
+      <div class="thumb" id="plThumb"></div>
+      <div class="pl-info"><b id="plName"></b><span id="plTime">0:00 / 0:00</span></div>
+      <button class="ctl hide-sm" id="back15" aria-label="15초 뒤로">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
+      <button class="ctl play" id="playBtn" aria-label="재생"></button>
+      <button class="ctl hide-sm" id="fwd15" aria-label="15초 앞으로">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button>
+      <button class="speed" id="speedBtn" aria-label="재생 속도">1.0×</button>
+      <button class="ctl" id="nextBtn" aria-label="다음 인물">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v14l10-7zM17 5h2v14h-2z"/></svg></button>
+    </div>
+    <div class="bar" id="bar"><div class="track"><div class="buf" id="buf"></div><div class="fill" id="fill"></div></div></div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+const R2 = 'https://pub-93a0945ba9804c26bf40525e7ffb53f6.r2.dev/joseon/';
+// [번호, 이름, 신분·역할, 한 줄 카피, 핵심 주제, 시대, 드라이브 ID]
+const P = [
+[1,"정도전","신진 사대부·개국공신","새 왕조의 설계자가 되었지만, 자신이 만든 권력의 칼날에 쓰러지다.","권력·설계","조선 건국기","1ej-xSksqzxPEderbII7ZEh8E9ZYHoWon"],
+[2,"정몽주","문신·성리학자","무너지는 나라 끝에서 충절을 택해 새 시대의 문턱에 피를 남기다.","충절·선택","조선 건국기","1jXiK06p6tNbpXbuF-GMu3kn8bJys-Yn2"],
+[3,"조준","문신·개혁가","토지제도를 고쳐 나라의 뼈대를 세운 현실주의 개혁가.","제도·개혁","조선 건국기","1GSw0uC7QchvOFG30xi0bxZqXbTa7jGAJ"],
+[4,"남은","무신·개국공신","혁명의 선봉에 섰으나 왕자의 난 속에서 가장 먼저 지워진 공신.","공신·비극","조선 건국기","1_ZmfjGrmIV5bozvn62Ruhe95Z88HWQRv"],
+[5,"신덕왕후 강씨","왕비","왕위 계승을 둘러싼 싸움 한가운데서 정치적 운명을 개척한 왕비.","여성·권력","조선 건국기","1vtzRPLL7KB4JcCFjVtH_4cPV3yN0YEn4"],
+[6,"하륜","문신·책사","난세의 흐름을 읽고 이방원을 왕으로 만든 냉철한 전략가.","책략·정치","조선 건국기","137V1WqsoSovuPLEc3s2Amzi2e5qKJ5R0"],
+[7,"원천석","학자·은사","새 왕조의 벼슬보다 옛 왕조에 대한 의리를 택한 재야 지식인.","절의·은둔","조선 건국기","1no2b5CtRQo0xqI6MzMqu8Cg2ZQAOJFeG"],
+[8,"권근","문신·성리학자","왕조 교체의 격랑을 건너 조선 성리학의 언어를 정립하다.","학문·전환","조선 전기","10WfNb2RySr0r0XtCplKyzcH09f8mXj_m"],
+[9,"황희","문신·영의정","흠결을 안고도 조정의 균형을 지켜 낸 장수 재상.","포용·행정","조선 전기","1-jigf7C2iDaq5tG0SWhwfeVdiNsaMgDL"],
+[10,"맹사성","문신·재상","낮은 자세와 검소함으로 권력의 품격을 보여 준 재상.","청렴·겸손","조선 전기","1wa6WnWpMmQZdifjyMPTuwrc1vjJe4h2w"],
+[11,"장영실","기술자·관노 출신","신분의 벽을 넘어 시간을 재고 하늘을 읽은 조선의 엔지니어.","기술·신분","조선 전기","1WRB3gHYmnEZYWKTyM2JJyaFzkVp7hPJz"],
+[12,"최해산","무관·화약기술자","아버지 최무선의 화약 기술을 이어 국방의 불꽃을 지키다.","기술·계승","조선 전기","1oONzF9SB0xR0lOa5JzlkFKms72xavi8O"],
+[13,"박연","음악가·문신","흐트러진 음률을 바로잡아 조선의 소리를 국가의 질서로 만들다.","음악·제도","조선 전기","1fiiUzVmIlk0s9rnF5XZdm91cOCmT8xNi"],
+[14,"안견","화가","꿈속 풍경을 붓끝에 붙잡아 조선 회화의 이상향을 남기다.","예술·상상","조선 전기","1-Xw9-GEhr7FqviKSYB0CVgV7hLo8wuJ1"],
+[15,"강희안","문신·화가","관료의 삶과 예술가의 감각을 한 몸에 품은 르네상스형 지식인.","예술·지식","조선 전기","1P2BBK7rgc871gKzHxNHVYcg-Nyj1e-iY"],
+[16,"김종서","문신·무장","북방을 개척한 호랑이 재상, 권력 교체의 밤에 쓰러지다.","개척·비극","조선 전기","13xfwsQvDO8jkMOkVjp70vc5U23msbA6q"],
+[17,"성삼문","문신·집현전 학자","죽음 앞에서도 임금에 대한 약속을 거두지 않은 말의 사람.","절의·언어","조선 전기","1nsiZQf-_PEK1FcJS2vbKNW7BfP8k8yF-"],
+[18,"박팽년","문신·집현전 학자","살아남을 길을 버리고 신념과 이름을 함께 지킨 사육신.","신념·희생","조선 전기","1tSj_XtLWSZA_rFljP4HBPjXNAeBJXVyi"],
+[19,"김시습","문인·생육신","세상과 불화하며 방랑했지만 시대의 모순을 문학으로 증언하다.","방랑·문학","조선 전기","1qZM-Fu8hWLsHZvM_ACDgCdWivcvvvV-h"],
+[20,"남이","무신","스물여덟 장군의 기개가 모함 한마디에 역모로 뒤집히다.","청년·모함","조선 전기","1MgqAmolKFfKh615FkdTq9pRAz9EjSJ33"],
+[21,"어우동","양반 여성·예인","욕망을 숨기지 않았다는 이유로 사회의 두려움과 처벌을 떠안다.","여성·규범","조선 전기","1L5qUwkh2UPAEes7FdYj1kej2ch966v6Q"],
+[22,"김처선","환관","폭군 앞에서 목숨을 걸고 직언한 궁궐 안의 마지막 양심.","직언·용기","조선 전기","13Guu4g8-Gzm_vf2xSe_OuIVoY3Sj_fJ8"],
+[23,"폐비 윤씨","왕비","궁중 권력과 감정의 충돌이 한 여성과 다음 세대의 비극으로 번지다.","궁중·비극","조선 전기","1aS3nh94tEK5co8VRPIE9mHhrJiu1TL35"],
+[24,"성현","문신·문인","제도 밖 풍속과 일화를 기록해 조선 사람들의 생생한 얼굴을 남기다.","기록·풍속","조선 전기","1nHG0OHRDlthhonFbg8zDUTxKBuevlbQo"],
+[25,"조광조","문신·개혁가","너무 빠른 개혁은 왜 좌절되는가를 몸으로 보여 준 이상주의자.","개혁·속도","사림 성장기","1jdi_b0s-f6SBOvyWjxZpfL-S-0xVgy4a"],
+[26,"서경덕","학자","벼슬과 재산보다 사유의 자유를 택해 기의 철학을 세우다.","철학·자립","사림 성장기","1Z3TPF0IGjidHoVcV8fVi9RMJRkXTKlgC"],
+[27,"황진이","기생·시인","신분의 울타리를 시와 예술로 넘어선 자유로운 지성.","여성·예술","사림 성장기","1yYkikpDBT91vb_VxFoCptb-rbi9EbPv3"],
+[28,"신사임당","예술가·문인","누군가의 어머니라는 이름 너머에 자기 예술세계를 세운 창작자.","여성·예술","사림 성장기","1KEpufwySFLfLa2xUai6K-p-DFBuf8Ebk"],
+[29,"이황","성리학자","물러남과 성찰을 통해 사람을 바꾸는 공부의 길을 묻다.","교육·성찰","사림 성장기","1tV1rUzJ2S6BLZ3oYi_QSKBYQrdgAnjnF"],
+[30,"이이","성리학자·문신","다가올 위기를 내다보고 준비 없는 국가에 경고를 남기다.","통찰·국방","사림 성장기","1588JjbmTCYoWp24MwVh9sbL67gmAokPh"],
+[31,"이암","문신·화가","개와 고양이의 눈빛에서 생명의 온기를 길어 올린 화가.","예술·생명","사림 성장기","1LhIcckNCMcKz41cYUbcoatAciOgsnRCx"],
+[32,"허난설헌","시인","스물일곱 짧은 생을 넘어 중국과 일본에까지 시의 이름을 남기다.","여성·문학","사림 성장기","1O7nZpq01bzB-QRpVcFbFpzvzCfupRbFv"],
+[33,"임꺽정","백정 출신·도적 지도자","천대받던 이들의 분노가 산채의 저항으로 폭발하다.","신분·저항","사림 성장기","1By2dA_wDn0vMZ6raH3wkhwFLC7kVlYj-"],
+[34,"유성룡","문신·재상","전쟁을 수습한 뒤 실패의 원인을 기록해 후세에 책임을 묻다.","위기·성찰","임진왜란기","1YRkli0AURCAzl1nMSlW1G3zoFOmvi14z"],
+[35,"신립","무신","명성과 자신감이 잘못된 판단을 만나 국가적 참패로 이어지다.","실패·판단","임진왜란기","1YzthHLbN9mRzXg3H0sPlffBfYo3A4Y9H"],
+[36,"정발","무신·부산진첨사","첫 격전의 성벽에서 끝까지 자리를 지킨 지휘관.","책임·항전","임진왜란기","1LjcGvgCg-98X1te5zF1x7IOuiU2u207D"],
+[37,"송상현","문신·동래부사","살아남는 길보다 지켜야 할 자리를 선택한 지방관.","책임·절의","임진왜란기","18Bs2FPlmvXM0TWyKAemNkqYzLtNTKLZx"],
+[38,"이억기","수군 장수","화려한 명성 뒤에서 전선을 지키다 칠천량의 바다에 잠들다.","헌신·비극","임진왜란기","19J1cx3509VKSgLsSXzSE_wgTFTAwPXc9"],
+[39,"곽재우","의병장","붉은 옷 한 벌로 백성의 두려움을 저항의 용기로 바꾸다.","의병·용기","임진왜란기","1SvzVw0qzWEbTUGCZhNZy5tNd_F-Zw_iv"],
+[40,"고경명","문신·의병장","노년의 선비가 붓을 내려놓고 전장으로 향하다.","의병·책임","임진왜란기","14kxdV4dhD9m7pUP09C6rM8Rxi1_FEoIl"],
+[41,"조헌","학자·의병장","칠백 의병과 함께 패배를 넘어선 의리를 남기다.","의병·희생","임진왜란기","1BocWIdNwCHwui7_-t8pdO9LDIxtbJXTU"],
+[42,"논개","관기","패전의 강가에서 몸 하나로 침략자에게 맞선 이름 없는 이들의 상징.","여성·저항","임진왜란기","1UjCyV-YUZtzczY0SYrH8Ucqr0i53DEWU"],
+[43,"김충선","귀화 장수","침략군의 선봉에서 조선의 수호자로 삶의 방향을 바꾸다.","귀화·선택","임진왜란기","13fN3_y9cPICJNVZkmDkci7HhMdqZj6EV"],
+[44,"정문부","문신·의병장","나라가 버린 북관에서 백성과 함께 땅을 되찾다.","의병·회복","임진왜란기","1UWDBku7cFlPMi3cOZocyDCKAybhvwXF3"],
+[45,"허준","의관","전염병과 전쟁의 시대에 누구나 쓸 수 있는 의학을 집대성하다.","의학·공공성","임진왜란기","1PNCZqVa1BB5-GTQ9D0M0IFErGYeAhr5R"],
+[46,"홍순언","역관","통역의 자리에서 쌓은 신뢰가 나라의 외교적 위기를 풀다.","외교·신뢰","임진왜란기","1ya3no7E2nGo3ZUmOZEX3YDXXojvkgAOu"],
+[47,"이매창","기생·시인","변방의 기생이 시와 거문고로 자기 내면의 품격을 지키다.","여성·문학","임진왜란기","1FOj_wcdzr7DRITDk6ZZw7iWnMHHW1xxa"],
+[48,"사명대사 유정","승려·외교가","칼 대신 협상으로 포로를 데려온 전쟁 뒤의 구원자.","종교·외교","임진왜란기","1emzCWlKZpiSS8DAP8qzIrlQKL_pnEviS"],
+[49,"강홍립","무신","강대국 사이에서 군대를 살리려 한 선택이 배신으로 기록되다.","외교·딜레마","광해군·인조기","1Y_Wy9y5kIhfgvxvsHQ7qZCMIbwrWH3qh"],
+[50,"허균","문신·문인","차별 없는 세상을 상상했으나 자신이 꿈꾼 혁명의 문턱에서 죽다.","평등·상상","광해군·인조기","12CYt2k-ERDTZECgsTQ_KTnSGr8yGooYW"],
+[51,"이수광","문신·실학 선구자","낯선 세계의 지식을 모아 조선의 시야를 바깥으로 열다.","세계·지식","광해군·인조기","102WTFNg3VVH76LefDhZaTANBnq-x6R2Q"],
+[52,"김개시","궁녀·정치 실무자","궁녀의 신분으로 권력 중심에 올랐으나 정변과 함께 사라지다.","여성·권력","광해군·인조기","1-wGReHh8xQM7SYNzerE-v2f34vZknK1V"],
+[53,"이괄","무신·반란 지도자","공을 세우고도 의심받은 장수가 수도를 점령한 반역자가 되다.","공신·반란","광해군·인조기","1LE6QFFi-tCMenjvGetu4resgsIH6Ra4P"],
+[54,"최명길","문신·주화론자","굴욕을 감수하고 백성과 나라를 살리는 현실적 평화를 택하다.","평화·현실","광해군·인조기","1YE3bFl_O0Wd-IoaCQ_4QrryXepuDPqCz"],
+[55,"김상헌","문신·척화론자","패배 속에서도 국가의 명분을 끝까지 놓지 않은 원칙주의자.","명분·원칙","광해군·인조기","1lRYOs0hVPbbwuouck576cQ4LKSGhlqaY"],
+[56,"임경업","무신","영웅의 명성이 정쟁과 국제질서 속에서 비극으로 끝나다.","영웅·비극","광해군·인조기","18ZSBCxS4FJ9Q7_xizJ4a-S1Fo-f7OA-Z"],
+[57,"소현세자","왕세자","포로 생활에서 새 세계를 보았지만 귀국 뒤 꿈을 펼치지 못하다.","개방·좌절","광해군·인조기","1_TQ3EuU9ePaaYUdfS_NTTnNiJobmJY-i"],
+[58,"김육","문신·개혁가","백성의 부담을 줄이는 대동법을 집요하게 현실로 만든 행정가.","제도·민생","17세기","1cha1syi6b_ARe_FZDW7Im7jQUOtg4i2X"],
+[59,"안용복","어민·민간 외교가","국가의 변방에서 한 어민이 울릉도와 독도의 경계를 지켜 내다.","영토·민간","17세기","1N0Ht7JDL66wFJ4Bi9Mq8fRkTjLyZoRZO"],
+[60,"백광현","의관·마의 출신","말을 치료하던 손으로 사람을 살려 신분과 직업의 경계를 넘다.","의학·도전","17세기","17-li0atfXLfVAXR1wZPpotLNUJQHwrfs"],
+[61,"장길산","도적 지도자","굶주린 민중의 절망이 전설적인 저항의 이름으로 남다.","민중·저항","17세기","1gS3EBAJGOmgI10MMZB29lKR19aedMXgH"],
+[62,"김만덕","상인","제주의 여성 상인이 자신의 전 재산으로 굶주린 이웃을 살리다.","여성·나눔","17세기","1_t7dlLQZ0YYilPStjONNtWnO7EHWW1hx"],
+[63,"강정일당","여성 성리학자","배움에서 배제된 시대에도 일상의 공부로 철학자의 길을 열다.","여성·학문","17세기","1x_IfcoSoUhmrawNtjLJ1QfDm1mewTDub"],
+[64,"임윤지당","여성 성리학자","여성도 성인이 될 수 있다고 선언하며 성리학의 벽을 흔들다.","여성·평등","17세기","1eNqSCGnpT7ZsJcBPlVsuuuYHQc3NBqks"],
+[65,"나합","상인·여성 경제인","한양의 상권을 움직이며 여성의 경제적 역량을 증명하다.","여성·경제","17세기","1ZJdi7qAYliZOPdJatZN_E1P3amCB4CQO"],
+[66,"김명국","도화서 화원","거친 붓과 파격적인 삶으로 관청 그림의 틀을 깨다.","예술·파격","17세기","1nyVb-0-VXexurBJPHh0frBoqBhB1B92s"],
+[67,"윤휴","성리학자","경전을 독자적으로 읽은 대가로 사문난적과 역적의 이름을 함께 쓰다.","해석·논쟁","17세기","1QwK_OrfNXThD9r0DeOS_Fo3Sm5lCvMOX"],
+[68,"박세당","학자","주자의 권위에 질문을 던져 지식의 독립이 치르는 값을 보여 주다.","비판·학문","17세기","1oxyZm0gDSdFaS2nzzsnCVUgAkzA3JMGJ"],
+[69,"이익","실학자","벼슬 밖의 삶에서 토지와 빈곤의 해법을 오래 탐구하다.","실학·민생","18세기","1G8eAjCgkD7-k1DTd1yU9awwhM0qeJAit"],
+[70,"홍대용","실학자·과학사상가","지구도 우주의 중심이 아니라는 생각으로 조선의 세계관을 흔들다.","과학·세계관","18세기","1Hn2PxNCPGR0u63kPrRbAw_ZOqI56URPs"],
+[71,"박지원","문인·실학자","웃음과 풍자로 낡은 권위의 허점을 찌른 지식인.","풍자·개혁","18세기","1f4LK75FFUt62nD6UaljcNwEd1QJ2Tc2R"],
+[72,"박제가","서얼 출신·실학자","소비와 교역을 말하며 가난을 미덕으로 포장한 사회에 맞서다.","경제·혁신","18세기","11bUSQ4EqoTI8YV8FTQSxbbtRUvbMbQ0x"],
+[73,"이덕무","서얼 출신·문인","책만 읽는 바보라 불렸지만 독서로 신분의 한계를 견디다.","독서·신분","18세기","1znf8aeK4mzeWj_SnNonoAjGDmYcVzhXo"],
+[74,"유득공","서얼 출신·역사가","발해를 우리 역사로 불러내 잃어버린 북방의 기억을 되찾다.","역사·정체성","18세기","1ZG17YC6spFKkQD4U7iaHd_PKW7gCs2en"],
+[75,"빙허각 이씨","여성 실학자","가정의 일과 생활 지식을 기록해 여성의 경험을 학문으로 만들다.","여성·생활지식","18세기","1QBf5KoTEfDL6oAjBwMexFmk9Qnn7xc2X"],
+[76,"김홍도","도화서 화원","평범한 사람들의 노동과 웃음을 역사의 주인공으로 그리다.","예술·민중","18세기","1KfmQpvxQIZ3VRI8UA5xFKYdgLVdmWr1A"],
+[77,"신윤복","도화서 화원","도시의 욕망과 남녀의 감정을 세련된 시선으로 포착하다.","예술·욕망","18세기","1U5BXX1Otlqh90oZrfWKzyx9tREs7eb4B"],
+[78,"최북","화가","가난과 광기 속에서도 권력에 굽히지 않은 자유로운 붓.","예술·자유","18세기","13MyfyYd6iIoWh9O-39PgPKSDDq3aeqjt"],
+[79,"정상기","지리학자","한반도를 정확한 축척의 지도에 담아 공간 인식을 바꾸다.","지도·과학","18세기","1RuYVNjD_Mh3YXqeU4MuZ_isMSsHolFsw"],
+[80,"정약용","실학자·유배 지식인","긴 유배를 좌절이 아닌 백성을 위한 학문의 시간으로 바꾸다.","실학·회복","19세기 전반","13y4iW7Y2WqjMahv1z_mOHhqBUf2IdIBq"],
+[81,"정약전","학자·유배인","흑산도 바다에서 어민의 지식을 과학의 언어로 기록하다.","과학·현장","19세기 전반","1J1xlrqaMalHOaRcor4qsxsT-pXHwpiZr"],
+[82,"김정희","학자·서예가","유배와 고독을 견디며 추사체라는 자기만의 길을 완성하다.","예술·고독","19세기 전반","1Jou3OR8wjgIvhejAJS7jZyZ6fWQ9NYYK"],
+[83,"김금원","여행가·시인","여성에게 금지된 길을 남장하고 걸어 여행을 자기 서사로 남기다.","여성·여행","19세기 전반","1KXK_dA-AzC5CmI9Q3FiHaJ7iXMHGawy6"],
+[84,"서영수합","여성 시인·수학자","살림과 육아 사이에서도 시와 수학의 세계를 놓지 않다.","여성·지식","19세기 전반","1FRK3vAKcYpIZzD9UiAvXr6TS__9vXUsF"],
+[85,"홍경래","몰락 양반·반란 지도자","차별받던 서북인의 분노를 왕조를 뒤흔든 봉기로 모으다.","지역·저항","19세기 전반","1oeH93OvNBizk3wArOQXopCK3TXlgmSmM"],
+[86,"최한기","실학자","동서양의 지식을 연결해 경험과 관측을 중시한 새 학문을 꿈꾸다.","융합·과학","19세기 전반","1663ySaQCXK087hA1t_VRLR-piOtElxBD"],
+[87,"최제우","동학 창시자","사람 안에 하늘이 있다는 가르침으로 무너진 민심을 깨우다.","평등·종교","19세기 후반","109GvRb8geXl6Abx3IDxQMkM7kbQlTsLO"],
+[88,"최시형","동학 지도자","숨어 다니는 삶 속에서도 사람과 생명을 하늘처럼 섬기라 가르치다.","생명·평등","19세기 후반","1AIKUoGCadTSqqvjBt58xu1m1hUdvtfQz"],
+[89,"전봉준","농민군 지도자","녹두장군의 깃발 아래 탐관오리와 외세에 맞선 농민의 꿈.","농민·혁명","19세기 후반","1cLr8omL1mYE_Vj6HzPOD5nH_WlNz-ETE"],
+[90,"오경석","역관·개화사상가","외국어와 책을 통해 세계의 변화를 읽고 개화의 씨앗을 뿌리다.","역관·개화","개항기","13F4lKYBYSAW8-Nvnk-udGHDjxLmF4PpC"],
+[91,"유홍기","중인·개화사상가","이름보다 사상으로 젊은 개화파의 뒤를 밀어 준 숨은 스승.","스승·개화","개항기","1ZxWyBp2odjWl24EO_pM1hVu0gpG5oNKU"],
+[92,"강위","문인·개화사상가","전통 지식인의 눈으로 국제질서의 변화를 읽고 개혁을 모색하다.","전환·개화","개항기","1nzG-3BSxmLnRne8VlH-cG2hKqmdIYiqG"],
+[93,"홍영식","문신·개화파","우편제도를 열었으나 사흘 천하의 정변과 함께 생을 마치다.","혁신·좌절","개항기","1r-ppqN775XaBK9E_yo9E7JyjQhprBeSN"],
+[94,"김옥균","문신·개화파","나라를 단숨에 바꾸려 한 조급한 혁명이 망명과 암살로 끝나다.","개혁·속도","개항기","1BkzGYPlLv2LyQOK6UBoKrU3toYhaW-t7"],
+[95,"유길준","개화사상가","서양을 직접 보고 조선이 가야 할 새로운 국가의 길을 설계하다.","세계·개혁","개항기","1N6ne_aT7SuntSPVTIpEKxRSt0sT2e3oA"],
+[96,"김홍집","문신·개혁 관료","근대 개혁을 추진했지만 외세 의존의 책임을 온몸으로 떠안다.","개혁·책임","대한제국기","1Qw9bWKTDgmeQRLuGHmlAKb-qx6JIyhTM"],
+[97,"서재필","의사·언론인·독립운동가","망명자의 경험을 독립신문과 시민 계몽의 힘으로 바꾸다.","언론·시민","대한제국기","1fd7vmaq1w7B15vMXCtCltbnopYUcY250"],
+[98,"민영환","문신·순국지사","국권을 빼앗긴 날 죽음으로 마지막 상소를 올리다.","순국·각성","대한제국기","1IiNbTxwB50eOLi_7Shrfo90uQ6g7e1ne"],
+[99,"나철","독립운동가·종교인","을사오적 처단 투쟁에서 민족종교의 부흥으로 독립의 길을 넓히다.","독립·정신","대한제국기","1arc6DV1DKR0d2DJHBx5g_r03igrA-r7u"],
+[100,"안중근","의병장·독립운동가","한 발의 총성과 동양평화론으로 침략의 시대에 책임을 묻다.","독립·평화","대한제국기","1icmHLt8xLggkXkV0QBPjtgDXNy96lAKN"]
+].map(([n,name,role,copy,theme,era,id])=>({n,name,role,copy,themes:theme.split('·'),era,id}));
+
+// 시대별 단청 색(위, 아래)과 시대 설명
+const ERAS = {
+  "조선 건국기":["#9a3a2c","#3b1612","건국과 권력 설계"],
+  "조선 전기":["#2f6b5a","#11261f","제도 형성과 희생"],
+  "사림 성장기":["#7d6a32","#2a2410","사림·예술·신분 갈등"],
+  "임진왜란기":["#8a2323","#2a0b0b","전쟁 속 선택과 책임"],
+  "광해군·인조기":["#3e5480","#121a2b","명분과 생존의 충돌"],
+  "17세기":["#6a4670","#221626","제도·민생·비주류 지식"],
+  "18세기":["#2f6f80","#0f242b","실학과 문화의 확장"],
+  "19세기 전반":["#86592f","#2b1c0f","유배·과학·민란"],
+  "19세기 후반":["#5b7a33","#1c2610","평등사상과 농민혁명"],
+  "개항기":["#33528a","#0f182b","개화와 좌절"],
+  "대한제국기":["#7a3348","#260f17","국권 위기와 독립"]
+};
+// 주제 묶음 (칩 + 특별 줄)
+const SHELVES = [
+  {key:"여성",label:"여성의 목소리",test:p=>p.themes.includes("여성")},
+  {key:"의병",label:"칼을 든 선비들 · 의병",test:p=>/의병/.test(p.themes.join()+p.role)},
+  {key:"예술",label:"붓과 소리 · 예술가",test:p=>p.themes.some(t=>/예술|음악|문학/.test(t))},
+  {key:"개혁",label:"개혁과 좌절",test:p=>p.themes.some(t=>/개혁|좌절|혁신|속도/.test(t))},
+  {key:"과학",label:"과학과 실학",test:p=>p.themes.some(t=>/과학|실학|기술|의학|지도/.test(t))},
+  {key:"저항",label:"아래로부터의 저항",test:p=>p.themes.some(t=>/저항|혁명|반란|민중/.test(t))},
+  {key:"비극",label:"비극으로 끝난 이름",test:p=>p.themes.some(t=>/비극/.test(t))}
+];
+// 함께 들으면 좋은 짝(논쟁·대비)
+const PAIRS = {1:[2,6],2:[1,7],54:[55],55:[54],29:[30,26],30:[29,34],76:[77],77:[76],80:[81],81:[80],87:[88,89],88:[87],89:[88,85],93:[94],94:[93,95],17:[18,19],18:[17],35:[36,37],27:[47,32],47:[27]};
+
+const $ = s=>document.querySelector(s);
+const store = {
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const pos = store.get('jsn_pos',{});      // {n:{t,d}}
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = s=>{s=Math.max(0,Math.floor(s||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=String(s%60).padStart(2,'0');return h?`${h}:${String(m).padStart(2,'0')}:${x}`:`${m}:${x}`};
+const colors = p=>ERAS[p.era]||["#555","#222"];
+const firstChar = p=>p.name.replace(/^(사명대사|신덕왕후|폐비|빙허각)\s*/,'').charAt(0);
+
+function card(p){
+  const [c1,c2]=colors(p); const pr=pos[p.n];
+  const pct = pr&&pr.d ? Math.min(100,pr.t/pr.d*100) : 0;
+  return `<button class="card" data-n="${p.n}" aria-label="${esc(p.name)} 자세히 보기">
+    <div class="poster" style="--c1:${c1};--c2:${c2};--img:url('img/${String(p.n).padStart(3,'0')}.jpg')">
+      <span class="no">No.${String(p.n).padStart(3,'0')}</span>
+      <span class="nm">${esc(p.name)}</span>
+      <span class="seal">${esc(firstChar(p))}</span>
+      <span class="rl">${esc(p.role)}</span>
+      ${pct?`<span class="prog"><i style="width:${pct}%"></i></span>`:''}
+    </div></button>`;
+}
+function row(title,sub,list){
+  if(!list.length) return '';
+  return `<section class="row"><h2 class="gutter">${esc(title)} ${sub?`<small>${esc(sub)}</small>`:''}</h2>
+    <div class="rail gutter">${list.map(card).join('')}</div></section>`;
+}
+
+/* ---------- 히어로: 날짜마다 바뀌는 오늘의 인물 ---------- */
+function renderHero(){
+  const d=new Date(); const seed=(d.getFullYear()*372+d.getMonth()*31+d.getDate());
+  const p=P[seed%P.length]; const [c1]=colors(p);
+  const hero=$('#hero'); hero.style.setProperty('--hc',c1);
+  const r=pos[p.n];
+  hero.innerHTML=`<div class="hanja" aria-hidden="true">${esc(firstChar(p))}</div>
+    <div class="eyebrow">오늘의 인물 · ${esc(p.era)}</div>
+    <h1>${esc(p.name)}</h1>
+    <div class="role">${esc(p.role)} · ${p.themes.map(esc).join(' · ')}</div>
+    <p>${esc(p.copy)}</p>
+    <div class="actions">
+      <button class="btn primary" id="heroPlay"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg>${r&&r.t>5?'이어 듣기':'듣기'}</button>
+      <button class="btn ghost" id="heroInfo">자세히</button>
+    </div>`;
+  $('#heroPlay').onclick=()=>play(p.n);
+  $('#heroInfo').onclick=()=>openSheet(p.n);
+}
+
+/* ---------- 줄 ---------- */
+let activeChip=null;
+function renderRows(){
+  const recent = store.get('jsn_recent',[]).map(n=>P[n-1]).filter(p=>p&&pos[p.n]&&pos[p.n].t>5&&!pos[p.n].done);
+  let html = row('이어 듣기','',recent);
+  if(activeChip){
+    const s=SHELVES.find(s=>s.key===activeChip);
+    html += row(s.label,`${P.filter(s.test).length}명`,P.filter(s.test));
+  }
+  Object.keys(ERAS).forEach((era,i)=>{
+    const list=P.filter(p=>p.era===era&&(!activeChip||SHELVES.find(s=>s.key===activeChip).test(p)));
+    html += row(era,ERAS[era][2],list);
+    if(!activeChip && i===3) html += row(SHELVES[0].label,'',P.filter(SHELVES[0].test));
+    if(!activeChip && i===6) html += row(SHELVES[3].label,'',P.filter(SHELVES[3].test));
+  });
+  $('#rows').innerHTML=html;
+}
+function renderChips(){
+  $('#chips').innerHTML = ['전체',...SHELVES.map(s=>s.key)].map(k=>
+    `<button class="chip" data-k="${k}" aria-pressed="${(k==='전체'&&!activeChip)||k===activeChip}">${k==='전체'?'전체 100명':esc(k)}</button>`).join('');
+}
+$('#chips').addEventListener('click',e=>{
+  const b=e.target.closest('.chip'); if(!b)return;
+  activeChip = b.dataset.k==='전체'?null:b.dataset.k; renderChips(); renderRows();
+});
+
+/* ---------- 검색 ---------- */
+$('#q').addEventListener('input',e=>{
+  const q=e.target.value.trim();
+  const res=$('#results');
+  if(!q){res.hidden=true;$('#rows').hidden=false;$('#hero').hidden=false;return}
+  const list=P.filter(p=>[p.name,p.role,p.era,p.copy,...p.themes].join(' ').includes(q)||String(p.n)===q);
+  $('#rows').hidden=true;$('#hero').hidden=true;res.hidden=false;
+  res.innerHTML=`<div class="row"><h2>“${esc(q)}” 검색 결과 <small>${list.length}명</small></h2></div>`+
+    (list.length?`<div class="grid">${list.map(card).join('')}</div>`:`<div class="empty">찾는 인물이 없어요. 이름이나 ‘의병’, ‘여성’, ‘실학’ 같은 주제로 찾아보세요.</div>`);
+});
+
+/* ---------- 카드 클릭 → 상세 ---------- */
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.card'); if(c) openSheet(+c.dataset.n);
+});
+function openSheet(n){
+  const p=P[n-1]; const [c1,c2]=colors(p); const r=pos[n];
+  const same=P.filter(x=>x.era===p.era&&x.n!==n);
+  const pairs=(PAIRS[n]||[]).map(i=>P[i-1]);
+  const theme=P.filter(x=>x.n!==n&&x.themes.some(t=>p.themes.includes(t))&&x.era!==p.era).slice(0,8);
+  const s=$('#sheet');
+  s.innerHTML=`<div class="sheet-top gutter" style="--c1:${c1};--c2:${c2}">
+      <div class="hanja" aria-hidden="true">${esc(firstChar(p))}</div>
+      <button class="close" id="closeSheet" aria-label="닫기">×</button>
+      <div class="eyebrow">조선왕조 인물 100선 · ${String(n).padStart(3,'0')}</div>
+      <h3>${esc(p.name)}</h3>
+      <div class="meta"><span class="tag">${esc(p.era)}</span><span class="tag">${esc(p.role)}</span>${p.themes.map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>
+    </div>
+    <div class="gutter">
+      <p class="copy">${esc(p.copy)}</p>
+      <div class="actions">
+        <button class="btn primary" id="sheetPlay"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg>${r&&r.t>5&&!r.done?`이어 듣기 (${fmt(r.t)})`:'처음부터 듣기'}</button>
+        ${r&&r.t>5?`<button class="btn ghost" id="sheetRestart">처음부터</button>`:''}
+      </div>
+      ${pairs.length?`<div class="sec"><h4>함께 들으면 좋은 인물 · 대비와 논쟁</h4><div class="pair">${pairs.map(card).join('')}</div></div>`:''}
+      <div class="sec"><h4>같은 시대 · ${esc(p.era)}</h4><div class="pair">${same.map(card).join('')}</div></div>
+      ${theme.length?`<div class="sec"><h4>같은 주제, 다른 시대</h4><div class="pair">${theme.map(card).join('')}</div></div>`:''}
+    </div>`;
+  s.scrollTop=0;
+  $('#sheetBg').classList.add('on'); s.classList.add('on');
+  $('#closeSheet').onclick=closeSheet;
+  $('#sheetPlay').onclick=()=>{play(n);closeSheet()};
+  const rs=$('#sheetRestart'); if(rs) rs.onclick=()=>{pos[n]={t:0,d:(pos[n]||{}).d};store.set('jsn_pos',pos);play(n);closeSheet()};
+}
+function closeSheet(){$('#sheet').classList.remove('on');$('#sheetBg').classList.remove('on')}
+$('#sheetBg').onclick=closeSheet;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+
+/* ---------- 플레이어 ---------- */
+const audio=$('#audio'); let cur=null, triedDrive=false;
+const SPEEDS=[1,1.25,1.5,1.75,2,0.8]; let sp=store.get('jsn_speed',0);
+const ICON_PLAY='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>';
+const ICON_PAUSE='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+$('#playBtn').innerHTML=ICON_PLAY;
+$('#speedBtn').textContent=SPEEDS[sp].toFixed(SPEEDS[sp]%1?2:1).replace(/0$/,'')+'×';
+
+function play(n){
+  const p=P[n-1]; const [c1,c2]=colors(p);
+  if(cur&&cur.n===n){audio.paused?audio.play():null;return}
+  savePos(); cur=p; triedDrive=false;
+  $('#player').classList.add('on');
+  const th=$('#plThumb'); th.style.setProperty('--c1',c1); th.style.setProperty('--c2',c2); th.textContent=firstChar(p);
+  $('#plName').textContent=`${p.name} · ${p.role}`;
+  $('#status').textContent='불러오는 중…';
+  audio.src=R2+n+'_ko'; audio.playbackRate=SPEEDS[sp];
+  const r=pos[n]; const startAt=r&&r.t>5&&!r.done?r.t:0;
+  audio.addEventListener('loadedmetadata',function once(){audio.removeEventListener('loadedmetadata',once); if(startAt&&startAt<audio.duration-3)audio.currentTime=startAt;});
+  audio.play().catch(()=>{$('#status').textContent='재생 버튼을 눌러 주세요.'});
+  const rec=store.get('jsn_recent',[]).filter(x=>x!==n); rec.unshift(n); store.set('jsn_recent',rec.slice(0,20));
+  if('mediaSession' in navigator){
+    navigator.mediaSession.metadata=new MediaMetadata({title:p.name,artist:p.role,album:'조선 100인 · '+p.era});
+  }
+}
+audio.addEventListener('error',()=>{
+  if(!cur) return;
+  if(!triedDrive){triedDrive=true;$('#status').textContent='예비 경로로 다시 시도하는 중…';
+    audio.src='https://drive.google.com/uc?export=download&id='+cur.id; audio.play().catch(()=>{});}
+  else $('#status').textContent='오디오를 불러오지 못했어요. 잠시 뒤 다시 눌러 주세요.';
+});
+audio.addEventListener('playing',()=>{$('#status').textContent='';$('#playBtn').innerHTML=ICON_PAUSE;$('#playBtn').setAttribute('aria-label','일시정지')});
+audio.addEventListener('pause',()=>{$('#playBtn').innerHTML=ICON_PLAY;$('#playBtn').setAttribute('aria-label','재생');savePos()});
+audio.addEventListener('waiting',()=>{$('#status').textContent='버퍼링 중…'});
+let lastSave=0;
+audio.addEventListener('timeupdate',()=>{
+  const d=audio.duration||0,t=audio.currentTime;
+  $('#plTime').textContent=`${fmt(t)} / ${fmt(d)}`;
+  $('#fill').style.width=(d?t/d*100:0)+'%';
+  if(audio.buffered.length&&d) $('#buf').style.width=(audio.buffered.end(audio.buffered.length-1)/d*100)+'%';
+  if(Date.now()-lastSave>5000){lastSave=Date.now();savePos()}
+});
+audio.addEventListener('ended',()=>{
+  if(cur){pos[cur.n]={t:0,d:audio.duration,done:true};store.set('jsn_pos',pos)}
+  next();
+});
+function savePos(){
+  if(!cur||!audio.duration||audio.currentTime<5) return;
+  pos[cur.n]={t:audio.currentTime,d:audio.duration}; store.set('jsn_pos',pos);
+}
+function next(){ if(cur) play(cur.n%P.length+1) }
+$('#playBtn').onclick=()=>{ if(!cur)return; audio.paused?audio.play():audio.pause() };
+$('#back15').onclick=()=>{audio.currentTime=Math.max(0,audio.currentTime-15)};
+$('#fwd15').onclick=()=>{audio.currentTime=Math.min(audio.duration||0,audio.currentTime+15)};
+$('#nextBtn').onclick=next;
+$('#speedBtn').onclick=()=>{sp=(sp+1)%SPEEDS.length;audio.playbackRate=SPEEDS[sp];store.set('jsn_speed',sp);
+  $('#speedBtn').textContent=(Math.round(SPEEDS[sp]*100)/100)+'×'};
+$('#speedBtn').textContent=(Math.round(SPEEDS[sp]*100)/100)+'×';
+// 진행 막대 드래그
+(function(){
+  const bar=$('#bar'); let drag=false;
+  const seek=e=>{const r=bar.getBoundingClientRect();const x=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));if(audio.duration)audio.currentTime=x*audio.duration};
+  bar.addEventListener('pointerdown',e=>{drag=true;bar.setPointerCapture(e.pointerId);seek(e)});
+  bar.addEventListener('pointermove',e=>{if(drag)seek(e)});
+  bar.addEventListener('pointerup',()=>{drag=false});
+})();
+if('mediaSession' in navigator){
+  navigator.mediaSession.setActionHandler('play',()=>audio.play());
+  navigator.mediaSession.setActionHandler('pause',()=>audio.pause());
+  navigator.mediaSession.setActionHandler('seekbackward',()=>{audio.currentTime-=15});
+  navigator.mediaSession.setActionHandler('seekforward',()=>{audio.currentTime+=15});
+  navigator.mediaSession.setActionHandler('nexttrack',next);
+}
+window.addEventListener('pagehide',savePos);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)savePos()});
+
+renderHero(); renderChips(); renderRows();
+</script>
+</body>
+</html>
